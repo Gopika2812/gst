@@ -1,0 +1,152 @@
+const Client = require('../models/Client');
+const Ledger = require('../models/Ledger');
+const { logAudit } = require('../middleware/auditLogger');
+
+// Generate Client Code e.g. CLI-2026-0001
+const generateClientCode = async () => {
+  const count = await Client.countDocuments();
+  return `CLI-${new Date().getFullYear()}-${String(count + 1).padStart(4, '0')}`;
+};
+
+// Create Client
+exports.createClient = async (req, res) => {
+  try {
+    const clientData = req.body;
+
+    clientData.clientCode = await generateClientCode();
+    clientData.createdBy = req.user._id;
+
+    // Credit limit restricted to Super Admin
+    if (req.user.role !== 'Super Admin') {
+      clientData.creditLimit = 50000; // Default limit
+    }
+
+    // Handle files if uploaded
+    if (req.files) {
+      if (req.files.panDoc) clientData.panDoc = `/uploads/${req.files.panDoc[0].filename}`;
+      if (req.files.gstDoc) clientData.gstDoc = `/uploads/${req.files.gstDoc[0].filename}`;
+      if (req.files.aadhaarDoc) clientData.aadhaarDoc = `/uploads/${req.files.aadhaarDoc[0].filename}`;
+      if (req.files.certificateDoc) clientData.certificateDoc = `/uploads/${req.files.certificateDoc[0].filename}`;
+    }
+
+    const client = await Client.create(clientData);
+
+    // Initial Ledger Opening Balance record
+    if (client.openingBalance && client.openingBalance !== 0) {
+      await Ledger.create({
+        client: client._id,
+        date: client.openingBalanceDate || new Date(),
+        transactionType: 'Opening Balance',
+        referenceNumber: 'INIT-OP-BAL',
+        debit: client.openingBalance > 0 ? client.openingBalance : 0,
+        credit: client.openingBalance < 0 ? Math.abs(client.openingBalance) : 0,
+        runningBalance: client.openingBalance,
+        description: 'Opening Balance Setup'
+      });
+      client.closingBalance = client.openingBalance;
+      await client.save();
+    }
+
+    await logAudit(req.user, 'Client Registration', 'Clients', `Created client: ${client.clientName} (${client.clientCode})`, req);
+
+    res.status(201).json({ message: 'Client created successfully', client });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// Get All Clients
+exports.getClients = async (req, res) => {
+  try {
+    const { status, clientType, registrationCategory, search } = req.query;
+    let filter = {};
+
+    if (status) filter.status = status;
+    if (clientType) filter.clientType = clientType;
+    if (registrationCategory) filter.registrationCategory = registrationCategory;
+    if (search) {
+      filter.$or = [
+        { clientName: { $regex: search, $options: 'i' } },
+        { tradeName: { $regex: search, $options: 'i' } },
+        { pan: { $regex: search, $options: 'i' } },
+        { gstin: { $regex: search, $options: 'i' } },
+        { phone: { $regex: search, $options: 'i' } },
+        { clientCode: { $regex: search, $options: 'i' } }
+      ];
+    }
+
+    const clients = await Client.find(filter)
+      .populate('responsibleEmployee', 'name email role')
+      .sort({ createdAt: -1 });
+
+    res.json(clients);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// Get Single Client
+exports.getClientById = async (req, res) => {
+  try {
+    const client = await Client.findById(req.params.id).populate('responsibleEmployee', 'name email phone role');
+    if (!client) {
+      return res.status(404).json({ message: 'Client not found' });
+    }
+    res.json(client);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// Update Client
+exports.updateClient = async (req, res) => {
+  try {
+    const client = await Client.findById(req.params.id);
+    if (!client) {
+      return res.status(404).json({ message: 'Client not found' });
+    }
+
+    const updateData = { ...req.body };
+
+    // Strict Rule: Only Super Admin can edit Credit Limit
+    if (req.user.role !== 'Super Admin' && updateData.creditLimit !== undefined) {
+      delete updateData.creditLimit;
+    }
+
+    // Handle files if uploaded
+    if (req.files) {
+      if (req.files.panDoc) updateData.panDoc = `/uploads/${req.files.panDoc[0].filename}`;
+      if (req.files.gstDoc) updateData.gstDoc = `/uploads/${req.files.gstDoc[0].filename}`;
+      if (req.files.aadhaarDoc) updateData.aadhaarDoc = `/uploads/${req.files.aadhaarDoc[0].filename}`;
+      if (req.files.certificateDoc) updateData.certificateDoc = `/uploads/${req.files.certificateDoc[0].filename}`;
+    }
+
+    const updatedClient = await Client.findByIdAndUpdate(req.params.id, updateData, { new: true });
+
+    await logAudit(req.user, 'Client Updated', 'Clients', `Updated client details for ${updatedClient.clientName}`, req);
+
+    res.json({ message: 'Client updated successfully', client: updatedClient });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// Soft Deactivate / Reactivate Client (Deleting clients is forbidden!)
+exports.toggleClientStatus = async (req, res) => {
+  try {
+    const client = await Client.findById(req.params.id);
+    if (!client) {
+      return res.status(404).json({ message: 'Client not found' });
+    }
+
+    const newStatus = client.status === 'Active' ? 'Inactive' : 'Active';
+    client.status = newStatus;
+    await client.save();
+
+    await logAudit(req.user, 'Client Status Change', 'Clients', `Changed client ${client.clientName} status to ${newStatus}`, req);
+
+    res.json({ message: `Client status changed to ${newStatus}`, client });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
