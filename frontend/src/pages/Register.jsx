@@ -36,6 +36,9 @@ const Register = () => {
     <div className="flex min-h-screen items-center justify-center bg-slate-100 p-4">
       <div className="glacier-card w-full max-w-md rounded-3xl p-8 shadow-2xl border border-slate-200">
         <div className="text-center">
+          <div className="mx-auto mb-3 flex h-16 w-16 items-center justify-center rounded-2xl bg-white p-1 shadow-md overflow-hidden border border-slate-200">
+            <img src="/logo.jpg" alt="Vignesh Associates Logo" className="h-full w-full object-cover rounded-xl" />
+          </div>
           <div className="flex items-center justify-center space-x-1.5">
             <span className="rounded bg-[#0F2B48] px-2 py-0.5 font-extrabold text-sm text-white">Vignesh</span>
             <span className="rounded bg-[#52A636] px-2 py-0.5 font-extrabold text-sm text-white">Associates</span>

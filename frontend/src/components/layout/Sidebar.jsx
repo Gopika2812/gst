@@ -49,14 +49,9 @@ const Sidebar = () => {
       {/* Brand Header & Logo Graphic */}
       <div className="flex h-20 items-center border-b border-slate-700/60 px-5">
         <div className="flex items-center space-x-3">
-          {/* Logo Symbol Graphic - Navy V & Leaf Green A overlapping swooshes */}
-          <div className="relative flex h-10 w-10 items-center justify-center rounded-xl bg-white p-1.5 shadow-md">
-            <svg viewBox="0 0 100 100" className="h-full w-full">
-              {/* Left Navy V Swoosh */}
-              <path d="M 20,20 L 45,80 L 60,80 L 40,20 Z" fill="#0F2B48" />
-              {/* Right Leaf Green A Swoosh */}
-              <path d="M 40,20 L 80,80 L 65,80 L 50,45 L 35,45 L 45,20 Z" fill="#52A636" />
-            </svg>
+          {/* Logo Graphic */}
+          <div className="relative flex h-10 w-10 items-center justify-center rounded-xl bg-white p-0.5 shadow-md overflow-hidden border border-slate-700/50">
+            <img src="/logo.jpg" alt="Vignesh Associates Logo" className="h-full w-full object-cover rounded-lg" />
           </div>
           <div>
             <div className="flex items-center space-x-1">

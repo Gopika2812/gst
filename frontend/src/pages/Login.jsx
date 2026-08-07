@@ -26,11 +26,8 @@ const Login = () => {
       <div className="glacier-card w-full max-w-md rounded-3xl p-8 shadow-2xl border border-slate-200">
         {/* Brand Header */}
         <div className="text-center">
-          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-white p-2 shadow-md">
-            <svg viewBox="0 0 100 100" className="h-full w-full">
-              <path d="M 20,20 L 45,80 L 60,80 L 40,20 Z" fill="#0F2B48" />
-              <path d="M 40,20 L 80,80 L 65,80 L 50,45 L 35,45 L 45,20 Z" fill="#52A636" />
-            </svg>
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-white p-1 shadow-md overflow-hidden border border-slate-200">
+            <img src="/logo.jpg" alt="Vignesh Associates Logo" className="h-full w-full object-cover rounded-xl" />
           </div>
           <div className="mt-3 flex items-center justify-center space-x-1.5">
             <span className="rounded bg-[#0F2B48] px-2 py-0.5 font-extrabold text-sm text-white">Vignesh</span>
