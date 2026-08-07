@@ -2,6 +2,8 @@ const Task = require('../models/Task');
 const Client = require('../models/Client');
 const { logAudit } = require('../middleware/auditLogger');
 
+const { getFileUrl } = require('../middleware/uploadMiddleware');
+
 // Create Task Assignment
 exports.createTask = async (req, res) => {
   try {
@@ -26,7 +28,7 @@ exports.createTask = async (req, res) => {
       return res.status(400).json({ message: 'Cannot assign task to Inactive or Suspended client' });
     }
 
-    const fileAttachment = req.file ? `/uploads/${req.file.filename}` : null;
+    const fileAttachment = getFileUrl(req.file);
 
     const task = await Task.create({
       client: clientId,
@@ -135,7 +137,7 @@ exports.updateTaskStatus = async (req, res) => {
 
     // Handle file attachment update if uploaded
     if (req.file) {
-      task.attachment = `/uploads/${req.file.filename}`;
+      task.attachment = getFileUrl(req.file);
     }
 
     await task.save();

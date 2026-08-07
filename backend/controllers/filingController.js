@@ -1,13 +1,14 @@
 const FilingRecord = require('../models/FilingRecord');
 const Task = require('../models/Task');
 const { logAudit } = require('../middleware/auditLogger');
+const { getFileUrl } = require('../middleware/uploadMiddleware');
 
 // Create Filing Record
 exports.createFilingRecord = async (req, res) => {
   try {
     const { client, task: taskId, department, filingPeriod, acknowledgementNumber, remarks } = req.body;
 
-    const fileDoc = req.file ? `/uploads/${req.file.filename}` : null;
+    const fileDoc = getFileUrl(req.file);
 
     const filing = await FilingRecord.create({
       client,

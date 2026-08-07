@@ -1,5 +1,6 @@
 const Certification = require('../models/Certification');
 const { logAudit } = require('../middleware/auditLogger');
+const { getFileUrl } = require('../middleware/uploadMiddleware');
 
 // Create Certification Request
 exports.createCertification = async (req, res) => {
@@ -47,16 +48,14 @@ exports.getCertifications = async (req, res) => {
 // Update Certification (Mark Received & Upload Certificate Document)
 exports.updateCertification = async (req, res) => {
   try {
+    const { status, remarks, movedToBilling } = req.body;
     const cert = await Certification.findById(req.params.id);
+
     if (!cert) {
-      return res.status(404).json({ message: 'Certification record not found' });
+      return res.status(404).json({ message: 'Certificate request not found' });
     }
 
-    const { certificateReceived, certificateNumber, receivedDate, remarks, movedToBilling } = req.body;
-
-    if (certificateReceived) cert.certificateReceived = certificateReceived;
-    if (certificateNumber) cert.certificateNumber = certificateNumber;
-    if (receivedDate) cert.receivedDate = receivedDate;
+    if (status) cert.status = status;
     if (remarks) cert.remarks = remarks;
     if (movedToBilling !== undefined) cert.movedToBilling = movedToBilling;
 
@@ -66,7 +65,7 @@ exports.updateCertification = async (req, res) => {
     }
 
     if (req.file) {
-      cert.uploadedCertificate = `/uploads/${req.file.filename}`;
+      cert.uploadedCertificate = getFileUrl(req.file);
     }
 
     await cert.save();

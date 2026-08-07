@@ -11,7 +11,7 @@ const generateClientCode = async () => {
 // Create Client
 exports.createClient = async (req, res) => {
   try {
-    const clientData = req.body;
+    const clientData = { ...req.body };
 
     clientData.clientCode = await generateClientCode();
     clientData.createdBy = req.user._id;
@@ -23,10 +23,10 @@ exports.createClient = async (req, res) => {
 
     // Handle files if uploaded
     if (req.files) {
-      if (req.files.panDoc) clientData.panDoc = `/uploads/${req.files.panDoc[0].filename}`;
-      if (req.files.gstDoc) clientData.gstDoc = `/uploads/${req.files.gstDoc[0].filename}`;
-      if (req.files.aadhaarDoc) clientData.aadhaarDoc = `/uploads/${req.files.aadhaarDoc[0].filename}`;
-      if (req.files.certificateDoc) clientData.certificateDoc = `/uploads/${req.files.certificateDoc[0].filename}`;
+      if (req.files.panDoc) clientData.panDoc = getFileUrl(req.files.panDoc[0]);
+      if (req.files.gstDoc) clientData.gstDoc = getFileUrl(req.files.gstDoc[0]);
+      if (req.files.aadhaarDoc) clientData.aadhaarDoc = getFileUrl(req.files.aadhaarDoc[0]);
+      if (req.files.certificateDoc) clientData.certificateDoc = getFileUrl(req.files.certificateDoc[0]);
     }
 
     const client = await Client.create(clientData);
@@ -115,10 +115,10 @@ exports.updateClient = async (req, res) => {
 
     // Handle files if uploaded
     if (req.files) {
-      if (req.files.panDoc) updateData.panDoc = `/uploads/${req.files.panDoc[0].filename}`;
-      if (req.files.gstDoc) updateData.gstDoc = `/uploads/${req.files.gstDoc[0].filename}`;
-      if (req.files.aadhaarDoc) updateData.aadhaarDoc = `/uploads/${req.files.aadhaarDoc[0].filename}`;
-      if (req.files.certificateDoc) updateData.certificateDoc = `/uploads/${req.files.certificateDoc[0].filename}`;
+      if (req.files.panDoc) updateData.panDoc = getFileUrl(req.files.panDoc[0]);
+      if (req.files.gstDoc) updateData.gstDoc = getFileUrl(req.files.gstDoc[0]);
+      if (req.files.aadhaarDoc) updateData.aadhaarDoc = getFileUrl(req.files.aadhaarDoc[0]);
+      if (req.files.certificateDoc) updateData.certificateDoc = getFileUrl(req.files.certificateDoc[0]);
     }
 
     const updatedClient = await Client.findByIdAndUpdate(req.params.id, updateData, { new: true });
