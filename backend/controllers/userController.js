@@ -107,6 +107,82 @@ exports.updateUserRole = async (req, res) => {
   }
 };
 
+// Create User (Admin Direct Creation)
+exports.createUser = async (req, res) => {
+  try {
+    const { name, email, phone, password, role, department, status } = req.body;
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return res.status(400).json({ message: 'User with this email already exists' });
+    }
+
+    const user = await User.create({
+      name,
+      email,
+      phone,
+      password: password || 'admin123',
+      role: role || 'GST Team',
+      department: department || 'GST',
+      status: status || 'Approved'
+    });
+
+    await logAudit(req.user, 'Create User', 'User Management', `Admin created user account: ${user.email}`, req);
+
+    res.status(201).json({ message: `User ${user.name} created successfully`, user });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// Update User (Full Edit)
+exports.updateUser = async (req, res) => {
+  try {
+    const { name, email, phone, role, status, department, password } = req.body;
+    const user = await User.findById(req.params.id);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    if (name) user.name = name;
+    if (email) user.email = email;
+    if (phone !== undefined) user.phone = phone;
+    if (role) user.role = role;
+    if (status) user.status = status;
+    if (department) user.department = department;
+    if (password && password.trim().length > 0) {
+      user.password = password;
+    }
+
+    await user.save();
+
+    await logAudit(req.user, 'Update User Profile', 'User Management', `Updated profile of user: ${user.email}`, req);
+
+    res.json({ message: `User ${user.name} updated successfully`, user });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// Delete User
+exports.deleteUser = async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    if (user.email === 'superadmin@vigneshassociates.com') {
+      return res.status(400).json({ message: 'Cannot delete primary Super Admin account' });
+    }
+
+    await User.findByIdAndDelete(req.params.id);
+    await logAudit(req.user, 'Delete User', 'User Management', `Deleted user account: ${user.email}`, req);
+
+    res.json({ message: `User ${user.name} deleted successfully` });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 // Get Permission Matrix
 exports.getPermissions = async (req, res) => {
   try {
@@ -136,3 +212,4 @@ exports.updatePermissions = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+

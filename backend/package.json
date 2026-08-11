@@ -7,7 +7,8 @@
   "scripts": {
     "start": "node server.js",
     "dev": "node --watch server.js",
-    "seed": "node utils/seedData.js"
+    "seed": "node utils/seedData.js",
+    "flush": "node utils/flushData.js"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",

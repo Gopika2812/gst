@@ -80,28 +80,14 @@ const Login = () => {
 
           {/* Quick Demo Credentials Switcher */}
           <div className="rounded-xl bg-slate-100/80 p-2.5 text-[11px] text-slate-600 space-y-1">
-            <p className="font-semibold text-slate-700">Quick Demo Accounts:</p>
+            <p className="font-semibold text-slate-700">Quick Login:</p>
             <div className="flex flex-wrap gap-1">
               <button
                 type="button"
                 onClick={() => { setEmail('superadmin@vigneshassociates.com'); setPassword('admin123'); }}
                 className="rounded bg-white px-2 py-0.5 border text-[10px] hover:bg-slate-50 font-medium"
               >
-                Super Admin
-              </button>
-              <button
-                type="button"
-                onClick={() => { setEmail('admin@vigneshassociates.com'); setPassword('admin123'); }}
-                className="rounded bg-white px-2 py-0.5 border text-[10px] hover:bg-slate-50 font-medium"
-              >
-                Admin
-              </button>
-              <button
-                type="button"
-                onClick={() => { setEmail('kumar@vigneshassociates.com'); setPassword('admin123'); }}
-                className="rounded bg-white px-2 py-0.5 border text-[10px] hover:bg-slate-50 font-medium"
-              >
-                GST Staff
+                Super Admin (Default)
               </button>
             </div>
           </div>

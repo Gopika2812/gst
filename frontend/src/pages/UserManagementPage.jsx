@@ -2,9 +2,10 @@ import React, { useState, useEffect } from 'react';
 import GlacierCard from '../components/common/GlacierCard';
 import Badge from '../components/common/Badge';
 import PermissionMatrixModal from '../components/users/PermissionMatrixModal';
+import UserModal from '../components/users/UserModal';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
-import { UserCheck, ShieldCheck, CheckCircle2, XCircle, Power, Lock, Search } from 'lucide-react';
+import { UserCheck, ShieldCheck, CheckCircle2, XCircle, Power, Lock, Search, Pencil, Trash2, UserPlus } from 'lucide-react';
 
 const UserManagementPage = () => {
   const { user: currentUser } = useAuth();
@@ -15,6 +16,8 @@ const UserManagementPage = () => {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [isPermModalOpen, setIsPermModalOpen] = useState(false);
+  const [isUserModalOpen, setIsUserModalOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState(null);
 
   const fetchUsers = async () => {
     setLoading(true);
@@ -31,6 +34,26 @@ const UserManagementPage = () => {
   useEffect(() => {
     fetchUsers();
   }, [search, statusFilter]);
+
+  const handleCreateUser = () => {
+    setSelectedUser(null);
+    setIsUserModalOpen(true);
+  };
+
+  const handleEditUser = (userToEdit) => {
+    setSelectedUser(userToEdit);
+    setIsUserModalOpen(true);
+  };
+
+  const handleDeleteUser = async (userId, userName) => {
+    if (!window.confirm(`Are you sure you want to delete user "${userName}"?`)) return;
+    try {
+      await api.delete(`/users/${userId}`);
+      fetchUsers();
+    } catch (err) {
+      alert(err.response?.data?.message || 'Failed to delete user');
+    }
+  };
 
   const handleApprove = async (userId) => {
     try {
@@ -65,17 +88,27 @@ const UserManagementPage = () => {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-xl font-bold text-[#0F2B48]">User Management & Approval System</h1>
-          <p className="text-xs text-slate-500">Approve pending registrations, assign roles, de-activate staff & manage page permissions</p>
+          <p className="text-xs text-slate-500">Approve pending registrations, assign roles, edit staff details & manage permissions</p>
         </div>
-        {isSuperAdmin && (
+        <div className="flex flex-wrap items-center gap-2">
           <button
-            onClick={() => setIsPermModalOpen(true)}
-            className="flex items-center space-x-1.5 rounded-xl bg-[#0F2B48] px-4 py-2.5 text-xs font-semibold text-white shadow-md transition hover:bg-[#1A3A5E]"
+            onClick={handleCreateUser}
+            className="flex items-center space-x-1.5 rounded-xl bg-[#52A636] px-4 py-2.5 text-xs font-semibold text-white shadow-md transition hover:bg-[#438A2B]"
           >
-            <ShieldCheck className="h-4 w-4 text-[#52A636]" />
-            <span>Assign Page Permissions (Matrix)</span>
+            <UserPlus className="h-4 w-4" />
+            <span>Add New User</span>
           </button>
-        )}
+
+          {isSuperAdmin && (
+            <button
+              onClick={() => setIsPermModalOpen(true)}
+              className="flex items-center space-x-1.5 rounded-xl bg-[#0F2B48] px-4 py-2.5 text-xs font-semibold text-white shadow-md transition hover:bg-[#1A3A5E]"
+            >
+              <ShieldCheck className="h-4 w-4 text-[#52A636]" />
+              <span>Assign Page Permissions (Matrix)</span>
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Filter Bar */}
@@ -149,36 +182,56 @@ const UserManagementPage = () => {
                       {u.lastLogin ? new Date(u.lastLogin).toLocaleDateString('en-IN') : 'Never'}
                     </td>
                     <td className="p-3.5 text-center">
-                      {u.status === 'Pending Approval' ? (
-                        <div className="flex items-center justify-center space-x-1">
-                          <button
-                            onClick={() => handleApprove(u._id)}
-                            title="Approve User Registration"
-                            className="flex items-center space-x-1 rounded-lg bg-[#52A636] px-2.5 py-1 text-white font-semibold text-[10px] hover:bg-[#438A2B]"
-                          >
-                            <CheckCircle2 className="h-3 w-3" />
-                            <span>Approve</span>
-                          </button>
-                          <button
-                            onClick={() => handleReject(u._id)}
-                            title="Reject User Registration"
-                            className="flex items-center space-x-1 rounded-lg bg-rose-600 px-2.5 py-1 text-white font-semibold text-[10px] hover:bg-rose-700"
-                          >
-                            <XCircle className="h-3 w-3" />
-                            <span>Reject</span>
-                          </button>
-                        </div>
-                      ) : (
+                      <div className="flex items-center justify-center space-x-1">
                         <button
-                          onClick={() => handleToggleStatus(u._id)}
-                          title={u.status === 'Deactivated' ? 'Reactivate Staff' : 'Deactivate Staff (Prevents login)'}
-                          className={`rounded-lg p-1.5 font-semibold text-xs ${
-                            u.status === 'Deactivated' ? 'text-emerald-600 hover:bg-emerald-50' : 'text-rose-600 hover:bg-rose-50'
-                          }`}
+                          onClick={() => handleEditUser(u)}
+                          title="Edit User Details"
+                          className="rounded-lg p-1.5 font-semibold text-xs text-blue-600 hover:bg-blue-50 transition"
                         >
-                          <Power className="h-4 w-4" />
+                          <Pencil className="h-4 w-4" />
                         </button>
-                      )}
+
+                        {u.status === 'Pending Approval' ? (
+                          <>
+                            <button
+                              onClick={() => handleApprove(u._id)}
+                              title="Approve User Registration"
+                              className="flex items-center space-x-1 rounded-lg bg-[#52A636] px-2 py-1 text-white font-semibold text-[10px] hover:bg-[#438A2B]"
+                            >
+                              <CheckCircle2 className="h-3 w-3" />
+                              <span>Approve</span>
+                            </button>
+                            <button
+                              onClick={() => handleReject(u._id)}
+                              title="Reject User Registration"
+                              className="flex items-center space-x-1 rounded-lg bg-rose-600 px-2 py-1 text-white font-semibold text-[10px] hover:bg-rose-700"
+                            >
+                              <XCircle className="h-3 w-3" />
+                              <span>Reject</span>
+                            </button>
+                          </>
+                        ) : (
+                          <button
+                            onClick={() => handleToggleStatus(u._id)}
+                            title={u.status === 'Deactivated' ? 'Reactivate Staff' : 'Deactivate Staff (Prevents login)'}
+                            className={`rounded-lg p-1.5 font-semibold text-xs ${
+                              u.status === 'Deactivated' ? 'text-emerald-600 hover:bg-emerald-50' : 'text-amber-600 hover:bg-amber-50'
+                            }`}
+                          >
+                            <Power className="h-4 w-4" />
+                          </button>
+                        )}
+
+                        {isSuperAdmin && u.email !== 'superadmin@vigneshassociates.com' && (
+                          <button
+                            onClick={() => handleDeleteUser(u._id, u.name)}
+                            title="Delete User Account"
+                            className="rounded-lg p-1.5 font-semibold text-xs text-rose-600 hover:bg-rose-50 transition"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 ))
@@ -187,6 +240,13 @@ const UserManagementPage = () => {
           </table>
         </div>
       </GlacierCard>
+
+      <UserModal
+        isOpen={isUserModalOpen}
+        onClose={() => setIsUserModalOpen(false)}
+        user={selectedUser}
+        onSave={fetchUsers}
+      />
 
       <PermissionMatrixModal
         isOpen={isPermModalOpen}
@@ -197,3 +257,4 @@ const UserManagementPage = () => {
 };
 
 export default UserManagementPage;
+
