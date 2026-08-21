@@ -163,16 +163,16 @@ const TaskModal = ({ isOpen, onClose, onRefresh, clients = [], employees = [], d
                 <option value="">-- Select Assignee --</option>
                 <optgroup label="Department Admins & Managers">
                   {employees
-                    .filter((e) => e.role === 'Admin')
+                    .filter((e) => e.role.includes('Admin') && e.role !== 'Super Admin')
                     .map((e) => (
                       <option key={e._id} value={e._id}>
-                        👑 {e.name} ({e.designation || 'Admin'} - {e.department})
+                        👑 {e.name} ({e.designation || e.role} - {e.department})
                       </option>
                     ))}
                 </optgroup>
                 <optgroup label="Staff Executives">
                   {employees
-                    .filter((e) => e.role !== 'Admin' && e.role !== 'Super Admin')
+                    .filter((e) => !e.role.includes('Admin'))
                     .map((e) => (
                       <option key={e._id} value={e._id}>
                         👤 {e.name} ({e.designation || e.role} - {e.department})

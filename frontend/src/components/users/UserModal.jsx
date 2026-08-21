@@ -182,6 +182,12 @@ const UserModal = ({ isOpen, onClose, user, onSave, allUsers = [] }) => {
                 >
                   <option value="Super Admin">Super Admin</option>
                   <option value="Admin">Admin (Dept Lead)</option>
+                  <option value="Department Admin">Department Admin</option>
+                  <option value="GST Admin">GST Admin (Department Lead)</option>
+                  <option value="Income Tax Admin">Income Tax Admin (Department Lead)</option>
+                  <option value="Accounts Admin">Accounts Admin (Department Lead)</option>
+                  <option value="Registration Admin">Registration Admin (Department Lead)</option>
+                  <option value="Book Keeping Admin">Book Keeping Admin (Department Lead)</option>
                   <option value="GST Executive">GST Executive</option>
                   <option value="Income Tax Executive">Income Tax Executive</option>
                   <option value="Accounts Executive">Accounts Executive</option>

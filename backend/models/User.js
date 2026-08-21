@@ -12,6 +12,12 @@ const userSchema = new mongoose.Schema(
       enum: [
         'Super Admin',
         'Admin',
+        'Department Admin',
+        'GST Admin',
+        'Income Tax Admin',
+        'Accounts Admin',
+        'Registration Admin',
+        'Book Keeping Admin',
         'GST Executive',
         'Income Tax Executive',
         'Accounts Executive',

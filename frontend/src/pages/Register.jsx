@@ -17,6 +17,62 @@ const Register = () => {
   const [error, setError] = useState('');
   const { register, loading } = useAuth();
 
+  const getRoleOptionsForDept = (dept) => {
+    switch (dept) {
+      case 'GST':
+        return [
+          { value: 'GST Executive', label: 'GST Executive' },
+          { value: 'GST Admin', label: 'GST Department Admin (Lead)' },
+          { value: 'Admin', label: 'Department Admin' }
+        ];
+      case 'Income Tax':
+        return [
+          { value: 'Income Tax Executive', label: 'Income Tax Executive' },
+          { value: 'Income Tax Admin', label: 'Income Tax Department Admin (Lead)' },
+          { value: 'Admin', label: 'Department Admin' }
+        ];
+      case 'Accounts':
+        return [
+          { value: 'Accounts Executive', label: 'Accounts Executive' },
+          { value: 'Accounts Admin', label: 'Accounts Department Admin (Lead)' },
+          { value: 'Admin', label: 'Department Admin' }
+        ];
+      case 'Registration':
+        return [
+          { value: 'Registration Executive', label: 'Registration Executive' },
+          { value: 'Registration Admin', label: 'Registration Department Admin (Lead)' },
+          { value: 'Admin', label: 'Department Admin' }
+        ];
+      case 'Book Keeping':
+        return [
+          { value: 'Book Keeping Executive', label: 'Book Keeping Executive' },
+          { value: 'Book Keeping Admin', label: 'Book Keeping Department Admin (Lead)' },
+          { value: 'Admin', label: 'Department Admin' }
+        ];
+      case 'Administration':
+        return [
+          { value: 'Admin', label: 'Administration Manager (Admin)' },
+          { value: 'Department Admin', label: 'Department Admin' },
+          { value: 'Super Admin', label: 'Super Admin' }
+        ];
+      default:
+        return [
+          { value: 'Admin', label: 'Department Admin' },
+          { value: 'GST Executive', label: 'Executive' }
+        ];
+    }
+  };
+
+  const handleDepartmentSelect = (e) => {
+    const newDept = e.target.value;
+    const defaultRoles = getRoleOptionsForDept(newDept);
+    setFormData({
+      ...formData,
+      department: newDept,
+      role: defaultRoles[0].value
+    });
+  };
+
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
@@ -105,8 +161,8 @@ const Register = () => {
                 <select
                   name="department"
                   value={formData.department}
-                  onChange={handleChange}
-                  className="mt-1 w-full rounded-xl border border-slate-200 p-2 text-xs outline-none focus:border-[#52A636]"
+                  onChange={handleDepartmentSelect}
+                  className="mt-1 w-full rounded-xl border border-slate-200 p-2 text-xs font-semibold text-[#0F2B48] outline-none focus:border-[#52A636]"
                 >
                   <option value="GST">GST</option>
                   <option value="Income Tax">Income Tax</option>
@@ -122,14 +178,13 @@ const Register = () => {
                   name="role"
                   value={formData.role}
                   onChange={handleChange}
-                  className="mt-1 w-full rounded-xl border border-slate-200 p-2 text-xs outline-none focus:border-[#52A636]"
+                  className="mt-1 w-full rounded-xl border border-slate-200 p-2 text-xs font-semibold text-[#0F2B48] outline-none focus:border-[#52A636]"
                 >
-                  <option value="GST Executive">GST Executive</option>
-                  <option value="Income Tax Executive">Income Tax Executive</option>
-                  <option value="Accounts Executive">Accounts Executive</option>
-                  <option value="Registration Executive">Registration Executive</option>
-                  <option value="Book Keeping Executive">Book Keeping Executive</option>
-                  <option value="Admin">Admin (Dept Lead)</option>
+                  {getRoleOptionsForDept(formData.department).map((opt) => (
+                    <option key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </option>
+                  ))}
                 </select>
               </div>
             </div>

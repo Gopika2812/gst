@@ -71,7 +71,7 @@ exports.getTasks = async (req, res) => {
 
     let filter = {};
 
-    const isStaff = !['Super Admin', 'Admin'].includes(req.user.role);
+    const isStaff = !req.user.role.includes('Admin');
 
     // Role & Hierarchy based task filtering
     if (myTasksOnly === 'true' || isStaff) {
