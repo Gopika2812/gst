@@ -96,11 +96,11 @@ const ClientModal = ({ isOpen, onClose, onRefresh, employees = [] }) => {
         {error && <div className="mt-4 rounded-xl bg-rose-50 p-3 text-xs font-medium text-rose-600 border border-rose-200">{error}</div>}
 
         {/* Option Toggle */}
-        <div className="mt-4 flex rounded-xl bg-slate-100 p-1">
+        <div className="mt-4 flex flex-col sm:flex-row gap-1 rounded-xl bg-slate-100 p-1">
           <button
             type="button"
             onClick={() => setRegistrationCategory('Option 1: New Client')}
-            className={`flex-1 rounded-lg py-2 text-xs font-semibold transition ${
+            className={`flex-1 rounded-lg py-2 px-2 text-xs font-semibold transition ${
               registrationCategory === 'Option 1: New Client'
                 ? 'bg-white text-[#0F2B48] shadow-sm'
                 : 'text-slate-500 hover:text-slate-800'
@@ -111,7 +111,7 @@ const ClientModal = ({ isOpen, onClose, onRefresh, employees = [] }) => {
           <button
             type="button"
             onClick={() => setRegistrationCategory('Registered Client')}
-            className={`flex-1 rounded-lg py-2 text-xs font-semibold transition ${
+            className={`flex-1 rounded-lg py-2 px-2 text-xs font-semibold transition ${
               registrationCategory === 'Registered Client'
                 ? 'bg-[#52A636] text-white shadow-sm'
                 : 'text-slate-500 hover:text-slate-800'

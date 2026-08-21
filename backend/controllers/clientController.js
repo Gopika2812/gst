@@ -1,6 +1,7 @@
 const Client = require('../models/Client');
 const Ledger = require('../models/Ledger');
 const { logAudit } = require('../middleware/auditLogger');
+const { getFileUrl } = require('../middleware/uploadMiddleware');
 
 // Generate Client Code e.g. CLI-2026-0001
 const generateClientCode = async () => {
@@ -13,6 +14,17 @@ exports.createClient = async (req, res) => {
   try {
     const clientData = { ...req.body };
 
+    // Sanitize empty strings for ObjectId/Date fields
+    if (!clientData.responsibleEmployee) delete clientData.responsibleEmployee;
+    if (!clientData.dateOfIncorporation) delete clientData.dateOfIncorporation;
+
+    // Normalize registrationCategory enum
+    if (clientData.registrationCategory && clientData.registrationCategory.includes('New Client')) {
+      clientData.registrationCategory = 'New Client';
+    } else {
+      clientData.registrationCategory = 'Registered Client';
+    }
+
     clientData.clientCode = await generateClientCode();
     clientData.createdBy = req.user._id;
 
@@ -21,12 +33,14 @@ exports.createClient = async (req, res) => {
       clientData.creditLimit = 50000; // Default limit
     }
 
+    clientData.openingBalance = Number(clientData.openingBalance) || 0;
+
     // Handle files if uploaded
     if (req.files) {
-      if (req.files.panDoc) clientData.panDoc = getFileUrl(req.files.panDoc[0]);
-      if (req.files.gstDoc) clientData.gstDoc = getFileUrl(req.files.gstDoc[0]);
-      if (req.files.aadhaarDoc) clientData.aadhaarDoc = getFileUrl(req.files.aadhaarDoc[0]);
-      if (req.files.certificateDoc) clientData.certificateDoc = getFileUrl(req.files.certificateDoc[0]);
+      if (req.files.panDoc && req.files.panDoc[0]) clientData.panDoc = getFileUrl(req.files.panDoc[0]);
+      if (req.files.gstDoc && req.files.gstDoc[0]) clientData.gstDoc = getFileUrl(req.files.gstDoc[0]);
+      if (req.files.aadhaarDoc && req.files.aadhaarDoc[0]) clientData.aadhaarDoc = getFileUrl(req.files.aadhaarDoc[0]);
+      if (req.files.certificateDoc && req.files.certificateDoc[0]) clientData.certificateDoc = getFileUrl(req.files.certificateDoc[0]);
     }
 
     const client = await Client.create(clientData);
@@ -108,6 +122,17 @@ exports.updateClient = async (req, res) => {
 
     const updateData = { ...req.body };
 
+    if (!updateData.responsibleEmployee) delete updateData.responsibleEmployee;
+    if (!updateData.dateOfIncorporation) delete updateData.dateOfIncorporation;
+
+    if (updateData.registrationCategory) {
+      if (updateData.registrationCategory.includes('New Client')) {
+        updateData.registrationCategory = 'New Client';
+      } else {
+        updateData.registrationCategory = 'Registered Client';
+      }
+    }
+
     // Strict Rule: Only Super Admin can edit Credit Limit
     if (req.user.role !== 'Super Admin' && updateData.creditLimit !== undefined) {
       delete updateData.creditLimit;
@@ -115,10 +140,10 @@ exports.updateClient = async (req, res) => {
 
     // Handle files if uploaded
     if (req.files) {
-      if (req.files.panDoc) updateData.panDoc = getFileUrl(req.files.panDoc[0]);
-      if (req.files.gstDoc) updateData.gstDoc = getFileUrl(req.files.gstDoc[0]);
-      if (req.files.aadhaarDoc) updateData.aadhaarDoc = getFileUrl(req.files.aadhaarDoc[0]);
-      if (req.files.certificateDoc) updateData.certificateDoc = getFileUrl(req.files.certificateDoc[0]);
+      if (req.files.panDoc && req.files.panDoc[0]) updateData.panDoc = getFileUrl(req.files.panDoc[0]);
+      if (req.files.gstDoc && req.files.gstDoc[0]) updateData.gstDoc = getFileUrl(req.files.gstDoc[0]);
+      if (req.files.aadhaarDoc && req.files.aadhaarDoc[0]) updateData.aadhaarDoc = getFileUrl(req.files.aadhaarDoc[0]);
+      if (req.files.certificateDoc && req.files.certificateDoc[0]) updateData.certificateDoc = getFileUrl(req.files.certificateDoc[0]);
     }
 
     const updatedClient = await Client.findByIdAndUpdate(req.params.id, updateData, { new: true });

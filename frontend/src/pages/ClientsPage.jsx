@@ -49,14 +49,14 @@ const ClientsPage = () => {
   return (
     <div className="space-y-6">
       {/* Top Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
         <div>
-          <h1 className="text-xl font-bold text-[#0F2B48]">Client Management & Registration (Module 1)</h1>
+          <h1 className="text-lg sm:text-xl font-bold text-[#0F2B48]">Client Management & Registration (Module 1)</h1>
           <p className="text-xs text-slate-500">Manage client profiles, tax information, credit limits & document records</p>
         </div>
         <button
           onClick={() => setIsModalOpen(true)}
-          className="flex items-center space-x-1.5 rounded-xl bg-[#52A636] px-4 py-2.5 text-xs font-semibold text-white shadow-md transition hover:bg-[#438A2B]"
+          className="flex items-center justify-center space-x-1.5 rounded-xl bg-[#52A636] px-4 py-2.5 text-xs font-semibold text-white shadow-md transition hover:bg-[#438A2B] w-full sm:w-auto"
         >
           <Plus className="h-4 w-4" />
           <span>Register New Client</span>
@@ -64,10 +64,10 @@ const ClientsPage = () => {
       </div>
 
       {/* Filter Bar */}
-      <GlacierCard className="p-4">
+      <GlacierCard className="p-3.5 sm:p-4">
         <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
           <div className="flex w-full sm:w-80 items-center rounded-xl border border-slate-200 bg-white px-3 py-2">
-            <Search className="mr-2 h-4 w-4 text-slate-400" />
+            <Search className="mr-2 h-4 w-4 text-slate-400 shrink-0" />
             <input
               type="text"
               placeholder="Search Client Name, Trade Name, PAN, GSTIN..."
@@ -78,11 +78,11 @@ const ClientsPage = () => {
           </div>
 
           <div className="flex items-center space-x-2 w-full sm:w-auto">
-            <Filter className="h-4 w-4 text-slate-400" />
+            <Filter className="h-4 w-4 text-slate-400 shrink-0" />
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="rounded-xl border border-slate-200 bg-white p-2 text-xs font-medium text-slate-700 outline-none"
+              className="w-full sm:w-auto rounded-xl border border-slate-200 bg-white p-2 text-xs font-medium text-slate-700 outline-none"
             >
               <option value="">All Statuses</option>
               <option value="Active">Active</option>

@@ -52,22 +52,22 @@ const ReportsPage = () => {
   return (
     <div className="space-y-6">
       {/* Header & Export Controls */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
         <div>
-          <h1 className="text-xl font-bold text-[#0F2B48]">Reports & Business Intelligence</h1>
+          <h1 className="text-lg sm:text-xl font-bold text-[#0F2B48]">Reports & Business Intelligence</h1>
           <p className="text-xs text-slate-500">Client reports, GST filing metrics, revenue performance & staff matrix</p>
         </div>
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center space-x-2 w-full sm:w-auto">
           <button
             onClick={handleExportCSV}
-            className="flex items-center space-x-1.5 rounded-xl bg-[#0F2B48] px-4 py-2 text-xs font-semibold text-white shadow-md hover:bg-[#1A3A5E]"
+            className="flex-1 sm:flex-none justify-center flex items-center space-x-1.5 rounded-xl bg-[#0F2B48] px-3.5 py-2 text-xs font-semibold text-white shadow-md hover:bg-[#1A3A5E]"
           >
             <Download className="h-4 w-4" />
             <span>Export CSV</span>
           </button>
           <button
             onClick={() => window.print()}
-            className="flex items-center space-x-1.5 rounded-xl bg-[#52A636] px-4 py-2 text-xs font-semibold text-white shadow-md hover:bg-[#438A2B]"
+            className="flex-1 sm:flex-none justify-center flex items-center space-x-1.5 rounded-xl bg-[#52A636] px-3.5 py-2 text-xs font-semibold text-white shadow-md hover:bg-[#438A2B]"
           >
             <Printer className="h-4 w-4" />
             <span>Print Report</span>
@@ -76,7 +76,7 @@ const ReportsPage = () => {
       </div>
 
       {/* Tabs */}
-      <div className="flex space-x-2 rounded-2xl bg-slate-200/70 p-1">
+      <div className="flex space-x-1 sm:space-x-2 rounded-2xl bg-slate-200/70 p-1 overflow-x-auto no-scrollbar">
         {[
           { id: 'employee', name: 'Employee Performance' },
           { id: 'gst', name: 'GST Filing Summary' },
@@ -85,7 +85,7 @@ const ReportsPage = () => {
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
-            className={`rounded-xl px-4 py-2 text-xs font-bold transition ${
+            className={`whitespace-nowrap rounded-xl px-3 sm:px-4 py-2 text-xs font-bold transition ${
               activeTab === tab.id
                 ? 'bg-white text-[#0F2B48] shadow-xs'
                 : 'text-slate-600 hover:text-slate-900'
@@ -102,7 +102,7 @@ const ReportsPage = () => {
           <h3 className="font-bold text-slate-800 text-sm">Staff Productivity & Task Completion Rate</h3>
         </div>
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs">
+          <table className="w-full text-left text-xs min-w-[700px]">
             <thead className="bg-[#0F2B48] text-white">
               <tr>
                 <th className="p-3.5 font-semibold">Employee Name</th>

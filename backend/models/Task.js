@@ -14,6 +14,7 @@ const taskSchema = new mongoose.Schema(
       enum: ['Low', 'Medium', 'High', 'Critical'],
       default: 'Medium'
     },
+    assignedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
     assignedEmployee: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
     assignedDate: { type: Date, default: Date.now },
     dueDate: { type: Date, required: true },

@@ -23,7 +23,7 @@ const SettingsPage = () => {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-xl font-bold text-[#0F2B48]">ERP System Settings</h1>
+        <h1 className="text-lg sm:text-xl font-bold text-[#0F2B48]">ERP System Settings</h1>
         <p className="text-xs text-slate-500">Configure Vignesh Associates firm profile, tax defaults & notifications</p>
       </div>
 
@@ -103,7 +103,7 @@ const SettingsPage = () => {
         <div className="flex justify-end">
           <button
             type="submit"
-            className="flex items-center space-x-1.5 rounded-xl bg-[#52A636] px-5 py-2.5 text-xs font-semibold text-white shadow-md transition hover:bg-[#438A2B]"
+            className="flex items-center justify-center space-x-1.5 rounded-xl bg-[#52A636] px-5 py-2.5 text-xs font-semibold text-white shadow-md transition hover:bg-[#438A2B] w-full sm:w-auto"
           >
             <Save className="h-4 w-4" />
             <span>Save System Settings</span>

@@ -1,8 +1,10 @@
-import React, { useState } from 'react';
-import { X, Calendar, UserCheck, AlertCircle, RefreshCw } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { X, Calendar, UserCheck, AlertCircle, RefreshCw, ShieldCheck } from 'lucide-react';
+import { useAuth } from '../../context/AuthContext';
 import api from '../../services/api';
 
-const TaskModal = ({ isOpen, onClose, onRefresh, clients = [], employees = [] }) => {
+const TaskModal = ({ isOpen, onClose, onRefresh, clients = [], employees = [], defaultAssignee = null }) => {
+  const { user: currentUser } = useAuth();
   const [client, setClient] = useState('');
   const [department, setDepartment] = useState('GST');
   const [taskName, setTaskName] = useState('GSTR3B Filing');
@@ -15,6 +17,19 @@ const TaskModal = ({ isOpen, onClose, onRefresh, clients = [], employees = [] })
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  useEffect(() => {
+    if (defaultAssignee) {
+      setAssignedEmployee(defaultAssignee._id || defaultAssignee);
+      if (defaultAssignee.department && ['GST', 'Book Keeping', 'IT Filing', 'Registration', 'Income Tax', 'Accounts'].includes(defaultAssignee.department)) {
+        const deptMap = {
+          'Income Tax': 'IT Filing',
+          'Accounts': 'Book Keeping'
+        };
+        setDepartment(deptMap[defaultAssignee.department] || defaultAssignee.department);
+      }
+    }
+  }, [defaultAssignee, isOpen]);
 
   if (!isOpen) return null;
 
@@ -66,11 +81,18 @@ const TaskModal = ({ isOpen, onClose, onRefresh, clients = [], employees = [] })
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-sm overflow-y-auto">
-      <div className="relative w-full max-w-2xl rounded-2xl bg-white p-6 shadow-2xl">
+      <div className="relative w-full max-w-2xl rounded-3xl bg-white p-6 shadow-2xl border border-slate-100 max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between border-b border-slate-100 pb-4">
           <div>
-            <h3 className="text-lg font-bold text-[#0F2B48]">Assign Task (Module 5)</h3>
-            <p className="text-xs text-slate-500">Assign single or recurring tasks to team members</p>
+            <div className="flex items-center space-x-2">
+              <span className="rounded bg-[#52A636] px-2 py-0.5 text-[10px] font-extrabold text-white uppercase">
+                {currentUser?.role === 'Super Admin' ? 'Super Admin Delegation' : 'Admin Task Assignment'}
+              </span>
+              <h3 className="text-lg font-bold text-[#0F2B48]">Assign Task</h3>
+            </div>
+            <p className="text-xs text-slate-500 mt-0.5">
+              Assigned By: <strong className="text-[#0F2B48]">{currentUser?.name}</strong> ({currentUser?.role})
+            </p>
           </div>
           <button onClick={onClose} className="rounded-xl p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600">
             <X className="h-5 w-5" />
@@ -131,19 +153,32 @@ const TaskModal = ({ isOpen, onClose, onRefresh, clients = [], employees = [] })
               </select>
             </div>
             <div>
-              <label className="text-[11px] font-semibold text-slate-600">Assigned Employee *</label>
+              <label className="text-[11px] font-semibold text-slate-600">Assigned Employee (Admin or Executive) *</label>
               <select
                 required
                 value={assignedEmployee}
                 onChange={(e) => setAssignedEmployee(e.target.value)}
                 className="mt-1 w-full rounded-xl border border-slate-200 p-2 text-xs outline-none focus:border-[#52A636]"
               >
-                <option value="">-- Choose Employee --</option>
-                {employees.map((e) => (
-                  <option key={e._id} value={e._id}>
-                    {e.name} ({e.department} - {e.role})
-                  </option>
-                ))}
+                <option value="">-- Select Assignee --</option>
+                <optgroup label="Department Admins & Managers">
+                  {employees
+                    .filter((e) => e.role === 'Admin')
+                    .map((e) => (
+                      <option key={e._id} value={e._id}>
+                        👑 {e.name} ({e.designation || 'Admin'} - {e.department})
+                      </option>
+                    ))}
+                </optgroup>
+                <optgroup label="Staff Executives">
+                  {employees
+                    .filter((e) => e.role !== 'Admin' && e.role !== 'Super Admin')
+                    .map((e) => (
+                      <option key={e._id} value={e._id}>
+                        👤 {e.name} ({e.designation || e.role} - {e.department})
+                      </option>
+                    ))}
+                </optgroup>
               </select>
             </div>
             <div>

@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
-import { Bell, Search, User, LogOut, ShieldCheck, ChevronDown, CheckCircle2, AlertTriangle, Calendar } from 'lucide-react';
+import { Bell, Search, User, LogOut, ShieldCheck, ChevronDown, CheckCircle2, AlertTriangle, Calendar, Menu } from 'lucide-react';
 
-const Navbar = ({ onSearchChange, globalSearch }) => {
+const Navbar = ({ onSearchChange, globalSearch, onToggleMobileMenu }) => {
   const { user, logout } = useAuth();
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
@@ -14,17 +14,28 @@ const Navbar = ({ onSearchChange, globalSearch }) => {
   ];
 
   return (
-    <header className="sticky top-0 z-30 flex h-16 w-full items-center justify-between border-b border-slate-200/80 bg-white/90 px-6 backdrop-blur-md">
-      {/* Global Search Bar */}
-      <div className="flex w-96 items-center rounded-xl border border-slate-200 bg-slate-50/80 px-3.5 py-2 transition focus-within:border-[#52A636] focus-within:bg-white focus-within:ring-2 focus-within:ring-[#52A636]/20">
-        <Search className="mr-2.5 h-4 w-4 text-slate-400" />
-        <input
-          type="text"
-          value={globalSearch || ''}
-          onChange={(e) => onSearchChange && onSearchChange(e.target.value)}
-          placeholder="Global Search (Client, PAN, GSTIN, Invoice #, Task)..."
-          className="w-full bg-transparent text-sm text-slate-700 placeholder-slate-400 outline-none"
-        />
+    <header className="sticky top-0 z-30 flex h-16 w-full items-center justify-between border-b border-slate-200/80 bg-white/90 px-3 sm:px-6 backdrop-blur-md">
+      <div className="flex items-center flex-1 pr-2">
+        {/* Mobile Hamburger Menu Toggle Button */}
+        <button
+          onClick={onToggleMobileMenu}
+          className="mr-2 sm:mr-3 rounded-xl border border-slate-200 p-2 text-slate-600 transition hover:bg-slate-100 hover:text-[#0F2B48] lg:hidden"
+          aria-label="Open sidebar menu"
+        >
+          <Menu className="h-5 w-5" />
+        </button>
+
+        {/* Global Search Bar */}
+        <div className="flex w-full max-w-[200px] xs:max-w-xs sm:max-w-none sm:w-72 md:w-96 items-center rounded-xl border border-slate-200 bg-slate-50/80 px-3 py-1.5 sm:py-2 transition focus-within:border-[#52A636] focus-within:bg-white focus-within:ring-2 focus-within:ring-[#52A636]/20">
+          <Search className="mr-2 h-4 w-4 shrink-0 text-slate-400" />
+          <input
+            type="text"
+            value={globalSearch || ''}
+            onChange={(e) => onSearchChange && onSearchChange(e.target.value)}
+            placeholder="Search..."
+            className="w-full bg-transparent text-xs sm:text-sm text-slate-700 placeholder-slate-400 outline-none"
+          />
+        </div>
       </div>
 
       {/* Right Header Controls */}

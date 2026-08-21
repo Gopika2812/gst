@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { User, Mail, Phone, Lock, Building2, CheckCircle2 } from 'lucide-react';
+import { User, Mail, Phone, Lock, Building2, CheckCircle2, Eye, EyeOff } from 'lucide-react';
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -9,9 +9,10 @@ const Register = () => {
     email: '',
     phone: '',
     password: '',
-    role: 'GST Team',
+    role: 'GST Executive',
     department: 'GST'
   });
+  const [showPassword, setShowPassword] = useState(false);
   const [successMsg, setSuccessMsg] = useState('');
   const [error, setError] = useState('');
   const { register, loading } = useAuth();
@@ -107,10 +108,12 @@ const Register = () => {
                   onChange={handleChange}
                   className="mt-1 w-full rounded-xl border border-slate-200 p-2 text-xs outline-none focus:border-[#52A636]"
                 >
-                  <option>GST</option>
-                  <option>Book Keeping</option>
-                  <option>IT Filing</option>
-                  <option>Registration</option>
+                  <option value="GST">GST</option>
+                  <option value="Income Tax">Income Tax</option>
+                  <option value="Accounts">Accounts</option>
+                  <option value="Book Keeping">Book Keeping</option>
+                  <option value="Registration">Registration</option>
+                  <option value="Administration">Administration</option>
                 </select>
               </div>
               <div>
@@ -121,23 +124,41 @@ const Register = () => {
                   onChange={handleChange}
                   className="mt-1 w-full rounded-xl border border-slate-200 p-2 text-xs outline-none focus:border-[#52A636]"
                 >
-                  <option>GST Team</option>
-                  <option>Book Keeping Team</option>
-                  <option>IT Filing Team</option>
-                  <option>Registration Team</option>
+                  <option value="GST Executive">GST Executive</option>
+                  <option value="Income Tax Executive">Income Tax Executive</option>
+                  <option value="Accounts Executive">Accounts Executive</option>
+                  <option value="Registration Executive">Registration Executive</option>
+                  <option value="Book Keeping Executive">Book Keeping Executive</option>
+                  <option value="Admin">Admin (Dept Lead)</option>
                 </select>
               </div>
             </div>
             <div>
               <label className="text-xs font-semibold text-slate-700">Password *</label>
-              <input
-                type="password"
-                name="password"
-                required
-                value={formData.password}
-                onChange={handleChange}
-                className="mt-1 w-full rounded-xl border border-slate-200 p-2 text-xs outline-none focus:border-[#52A636]"
-              />
+              <div className="mt-1 flex items-center rounded-xl border border-slate-200 bg-white p-2 text-xs focus-within:border-[#52A636]">
+                <Lock className="mr-2 h-4 w-4 text-slate-400 shrink-0" />
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  name="password"
+                  required
+                  value={formData.password}
+                  onChange={handleChange}
+                  className="w-full bg-transparent text-xs text-slate-800 outline-none"
+                  placeholder="Enter account password"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="ml-2 text-slate-400 hover:text-slate-600 focus:outline-none shrink-0"
+                  title={showPassword ? 'Hide password' : 'Show password'}
+                >
+                  {showPassword ? (
+                    <EyeOff className="h-4 w-4" />
+                  ) : (
+                    <Eye className="h-4 w-4" />
+                  )}
+                </button>
+              </div>
             </div>
             <button
               type="submit"

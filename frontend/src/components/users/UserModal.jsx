@@ -1,19 +1,22 @@
 import React, { useState, useEffect } from 'react';
-import { X, User, Mail, Phone, Lock, Shield, Building2, CheckCircle } from 'lucide-react';
+import { X, User, Mail, Phone, Lock, Shield, Building2, CheckCircle, Eye, EyeOff } from 'lucide-react';
 import api from '../../services/api';
 
-const UserModal = ({ isOpen, onClose, user, onSave }) => {
+const UserModal = ({ isOpen, onClose, user, onSave, allUsers = [] }) => {
   const isEdit = Boolean(user && user._id);
 
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     phone: '',
-    role: 'GST Team',
+    role: 'GST Executive',
     department: 'GST',
+    designation: '',
+    reportsTo: '',
     status: 'Approved',
     password: ''
   });
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -23,8 +26,10 @@ const UserModal = ({ isOpen, onClose, user, onSave }) => {
         name: user.name || '',
         email: user.email || '',
         phone: user.phone || '',
-        role: user.role || 'GST Team',
+        role: user.role || 'GST Executive',
         department: user.department || 'GST',
+        designation: user.designation || '',
+        reportsTo: user.reportsTo?._id || user.reportsTo || '',
         status: user.status || 'Approved',
         password: ''
       });
@@ -33,8 +38,10 @@ const UserModal = ({ isOpen, onClose, user, onSave }) => {
         name: '',
         email: '',
         phone: '',
-        role: 'GST Team',
+        role: 'GST Executive',
         department: 'GST',
+        designation: '',
+        reportsTo: '',
         status: 'Approved',
         password: ''
       });
@@ -63,6 +70,8 @@ const UserModal = ({ isOpen, onClose, user, onSave }) => {
       setLoading(false);
     }
   };
+
+  const adminUsers = allUsers.filter((u) => ['Super Admin', 'Admin'].includes(u.role));
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4 backdrop-blur-xs">
@@ -138,15 +147,27 @@ const UserModal = ({ isOpen, onClose, user, onSave }) => {
                 {isEdit ? 'Reset Password (Optional)' : 'Password *'}
               </label>
               <div className="mt-1 flex items-center rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 focus-within:bg-white focus-within:border-[#52A636]">
-                <Lock className="mr-2 h-4 w-4 text-slate-400" />
+                <Lock className="mr-2 h-4 w-4 text-slate-400 shrink-0" />
                 <input
-                  type="password"
+                  type={showPassword ? 'text' : 'password'}
                   required={!isEdit}
                   value={formData.password}
                   onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                   className="w-full bg-transparent text-xs text-slate-800 outline-none"
                   placeholder={isEdit ? 'Leave blank to keep unchanged' : 'Enter account password'}
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="ml-2 text-slate-400 hover:text-slate-600 focus:outline-none shrink-0"
+                  title={showPassword ? 'Hide password' : 'Show password'}
+                >
+                  {showPassword ? (
+                    <EyeOff className="h-4 w-4" />
+                  ) : (
+                    <Eye className="h-4 w-4" />
+                  )}
+                </button>
               </div>
             </div>
 
@@ -160,11 +181,12 @@ const UserModal = ({ isOpen, onClose, user, onSave }) => {
                   className="w-full bg-transparent text-xs text-slate-800 outline-none"
                 >
                   <option value="Super Admin">Super Admin</option>
-                  <option value="Admin">Admin</option>
-                  <option value="Registration Team">Registration Team</option>
-                  <option value="GST Team">GST Team</option>
-                  <option value="Book Keeping Team">Book Keeping Team</option>
-                  <option value="IT Filing Team">IT Filing Team</option>
+                  <option value="Admin">Admin (Dept Lead)</option>
+                  <option value="GST Executive">GST Executive</option>
+                  <option value="Income Tax Executive">Income Tax Executive</option>
+                  <option value="Accounts Executive">Accounts Executive</option>
+                  <option value="Registration Executive">Registration Executive</option>
+                  <option value="Book Keeping Executive">Book Keeping Executive</option>
                 </select>
               </div>
             </div>
@@ -179,10 +201,45 @@ const UserModal = ({ isOpen, onClose, user, onSave }) => {
                   className="w-full bg-transparent text-xs text-slate-800 outline-none"
                 >
                   <option value="Management">Management</option>
+                  <option value="Administration">Administration</option>
                   <option value="GST">GST</option>
+                  <option value="Income Tax">Income Tax</option>
+                  <option value="Accounts">Accounts</option>
                   <option value="Book Keeping">Book Keeping</option>
-                  <option value="IT Filing">IT Filing</option>
                   <option value="Registration">Registration</option>
+                </select>
+              </div>
+            </div>
+
+            <div>
+              <label className="text-xs font-semibold text-slate-700">Designation / Title</label>
+              <div className="mt-1 flex items-center rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 focus-within:bg-white focus-within:border-[#52A636]">
+                <User className="mr-2 h-4 w-4 text-slate-400" />
+                <input
+                  type="text"
+                  value={formData.designation}
+                  onChange={(e) => setFormData({ ...formData, designation: e.target.value })}
+                  className="w-full bg-transparent text-xs text-slate-800 outline-none"
+                  placeholder="e.g. Senior Income Tax Executive"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="text-xs font-semibold text-slate-700">Reports To (Admin Lead)</label>
+              <div className="mt-1 flex items-center rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 focus-within:bg-white focus-within:border-[#52A636]">
+                <User className="mr-2 h-4 w-4 text-slate-400" />
+                <select
+                  value={formData.reportsTo}
+                  onChange={(e) => setFormData({ ...formData, reportsTo: e.target.value })}
+                  className="w-full bg-transparent text-xs text-slate-800 outline-none"
+                >
+                  <option value="">-- No Direct Admin --</option>
+                  {adminUsers.map((a) => (
+                    <option key={a._id} value={a._id}>
+                      {a.name} ({a.designation || a.role} - {a.department})
+                    </option>
+                  ))}
                 </select>
               </div>
             </div>

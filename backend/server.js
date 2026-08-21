@@ -20,10 +20,14 @@ const filingRoutes = require('./routes/filingRoutes');
 const reportRoutes = require('./routes/reportRoutes');
 const auditRoutes = require('./routes/auditRoutes');
 
+const seedOrgHierarchy = require('./config/seedHierarchy');
+
 const app = express();
 
 // Connect Database
-connectDB();
+connectDB().then(() => {
+  seedOrgHierarchy();
+});
 
 // Middleware
 app.use(cors());

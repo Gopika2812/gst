@@ -81,24 +81,24 @@ const CertificationPage = () => {
       </div>
 
       {/* Workflow Visual Timeline Banner */}
-      <GlacierCard className="p-4 bg-gradient-to-r from-slate-900 to-[#0F2B48] text-white">
-        <div className="flex items-center justify-between text-xs font-semibold">
-          <div className="flex items-center space-x-2">
+      <GlacierCard className="p-3.5 sm:p-4 bg-gradient-to-r from-slate-900 to-[#0F2B48] text-white">
+        <div className="flex overflow-x-auto items-center justify-between gap-3 text-xs font-semibold no-scrollbar">
+          <div className="flex items-center space-x-2 shrink-0">
             <span className="flex h-6 w-6 items-center justify-center rounded-full bg-emerald-500 text-xs text-white">1</span>
             <span>Client Registration</span>
           </div>
-          <ArrowRight className="h-4 w-4 text-slate-400" />
-          <div className="flex items-center space-x-2">
+          <ArrowRight className="h-4 w-4 text-slate-400 shrink-0" />
+          <div className="flex items-center space-x-2 shrink-0">
             <span className="flex h-6 w-6 items-center justify-center rounded-full bg-amber-500 text-xs text-white">2</span>
             <span>Waiting Certificate</span>
           </div>
-          <ArrowRight className="h-4 w-4 text-slate-400" />
-          <div className="flex items-center space-x-2">
+          <ArrowRight className="h-4 w-4 text-slate-400 shrink-0" />
+          <div className="flex items-center space-x-2 shrink-0">
             <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[#52A636] text-xs text-white">3</span>
             <span>Certificate Received</span>
           </div>
-          <ArrowRight className="h-4 w-4 text-slate-400" />
-          <div className="flex items-center space-x-2">
+          <ArrowRight className="h-4 w-4 text-slate-400 shrink-0" />
+          <div className="flex items-center space-x-2 shrink-0">
             <span className="flex h-6 w-6 items-center justify-center rounded-full bg-blue-500 text-xs text-white">4</span>
             <span>Move to Billing</span>
           </div>
@@ -108,7 +108,7 @@ const CertificationPage = () => {
       {/* Certifications Table */}
       <GlacierCard className="p-0 overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs">
+          <table className="w-full text-left text-xs min-w-[700px]">
             <thead className="bg-[#0F2B48] text-white">
               <tr>
                 <th className="p-3.5 font-semibold">Client Name</th>

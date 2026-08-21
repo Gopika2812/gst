@@ -12,12 +12,17 @@ const userSchema = new mongoose.Schema(
       enum: [
         'Super Admin',
         'Admin',
+        'GST Executive',
+        'Income Tax Executive',
+        'Accounts Executive',
+        'Registration Executive',
+        'Book Keeping Executive',
         'Registration Team',
         'GST Team',
         'Book Keeping Team',
         'IT Filing Team'
       ],
-      default: 'GST Team'
+      default: 'GST Executive'
     },
     status: {
       type: String,
@@ -26,9 +31,20 @@ const userSchema = new mongoose.Schema(
     },
     department: {
       type: String,
-      enum: ['GST', 'Book Keeping', 'IT Filing', 'Registration', 'Management'],
+      enum: [
+        'GST',
+        'Book Keeping',
+        'IT Filing',
+        'Registration',
+        'Management',
+        'Income Tax',
+        'Accounts',
+        'Administration'
+      ],
       default: 'GST'
     },
+    designation: { type: String, trim: true },
+    reportsTo: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
     approvedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
     approvedAt: { type: Date },
     lastLogin: { type: Date }

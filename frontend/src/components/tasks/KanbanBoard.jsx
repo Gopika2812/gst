@@ -31,7 +31,7 @@ const KanbanBoard = ({ tasks = [], onStatusChange }) => {
   };
 
   return (
-    <div className="grid grid-cols-1 gap-4 lg:grid-cols-4">
+    <div className="flex overflow-x-auto gap-4 pb-4 snap-x lg:grid lg:grid-cols-4 no-scrollbar">
       {columns.map((col) => {
         const columnTasks = tasks.filter((t) => t.status === col.id);
 
@@ -40,7 +40,7 @@ const KanbanBoard = ({ tasks = [], onStatusChange }) => {
             key={col.id}
             onDragOver={handleDragOver}
             onDrop={(e) => handleDrop(e, col.id)}
-            className="flex flex-col rounded-2xl border border-slate-200/80 bg-slate-100/60 p-3 min-h-[500px]"
+            className="flex flex-col rounded-2xl border border-slate-200/80 bg-slate-100/60 p-3 min-h-[450px] sm:min-h-[500px] min-w-[270px] sm:min-w-[280px] lg:min-w-0 snap-start flex-1"
           >
             {/* Column Header */}
             <div className={`flex items-center justify-between rounded-xl border p-2.5 mb-3 ${col.color}`}>
@@ -91,16 +91,16 @@ const KanbanBoard = ({ tasks = [], onStatusChange }) => {
                     </div>
 
                     {/* Quick Move Buttons for Touch / Non-drag */}
-                    <div className="mt-2 hidden group-hover:flex items-center justify-between pt-1 border-t border-slate-100">
-                      <span className="text-[9px] text-slate-400">Shift status:</span>
+                    <div className="mt-2 flex lg:hidden lg:group-hover:flex items-center justify-between pt-1.5 border-t border-slate-100">
+                      <span className="text-[9px] text-slate-400 font-medium">Move to:</span>
                       <div className="flex space-x-1">
                         {columns.map((c) => (
                           <button
                             key={c.id}
                             onClick={() => onStatusChange(task._id, c.id)}
                             title={`Move to ${c.name}`}
-                            className={`px-1.5 py-0.5 rounded text-[9px] font-semibold ${
-                              task.status === c.id ? 'bg-[#52A636] text-white' : 'bg-slate-200 text-slate-700 hover:bg-slate-300'
+                            className={`px-2 py-0.5 rounded text-[9px] font-bold transition ${
+                              task.status === c.id ? 'bg-[#52A636] text-white shadow-xs' : 'bg-slate-200/80 text-slate-700 hover:bg-slate-300'
                             }`}
                           >
                             {c.name[0]}

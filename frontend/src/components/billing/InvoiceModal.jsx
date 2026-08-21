@@ -136,7 +136,7 @@ const InvoiceModal = ({ isOpen, onClose, onRefresh, clients = [] }) => {
               </button>
             </div>
             {items.map((item, index) => (
-              <div key={index} className="flex items-center space-x-2 mb-2">
+              <div key={index} className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 mb-2">
                 <input
                   type="text"
                   placeholder="Item description"
@@ -144,22 +144,24 @@ const InvoiceModal = ({ isOpen, onClose, onRefresh, clients = [] }) => {
                   onChange={(e) => handleItemChange(index, 'description', e.target.value)}
                   className="flex-1 rounded-xl border border-slate-200 bg-white p-2 text-xs outline-none focus:border-[#52A636]"
                 />
-                <input
-                  type="number"
-                  placeholder="Amount (₹)"
-                  value={item.amount}
-                  onChange={(e) => handleItemChange(index, 'amount', e.target.value)}
-                  className="w-32 rounded-xl border border-slate-200 bg-white p-2 text-xs outline-none focus:border-[#52A636]"
-                />
-                {items.length > 1 && (
-                  <button
-                    type="button"
-                    onClick={() => handleRemoveItem(index)}
-                    className="p-1 text-rose-500 hover:bg-rose-50 rounded-lg"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </button>
-                )}
+                <div className="flex items-center space-x-2">
+                  <input
+                    type="number"
+                    placeholder="Amount (₹)"
+                    value={item.amount}
+                    onChange={(e) => handleItemChange(index, 'amount', e.target.value)}
+                    className="flex-1 sm:w-32 rounded-xl border border-slate-200 bg-white p-2 text-xs outline-none focus:border-[#52A636]"
+                  />
+                  {items.length > 1 && (
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveItem(index)}
+                      className="p-1 text-rose-500 hover:bg-rose-50 rounded-lg shrink-0"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  )}
+                </div>
               </div>
             ))}
           </div>
@@ -201,7 +203,7 @@ const InvoiceModal = ({ isOpen, onClose, onRefresh, clients = [] }) => {
           </div>
 
           {/* Calculation Display */}
-          <div className="rounded-xl bg-[#0F2B48] p-4 text-white flex justify-between items-center shadow-lg">
+          <div className="rounded-xl bg-[#0F2B48] p-4 text-white flex flex-col sm:flex-row justify-between sm:items-center gap-2 shadow-lg">
             <div>
               <p className="text-xs text-slate-300">Subtotal: ₹{subTotal.toLocaleString('en-IN')} | GST: ₹{gstAmount.toLocaleString('en-IN')}</p>
               <p className="text-xs text-amber-400 mt-0.5">Pending Balance: ₹{pendingAmount.toLocaleString('en-IN')}</p>

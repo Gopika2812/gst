@@ -19,7 +19,10 @@ exports.getUsers = async (req, res) => {
       ];
     }
 
-    const users = await User.find(filter).select('-password').sort({ createdAt: -1 });
+    const users = await User.find(filter)
+      .select('-password')
+      .populate('reportsTo', 'name email role department designation')
+      .sort({ createdAt: -1 });
     res.json(users);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -89,7 +92,7 @@ exports.toggleUserStatus = async (req, res) => {
 // Update User Role & Department
 exports.updateUserRole = async (req, res) => {
   try {
-    const { role, department } = req.body;
+    const { role, department, designation, reportsTo } = req.body;
     const user = await User.findById(req.params.id);
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
@@ -97,6 +100,8 @@ exports.updateUserRole = async (req, res) => {
 
     user.role = role || user.role;
     user.department = department || user.department;
+    if (designation !== undefined) user.designation = designation;
+    if (reportsTo !== undefined) user.reportsTo = reportsTo;
     await user.save();
 
     await logAudit(req.user, 'Update User Role', 'User Management', `Updated role of ${user.email} to ${user.role}`, req);
@@ -110,7 +115,7 @@ exports.updateUserRole = async (req, res) => {
 // Create User (Admin Direct Creation)
 exports.createUser = async (req, res) => {
   try {
-    const { name, email, phone, password, role, department, status } = req.body;
+    const { name, email, phone, password, role, department, designation, reportsTo, status } = req.body;
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       return res.status(400).json({ message: 'User with this email already exists' });
@@ -121,8 +126,10 @@ exports.createUser = async (req, res) => {
       email,
       phone,
       password: password || 'admin123',
-      role: role || 'GST Team',
+      role: role || 'GST Executive',
       department: department || 'GST',
+      designation: designation || '',
+      reportsTo: reportsTo || null,
       status: status || 'Approved'
     });
 
@@ -137,7 +144,7 @@ exports.createUser = async (req, res) => {
 // Update User (Full Edit)
 exports.updateUser = async (req, res) => {
   try {
-    const { name, email, phone, role, status, department, password } = req.body;
+    const { name, email, phone, role, status, department, designation, reportsTo, password } = req.body;
     const user = await User.findById(req.params.id);
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
@@ -149,6 +156,8 @@ exports.updateUser = async (req, res) => {
     if (role) user.role = role;
     if (status) user.status = status;
     if (department) user.department = department;
+    if (designation !== undefined) user.designation = designation;
+    if (reportsTo !== undefined) user.reportsTo = reportsTo;
     if (password && password.trim().length > 0) {
       user.password = password;
     }

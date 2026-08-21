@@ -64,16 +64,16 @@ const Dashboard = () => {
   return (
     <div className="space-y-6">
       {/* Top Banner: Profile Card & Quick Actions */}
-      <div className="glacier-card relative overflow-hidden rounded-3xl bg-gradient-to-r from-[#0F2B48] via-[#16385C] to-[#0A1E36] p-6 text-white shadow-xl">
+      <div className="glacier-card relative overflow-hidden rounded-3xl bg-gradient-to-r from-[#0F2B48] via-[#16385C] to-[#0A1E36] p-4 sm:p-6 text-white shadow-xl">
         <div className="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-          <div className="flex items-center space-x-4">
-            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-white/10 text-xl font-bold text-white backdrop-blur-md border border-white/20">
+          <div className="flex items-center space-x-3 sm:space-x-4">
+            <div className="flex h-12 w-12 sm:h-14 sm:w-14 shrink-0 items-center justify-center rounded-2xl bg-white/10 text-lg sm:text-xl font-bold text-white backdrop-blur-md border border-white/20">
               {user?.name ? user.name.split(' ').map((n) => n[0]).join('').substring(0, 2) : 'VA'}
             </div>
             <div>
-              <div className="flex items-center space-x-2">
-                <h1 className="text-xl font-bold">Welcome back, {user?.name || 'Vigneshwaran CA'}</h1>
-                <span className="rounded-full bg-[#52A636] px-2.5 py-0.5 text-[10px] font-extrabold uppercase text-white shadow-xs">
+              <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+                <h1 className="text-lg sm:text-xl font-bold">Welcome back, {user?.name || 'Vigneshwaran CA'}</h1>
+                <span className="rounded-full bg-[#52A636] px-2 py-0.5 text-[10px] font-extrabold uppercase text-white shadow-xs">
                   {user?.role || 'Super Admin'}
                 </span>
               </div>
@@ -84,17 +84,17 @@ const Dashboard = () => {
           </div>
 
           {/* Action Buttons */}
-          <div className="flex items-center space-x-3">
+          <div className="flex items-center space-x-2 sm:space-x-3">
             <button
               onClick={() => setIsClientModalOpen(true)}
-              className="flex items-center space-x-1.5 rounded-xl bg-white/10 px-4 py-2 text-xs font-semibold text-white backdrop-blur-md border border-white/20 transition hover:bg-white/20"
+              className="flex-1 sm:flex-none justify-center flex items-center space-x-1.5 rounded-xl bg-white/10 px-3.5 py-2 text-xs font-semibold text-white backdrop-blur-md border border-white/20 transition hover:bg-white/20"
             >
               <Plus className="h-4 w-4 text-[#52A636]" />
               <span>New Client</span>
             </button>
             <button
               onClick={() => setIsTaskModalOpen(true)}
-              className="flex items-center space-x-1.5 rounded-xl bg-[#52A636] px-4 py-2 text-xs font-semibold text-white shadow-md transition hover:bg-[#438A2B]"
+              className="flex-1 sm:flex-none justify-center flex items-center space-x-1.5 rounded-xl bg-[#52A636] px-3.5 py-2 text-xs font-semibold text-white shadow-md transition hover:bg-[#438A2B]"
             >
               <Plus className="h-4 w-4" />
               <span>Assign Task</span>
@@ -104,14 +104,14 @@ const Dashboard = () => {
       </div>
 
       {/* Date Filter Bar */}
-      <div className="flex items-center justify-between">
-        <h2 className="text-sm font-bold text-[#0F2B48] uppercase tracking-wider">Executive Overview</h2>
-        <div className="flex items-center space-x-1 rounded-xl bg-slate-200/60 p-1">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5">
+        <h2 className="text-xs sm:text-sm font-bold text-[#0F2B48] uppercase tracking-wider">Executive Overview</h2>
+        <div className="flex items-center space-x-1 rounded-xl bg-slate-200/60 p-1 overflow-x-auto no-scrollbar">
           {['Today', 'This Week', 'This Month', 'Custom Date'].map((filter) => (
             <button
               key={filter}
               onClick={() => setDateFilter(filter)}
-              className={`rounded-lg px-3 py-1 text-xs font-semibold transition ${
+              className={`whitespace-nowrap rounded-lg px-2.5 sm:px-3 py-1 text-xs font-semibold transition ${
                 dateFilter === filter
                   ? 'bg-white text-[#0F2B48] shadow-xs'
                   : 'text-slate-600 hover:text-slate-900'

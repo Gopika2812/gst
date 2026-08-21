@@ -35,13 +35,18 @@ const ProtectedRoute = ({ children }) => {
 
 const MainLayout = () => {
   const [globalSearch, setGlobalSearch] = useState('');
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
 
   return (
-    <div className="flex min-h-screen bg-slate-50">
-      <Sidebar />
-      <div className="flex-1 ml-64 flex flex-col min-w-0">
-        <Navbar globalSearch={globalSearch} onSearchChange={setGlobalSearch} />
-        <main className="flex-1 p-6 overflow-y-auto">
+    <div className="flex min-h-screen bg-slate-50 relative">
+      <Sidebar isOpen={isMobileSidebarOpen} onClose={() => setIsMobileSidebarOpen(false)} />
+      <div className="flex-1 lg:ml-64 flex flex-col min-w-0">
+        <Navbar
+          globalSearch={globalSearch}
+          onSearchChange={setGlobalSearch}
+          onToggleMobileMenu={() => setIsMobileSidebarOpen(!isMobileSidebarOpen)}
+        />
+        <main className="flex-1 p-3 sm:p-6 overflow-y-auto">
           <Routes>
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/clients" element={<ClientsPage />} />

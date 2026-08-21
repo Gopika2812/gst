@@ -35,6 +35,7 @@ exports.createTask = async (req, res) => {
       department,
       taskName,
       priority: priority || 'Medium',
+      assignedBy: req.user._id,
       assignedEmployee: assignedEmployee || req.user._id,
       dueDate,
       reminderDays: reminderDays || 3,
@@ -70,8 +71,10 @@ exports.getTasks = async (req, res) => {
 
     let filter = {};
 
-    // Staff sees assigned tasks only if requested or restricted
-    if (myTasksOnly === 'true' || ['Registration Team', 'GST Team', 'Book Keeping Team', 'IT Filing Team'].includes(req.user.role)) {
+    const isStaff = !['Super Admin', 'Admin'].includes(req.user.role);
+
+    // Role & Hierarchy based task filtering
+    if (myTasksOnly === 'true' || isStaff) {
       filter.assignedEmployee = req.user._id;
     } else if (assignedEmployee) {
       filter.assignedEmployee = assignedEmployee;
@@ -113,7 +116,8 @@ exports.getTasks = async (req, res) => {
 
     const tasks = await Task.find(filter)
       .populate('client', 'clientName tradeName pan gstin phone status')
-      .populate('assignedEmployee', 'name email role department')
+      .populate('assignedEmployee', 'name email role department designation')
+      .populate('assignedBy', 'name email role department designation')
       .sort({ dueDate: 1 });
 
     res.json(tasks);

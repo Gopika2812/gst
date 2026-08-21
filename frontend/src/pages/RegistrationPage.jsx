@@ -26,13 +26,13 @@ const RegistrationPage = () => {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-xl font-bold text-[#0F2B48]">Registration & Licensing Workspace</h1>
+        <h1 className="text-lg sm:text-xl font-bold text-[#0F2B48]">Registration & Licensing Workspace</h1>
         <p className="text-xs text-slate-500">Udyam MSME, LLP, Private Limited, FSSAI License, ESI/EPF, Trade License & Certifications</p>
       </div>
 
       <GlacierCard className="p-0 overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs">
+          <table className="w-full text-left text-xs min-w-[700px]">
             <thead className="bg-[#0F2B48] text-white">
               <tr>
                 <th className="p-3.5 font-semibold">Client Name</th>

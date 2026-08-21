@@ -29,7 +29,7 @@ const AuditLogsPage = () => {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-xl font-bold text-[#0F2B48]">System Audit Trail Logs</h1>
+        <h1 className="text-lg sm:text-xl font-bold text-[#0F2B48]">System Audit Trail Logs</h1>
         <p className="text-xs text-slate-500">Comprehensive security audit logger tracking all mutations, logins, permissions & task actions</p>
       </div>
 
@@ -37,7 +37,7 @@ const AuditLogsPage = () => {
       <GlacierCard className="p-3">
         <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
           <div className="flex w-full sm:w-80 items-center rounded-xl border border-slate-200 bg-white px-3 py-2">
-            <Search className="mr-2 h-4 w-4 text-slate-400" />
+            <Search className="mr-2 h-4 w-4 text-slate-400 shrink-0" />
             <input
               type="text"
               placeholder="Search User Name, Action, Details..."
@@ -47,12 +47,12 @@ const AuditLogsPage = () => {
             />
           </div>
 
-          <div className="flex items-center space-x-2">
-            <Filter className="h-4 w-4 text-slate-400" />
+          <div className="flex items-center space-x-2 w-full sm:w-auto">
+            <Filter className="h-4 w-4 text-slate-400 shrink-0" />
             <select
               value={moduleFilter}
               onChange={(e) => setModuleFilter(e.target.value)}
-              className="rounded-xl border border-slate-200 bg-white p-2 text-xs font-medium text-slate-700 outline-none"
+              className="w-full sm:w-auto rounded-xl border border-slate-200 bg-white p-2 text-xs font-medium text-slate-700 outline-none"
             >
               <option value="">All System Modules</option>
               <option value="Authentication">Authentication</option>
@@ -70,7 +70,7 @@ const AuditLogsPage = () => {
       {/* Audit Log Table */}
       <GlacierCard className="p-0 overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs">
+          <table className="w-full text-left text-xs min-w-[700px]">
             <thead className="bg-[#0F2B48] text-white">
               <tr>
                 <th className="p-3.5 font-semibold">Timestamp</th>

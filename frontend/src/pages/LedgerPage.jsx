@@ -73,16 +73,16 @@ const LedgerPage = () => {
   return (
     <div className="space-y-6">
       {/* Header & Client Selector */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
         <div>
-          <h1 className="text-xl font-bold text-[#0F2B48]">Client Ledger & Financial Statement (Module 4)</h1>
+          <h1 className="text-lg sm:text-xl font-bold text-[#0F2B48]">Client Ledger & Financial Statement (Module 4)</h1>
           <p className="text-xs text-slate-500">Track running balances, payments received, credit & debit notes</p>
         </div>
-        <div className="flex items-center space-x-2">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
           <select
             value={selectedClientId}
             onChange={(e) => setSelectedClientId(e.target.value)}
-            className="rounded-xl border border-slate-200 bg-white p-2 text-xs font-bold text-[#0F2B48] shadow-xs outline-none focus:border-[#52A636]"
+            className="w-full sm:w-auto rounded-xl border border-slate-200 bg-white p-2 text-xs font-bold text-[#0F2B48] shadow-xs outline-none focus:border-[#52A636]"
           >
             {clients.map((c) => (
               <option key={c._id} value={c._id}>
@@ -92,7 +92,7 @@ const LedgerPage = () => {
           </select>
           <button
             onClick={() => setIsTransactionModalOpen(true)}
-            className="flex items-center space-x-1.5 rounded-xl bg-[#52A636] px-4 py-2 text-xs font-semibold text-white shadow-md transition hover:bg-[#438A2B]"
+            className="flex items-center justify-center space-x-1.5 rounded-xl bg-[#52A636] px-4 py-2 text-xs font-semibold text-white shadow-md transition hover:bg-[#438A2B] w-full sm:w-auto shrink-0"
           >
             <Plus className="h-4 w-4" />
             <span>Record Payment</span>
@@ -102,7 +102,7 @@ const LedgerPage = () => {
 
       {/* Client Financial Summary Cards */}
       {clientInfo && (
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-4">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
           <StatCard
             title="Opening Balance"
             value={`₹${(ledgerData.openingBalance || 0).toLocaleString('en-IN')}`}
@@ -140,7 +140,7 @@ const LedgerPage = () => {
         </div>
 
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs">
+          <table className="w-full text-left text-xs min-w-[750px]">
             <thead className="bg-[#0F2B48] text-white">
               <tr>
                 <th className="p-3.5 font-semibold">Date</th>

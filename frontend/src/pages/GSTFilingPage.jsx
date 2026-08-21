@@ -61,14 +61,14 @@ const GSTFilingPage = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
         <div>
-          <h1 className="text-xl font-bold text-[#0F2B48]">GST Filing Workspace</h1>
+          <h1 className="text-lg sm:text-xl font-bold text-[#0F2B48]">GST Filing Workspace</h1>
           <p className="text-xs text-slate-500">Manage GSTR-3B, GSTR-1, CMP08, GSTR-9 returns & filing acknowledgements</p>
         </div>
         <button
           onClick={() => setIsModalOpen(true)}
-          className="flex items-center space-x-1.5 rounded-xl bg-[#52A636] px-4 py-2.5 text-xs font-semibold text-white shadow-md transition hover:bg-[#438A2B]"
+          className="flex items-center justify-center space-x-1.5 rounded-xl bg-[#52A636] px-4 py-2.5 text-xs font-semibold text-white shadow-md transition hover:bg-[#438A2B] w-full sm:w-auto"
         >
           <Plus className="h-4 w-4" />
           <span>Upload Filed Return</span>
@@ -77,7 +77,7 @@ const GSTFilingPage = () => {
 
       <GlacierCard className="p-0 overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs">
+          <table className="w-full text-left text-xs min-w-[750px]">
             <thead className="bg-[#0F2B48] text-white">
               <tr>
                 <th className="p-3.5 font-semibold">Client Name</th>
