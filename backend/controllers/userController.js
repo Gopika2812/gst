@@ -32,17 +32,22 @@ exports.getUsers = async (req, res) => {
 // Approve User
 exports.approveUser = async (req, res) => {
   try {
+    const { role, department, designation, reportsTo } = req.body;
     const user = await User.findById(req.params.id);
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
 
     user.status = 'Approved';
+    if (role) user.role = role;
+    if (department) user.department = department;
+    if (designation !== undefined) user.designation = designation;
+    if (reportsTo !== undefined) user.reportsTo = reportsTo;
     user.approvedBy = req.user._id;
     user.approvedAt = new Date();
     await user.save();
 
-    await logAudit(req.user, 'Approve User', 'User Management', `Approved user: ${user.email}`, req);
+    await logAudit(req.user, 'Approve User', 'User Management', `Approved user: ${user.email} with Role: ${user.role}, Dept: ${user.department}`, req);
 
     res.json({ message: `User ${user.name} approved successfully`, user });
   } catch (error) {

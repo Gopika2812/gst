@@ -4,10 +4,11 @@ import Badge from '../components/common/Badge';
 import PermissionMatrixModal from '../components/users/PermissionMatrixModal';
 import UserModal from '../components/users/UserModal';
 import OrgChartModal from '../components/users/OrgChartModal';
+import ApproveModal from '../components/users/ApproveModal';
 import TaskModal from '../components/tasks/TaskModal';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
-import { UserCheck, ShieldCheck, CheckCircle2, XCircle, Power, Lock, Search, Pencil, Trash2, UserPlus, Network, Plus } from 'lucide-react';
+import { UserCheck, ShieldCheck, CheckCircle2, XCircle, Power, Lock, Search, Pencil, Trash2, UserPlus, Network, Plus, Loader2 } from 'lucide-react';
 
 const UserManagementPage = () => {
   const { user: currentUser } = useAuth();
@@ -16,13 +17,16 @@ const UserManagementPage = () => {
   const [users, setUsers] = useState([]);
   const [clients, setClients] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [actionLoadingId, setActionLoadingId] = useState(null);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [isPermModalOpen, setIsPermModalOpen] = useState(false);
   const [isUserModalOpen, setIsUserModalOpen] = useState(false);
   const [isOrgChartOpen, setIsOrgChartOpen] = useState(false);
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
+  const [isApproveModalOpen, setIsApproveModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
+  const [approvingUser, setApprovingUser] = useState(null);
   const [preselectedAssignee, setPreselectedAssignee] = useState(null);
 
   const fetchUsers = async () => {
@@ -55,6 +59,11 @@ const UserManagementPage = () => {
     setIsUserModalOpen(true);
   };
 
+  const handleOpenApproveModal = (userToApprove) => {
+    setApprovingUser(userToApprove);
+    setIsApproveModalOpen(true);
+  };
+
   const handleAssignTaskFromChart = (targetUser) => {
     setPreselectedAssignee(targetUser);
     setIsTaskModalOpen(true);
@@ -62,38 +71,60 @@ const UserManagementPage = () => {
 
   const handleDeleteUser = async (userId, userName) => {
     if (!window.confirm(`Are you sure you want to delete user "${userName}"?`)) return;
+    setActionLoadingId(userId);
     try {
       await api.delete(`/users/${userId}`);
+      setUsers((prev) => prev.filter((u) => u._id !== userId));
       fetchUsers();
     } catch (err) {
       alert(err.response?.data?.message || 'Failed to delete user');
+    } finally {
+      setActionLoadingId(null);
     }
   };
 
-  const handleApprove = async (userId) => {
+  const handleApproveDirect = async (userId) => {
+    setActionLoadingId(userId);
+    // Optimistic UI update
+    setUsers((prev) =>
+      prev.map((u) => (u._id === userId ? { ...u, status: 'Approved' } : u))
+    );
     try {
       await api.put(`/users/${userId}/approve`);
       fetchUsers();
     } catch (err) {
       alert('Failed to approve user');
+      fetchUsers();
+    } finally {
+      setActionLoadingId(null);
     }
   };
 
   const handleReject = async (userId) => {
+    setActionLoadingId(userId);
+    setUsers((prev) =>
+      prev.map((u) => (u._id === userId ? { ...u, status: 'Rejected' } : u))
+    );
     try {
       await api.put(`/users/${userId}/reject`);
       fetchUsers();
     } catch (err) {
       alert('Failed to reject user');
+      fetchUsers();
+    } finally {
+      setActionLoadingId(null);
     }
   };
 
   const handleToggleStatus = async (userId) => {
+    setActionLoadingId(userId);
     try {
       await api.put(`/users/${userId}/toggle-status`);
       fetchUsers();
     } catch (err) {
       alert('Failed to update staff status');
+    } finally {
+      setActionLoadingId(null);
     }
   };
 
@@ -192,11 +223,23 @@ const UserManagementPage = () => {
                       <p className="text-[10px] text-slate-500">{u.email}</p>
                     </td>
                     <td className="p-3.5">
-                      <span className="rounded bg-[#0F2B48]/10 px-2 py-0.5 font-bold text-[#0F2B48] text-[10px]">
+                      <button
+                        onClick={() => handleEditUser(u)}
+                        title="Click to edit Role & Department"
+                        className="rounded bg-[#0F2B48]/10 px-2 py-0.5 font-bold text-[#0F2B48] text-[10px] hover:bg-[#0F2B48]/20 transition text-left cursor-pointer"
+                      >
                         {u.role}
-                      </span>
+                      </button>
                     </td>
-                    <td className="p-3.5 font-semibold text-slate-700">{u.department}</td>
+                    <td className="p-3.5 font-semibold text-slate-700">
+                      <button
+                        onClick={() => handleEditUser(u)}
+                        title="Click to edit Department"
+                        className="hover:underline text-left cursor-pointer"
+                      >
+                        {u.department}
+                      </button>
+                    </td>
                     <td className="p-3.5 text-slate-600">{u.phone || 'N/A'}</td>
                     <td className="p-3.5">
                       <Badge status={u.status} />
@@ -208,7 +251,7 @@ const UserManagementPage = () => {
                       <div className="flex items-center justify-center space-x-1">
                         <button
                           onClick={() => handleEditUser(u)}
-                          title="Edit User Details"
+                          title="Edit User Role, Department & Details"
                           className="rounded-lg p-1.5 font-semibold text-xs text-blue-600 hover:bg-blue-50 transition"
                         >
                           <Pencil className="h-4 w-4" />
@@ -217,17 +260,23 @@ const UserManagementPage = () => {
                         {u.status === 'Pending Approval' ? (
                           <>
                             <button
-                              onClick={() => handleApprove(u._id)}
-                              title="Approve User Registration"
-                              className="flex items-center space-x-1 rounded-lg bg-[#52A636] px-2 py-1 text-white font-semibold text-[10px] hover:bg-[#438A2B]"
+                              onClick={() => handleOpenApproveModal(u)}
+                              disabled={actionLoadingId === u._id}
+                              title="Approve & Assign Department/Role"
+                              className="flex items-center space-x-1 rounded-lg bg-[#52A636] px-2.5 py-1 text-white font-semibold text-[10px] hover:bg-[#438A2B] transition shadow-xs disabled:opacity-50"
                             >
-                              <CheckCircle2 className="h-3 w-3" />
+                              {actionLoadingId === u._id ? (
+                                <Loader2 className="h-3 w-3 animate-spin" />
+                              ) : (
+                                <CheckCircle2 className="h-3 w-3" />
+                              )}
                               <span>Approve</span>
                             </button>
                             <button
                               onClick={() => handleReject(u._id)}
+                              disabled={actionLoadingId === u._id}
                               title="Reject User Registration"
-                              className="flex items-center space-x-1 rounded-lg bg-rose-600 px-2 py-1 text-white font-semibold text-[10px] hover:bg-rose-700"
+                              className="flex items-center space-x-1 rounded-lg bg-rose-600 px-2 py-1 text-white font-semibold text-[10px] hover:bg-rose-700 transition disabled:opacity-50"
                             >
                               <XCircle className="h-3 w-3" />
                               <span>Reject</span>
@@ -236,6 +285,7 @@ const UserManagementPage = () => {
                         ) : (
                           <button
                             onClick={() => handleToggleStatus(u._id)}
+                            disabled={actionLoadingId === u._id}
                             title={u.status === 'Deactivated' ? 'Reactivate Staff' : 'Deactivate Staff (Prevents login)'}
                             className={`rounded-lg p-1.5 font-semibold text-xs ${
                               u.status === 'Deactivated' ? 'text-emerald-600 hover:bg-emerald-50' : 'text-amber-600 hover:bg-amber-50'
@@ -248,8 +298,9 @@ const UserManagementPage = () => {
                         {isSuperAdmin && u.email !== 'superadmin@vigneshassociates.com' && (
                           <button
                             onClick={() => handleDeleteUser(u._id, u.name)}
+                            disabled={actionLoadingId === u._id}
                             title="Delete User Account"
-                            className="rounded-lg p-1.5 font-semibold text-xs text-rose-600 hover:bg-rose-50 transition"
+                            className="rounded-lg p-1.5 font-semibold text-xs text-rose-600 hover:bg-rose-50 transition disabled:opacity-50"
                           >
                             <Trash2 className="h-4 w-4" />
                           </button>
@@ -269,6 +320,19 @@ const UserManagementPage = () => {
         onClose={() => setIsUserModalOpen(false)}
         user={selectedUser}
         onSave={fetchUsers}
+        allUsers={users}
+      />
+
+      <ApproveModal
+        isOpen={isApproveModalOpen}
+        onClose={() => {
+          setIsApproveModalOpen(false);
+          setApprovingUser(null);
+        }}
+        user={approvingUser}
+        onApproved={() => {
+          fetchUsers();
+        }}
         allUsers={users}
       />
 
