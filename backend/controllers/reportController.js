@@ -7,9 +7,44 @@ const Certification = require('../models/Certification');
 // Executive Dashboard Counters & Summary
 exports.getDashboardSummary = async (req, res) => {
   try {
-    const totalClients = await Client.countDocuments();
-    const activeClients = await Client.countDocuments({ status: 'Active' });
-    const inactiveClients = await Client.countDocuments({ status: 'Inactive' });
+    const userRole = req.user.role || '';
+    const userDept = req.user.department || '';
+    const userId = req.user._id;
+
+    const isSuperAdmin = userRole === 'Super Admin';
+    const isAdmin = userRole.includes('Admin') && !isSuperAdmin;
+
+    let clientFilter = {};
+    let taskFilter = {};
+    let certFilter = {};
+    let recentTaskFilter = {};
+
+    if (isSuperAdmin) {
+      clientFilter = {};
+      taskFilter = {};
+      certFilter = {};
+      recentTaskFilter = {};
+    } else if (isAdmin) {
+      clientFilter = {};
+      taskFilter = {
+        $or: [
+          { department: userDept },
+          { assignedEmployee: userId },
+          { assignedBy: userId }
+        ]
+      };
+      certFilter = {};
+      recentTaskFilter = taskFilter;
+    } else {
+      clientFilter = {};
+      taskFilter = { assignedEmployee: userId };
+      certFilter = { assignedEmployee: userId };
+      recentTaskFilter = { assignedEmployee: userId };
+    }
+
+    const totalClients = await Client.countDocuments(clientFilter);
+    const activeClients = await Client.countDocuments({ ...clientFilter, status: 'Active' });
+    const inactiveClients = await Client.countDocuments({ ...clientFilter, status: 'Inactive' });
     
     const pendingCertificates = await Certification.countDocuments({ status: 'Waiting For Certificate' });
     
@@ -18,19 +53,30 @@ exports.getDashboardSummary = async (req, res) => {
     const endOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59);
 
     const todaysTasksCount = await Task.countDocuments({
+      ...taskFilter,
       dueDate: { $gte: startOfToday, $lte: endOfToday }
     });
 
-    const pendingTasksCount = await Task.countDocuments({ status: 'Pending' });
-    const inProgressTasksCount = await Task.countDocuments({ status: 'In Progress' });
-    const completedTasksCount = await Task.countDocuments({ status: 'Completed' });
+    const pendingTasksCount = await Task.countDocuments({
+      ...taskFilter,
+      status: { $in: ['Assigned', 'Pending'] }
+    });
+    const inProgressTasksCount = await Task.countDocuments({
+      ...taskFilter,
+      status: 'In Progress'
+    });
+    const completedTasksCount = await Task.countDocuments({
+      ...taskFilter,
+      status: 'Completed'
+    });
     const overdueTasksCount = await Task.countDocuments({
+      ...taskFilter,
       dueDate: { $lt: now },
-      status: { $ne: 'Completed' }
+      status: { $nin: ['Completed', 'Cancelled'] }
     });
 
-    // Revenue Metrics
-    const invoices = await Invoice.find();
+    // Revenue Metrics (Only for Super Admin and Dept Admins)
+    const invoices = (isSuperAdmin || isAdmin) ? await Invoice.find() : [];
     const totalRevenue = invoices.reduce((sum, inv) => sum + (inv.total || 0), 0);
     const totalCollected = invoices.reduce((sum, inv) => sum + (inv.paidAmount || 0), 0);
     const totalOutstanding = invoices.reduce((sum, inv) => sum + (inv.pendingAmount || 0), 0);
@@ -46,11 +92,12 @@ exports.getDashboardSummary = async (req, res) => {
     ];
 
     // Recent Activity Tasks
-    const recentTasks = await Task.find()
+    const recentTasks = await Task.find(recentTaskFilter)
       .populate('client', 'clientName')
-      .populate('assignedEmployee', 'name')
+      .populate('assignedEmployee', 'name role department')
+      .populate('assignedBy', 'name role')
       .sort({ updatedAt: -1 })
-      .limit(5);
+      .limit(6);
 
     res.json({
       counters: {

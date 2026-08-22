@@ -22,13 +22,15 @@ import {
 const Sidebar = ({ isOpen, onClose }) => {
   const { user } = useAuth();
 
+  const isSuperOrAdmin = user && (user.role === 'Super Admin' || (user.role && user.role.includes('Admin')));
+
   const navItems = [
     { name: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
     { name: 'Task Board', path: '/tasks', icon: KanbanSquare },
-    { name: 'Clients', path: '/clients', icon: Users },
-    { name: 'Certification Status', path: '/certification', icon: Award },
-    { name: 'Billing & Invoices', path: '/billing', icon: Receipt },
-    { name: 'Client Ledger', path: '/ledger', icon: BookOpen },
+    { name: 'Clients', path: '/clients', icon: Users, requireAdmin: true },
+    { name: 'Certification Status', path: '/certification', icon: Award, requireAdmin: true },
+    { name: 'Billing & Invoices', path: '/billing', icon: Receipt, requireAdmin: true },
+    { name: 'Client Ledger', path: '/ledger', icon: BookOpen, requireAdmin: true },
 
     // Department Portals Section
     { section: 'DEPARTMENT PORTALS' },
@@ -39,9 +41,9 @@ const Sidebar = ({ isOpen, onClose }) => {
 
     // Management Section
     { section: 'REPORTS & ADMIN' },
-    { name: 'Reports & Analytics', path: '/reports', icon: BarChart3 },
-    { name: 'User Management', path: '/users', icon: UserCheck, roles: ['Super Admin', 'Admin'] },
-    { name: 'Audit Logs', path: '/audit-logs', icon: ShieldAlert, roles: ['Super Admin'] },
+    { name: 'Reports & Analytics', path: '/reports', icon: BarChart3, requireAdmin: true },
+    { name: 'User Management', path: '/users', icon: UserCheck, requireAdmin: true },
+    { name: 'Audit Logs', path: '/audit-logs', icon: ShieldAlert, superAdminOnly: true },
     { name: 'Settings', path: '/settings', icon: Settings }
   ];
 
@@ -99,6 +101,12 @@ const Sidebar = ({ isOpen, onClose }) => {
             }
 
             // Check role restrictions
+            if (item.requireAdmin && !isSuperOrAdmin) {
+              return null;
+            }
+            if (item.superAdminOnly && user?.role !== 'Super Admin') {
+              return null;
+            }
             if (item.roles && user && !item.roles.includes(user.role)) {
               return null;
             }
