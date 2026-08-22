@@ -1,5 +1,6 @@
 const Task = require('../models/Task');
 const Client = require('../models/Client');
+const User = require('../models/User');
 const { logAudit } = require('../middleware/auditLogger');
 
 const { getFileUrl } = require('../middleware/uploadMiddleware');
