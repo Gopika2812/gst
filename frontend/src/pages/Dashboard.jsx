@@ -21,7 +21,9 @@ import {
   BarChart2,
   ShieldCheck,
   CheckSquare,
-  FileCheck
+  FileCheck,
+  XCircle,
+  PlayCircle
 } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
@@ -146,28 +148,35 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* 1st ROW: TASK PROCESS STAT CARDS (Today's Tasks, Pending Tasks, Completed Tasks, Overdue Tasks) */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      {/* 1st ROW: ALL TASK PROCESS STATUS CARDS */}
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
         <StatCard
           title="Today's Tasks"
           value={counters.todaysTasksCount || 0}
-          subtitle="Tasks assigned or created today"
+          subtitle="Assigned or created today"
           icon={Calendar}
           color="navy"
         />
         <StatCard
-          title="Pending Tasks"
-          value={counters.pendingTasksCount || 0}
-          subtitle="Awaiting progress or completion"
+          title="In Progress Tasks"
+          value={counters.inProgressTasksCount || 0}
+          subtitle="Currently undergoing work"
           icon={Clock}
-          color="amber"
+          color="blue"
         />
         <StatCard
           title="Completed Tasks"
           value={counters.completedTasksCount || 0}
-          subtitle="Successfully finished tasks"
+          subtitle="Successfully completed"
           icon={CheckCircle2}
           color="green"
+        />
+        <StatCard
+          title="Can't Complete"
+          value={counters.cantCompleteTasksCount || 0}
+          subtitle="On hold / pending info"
+          icon={XCircle}
+          color="amber"
         />
         <StatCard
           title="Overdue Tasks"

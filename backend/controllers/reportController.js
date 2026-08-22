@@ -73,6 +73,10 @@ exports.getDashboardSummary = async (req, res) => {
       ...taskFilter,
       status: 'Completed'
     });
+    const cantCompleteTasksCount = await Task.countDocuments({
+      ...taskFilter,
+      status: { $in: ["Can't Complete", 'On Hold', 'Waiting', 'Cancelled'] }
+    });
     const overdueTasksCount = await Task.countDocuments({
       ...taskFilter,
       dueDate: { $lt: now },
@@ -113,6 +117,7 @@ exports.getDashboardSummary = async (req, res) => {
         pendingTasksCount,
         inProgressTasksCount,
         completedTasksCount,
+        cantCompleteTasksCount,
         overdueTasksCount,
         totalRevenue,
         totalCollected,
