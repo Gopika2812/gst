@@ -2,13 +2,18 @@ const mongoose = require('mongoose');
 
 const taskSchema = new mongoose.Schema(
   {
-    client: { type: mongoose.Schema.Types.ObjectId, ref: 'Client', required: true },
+    client: { type: mongoose.Schema.Types.ObjectId, ref: 'Client', required: false },
+    taskType: {
+      type: String,
+      enum: ['Client Task', 'Common Task'],
+      default: 'Common Task'
+    },
     department: {
       type: String,
-      enum: ['GST', 'Book Keeping', 'IT Filing', 'Registration'],
+      enum: ['GST', 'Book Keeping', 'IT Filing', 'Registration', 'Income Tax', 'Accounts', 'Administration'],
       required: true
     },
-    taskName: { type: String, required: true }, // e.g. GSTR3B, GSTR1, Tax Audit, Bank Reconciliation, etc.
+    taskName: { type: String, required: true },
     priority: {
       type: String,
       enum: ['Low', 'Medium', 'High', 'Critical'],
@@ -26,8 +31,8 @@ const taskSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ['Pending', 'In Progress', 'Waiting', 'Completed', 'On Hold', 'Cancelled'],
-      default: 'Pending'
+      enum: ['Assigned', 'In Progress', 'Completed', "Can't Complete", 'Pending', 'Waiting', 'On Hold', 'Cancelled'],
+      default: 'Assigned'
     },
     remarks: { type: String },
     attachment: { type: String },

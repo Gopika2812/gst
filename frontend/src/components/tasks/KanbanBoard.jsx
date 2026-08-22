@@ -4,10 +4,10 @@ import Badge from '../common/Badge';
 
 const KanbanBoard = ({ tasks = [], onStatusChange }) => {
   const columns = [
-    { id: 'Pending', name: 'Pending', color: 'border-amber-400 bg-amber-50/40 text-amber-900' },
-    { id: 'In Progress', name: 'In Progress', color: 'border-blue-500 bg-blue-50/40 text-blue-900' },
-    { id: 'Waiting', name: 'Waiting', color: 'border-purple-400 bg-purple-50/40 text-purple-900' },
-    { id: 'Completed', name: 'Completed', color: 'border-emerald-500 bg-emerald-50/40 text-emerald-900' }
+    { id: 'Assigned', name: 'Assigned', match: ['Assigned', 'Pending'], color: 'border-amber-400 bg-amber-50/40 text-amber-900' },
+    { id: 'In Progress', name: 'In Progress', match: ['In Progress'], color: 'border-blue-500 bg-blue-50/40 text-blue-900' },
+    { id: 'Completed', name: 'Completed', match: ['Completed'], color: 'border-emerald-500 bg-emerald-50/40 text-emerald-900' },
+    { id: "Can't Complete", name: "Can't Complete", match: ["Can't Complete", 'Waiting', 'On Hold', 'Cancelled'], color: 'border-rose-400 bg-rose-50/40 text-rose-900' }
   ];
 
   const [draggedTaskId, setDraggedTaskId] = useState(null);
@@ -33,7 +33,7 @@ const KanbanBoard = ({ tasks = [], onStatusChange }) => {
   return (
     <div className="flex overflow-x-auto gap-4 pb-4 snap-x lg:grid lg:grid-cols-4 no-scrollbar">
       {columns.map((col) => {
-        const columnTasks = tasks.filter((t) => t.status === col.id);
+        const columnTasks = tasks.filter((t) => col.match ? col.match.includes(t.status) : t.status === col.id);
 
         return (
           <div

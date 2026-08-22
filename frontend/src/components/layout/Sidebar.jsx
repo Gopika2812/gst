@@ -24,11 +24,11 @@ const Sidebar = ({ isOpen, onClose }) => {
 
   const navItems = [
     { name: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
+    { name: 'Task Board', path: '/tasks', icon: KanbanSquare },
     { name: 'Clients', path: '/clients', icon: Users },
     { name: 'Certification Status', path: '/certification', icon: Award },
     { name: 'Billing & Invoices', path: '/billing', icon: Receipt },
     { name: 'Client Ledger', path: '/ledger', icon: BookOpen },
-    { name: 'Task Board', path: '/tasks', icon: KanbanSquare },
 
     // Department Portals Section
     { section: 'DEPARTMENT PORTALS' },

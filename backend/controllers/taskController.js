@@ -9,6 +9,7 @@ exports.createTask = async (req, res) => {
   try {
     const {
       client: clientId,
+      taskType,
       department,
       taskName,
       priority,
@@ -16,23 +17,29 @@ exports.createTask = async (req, res) => {
       dueDate,
       reminderDays,
       repeat,
-      remarks
+      remarks,
+      status
     } = req.body;
 
-    const client = await Client.findById(clientId);
-    if (!client) {
-      return res.status(404).json({ message: 'Client not found' });
-    }
+    let validClientId = null;
 
-    if (client.status !== 'Active') {
-      return res.status(400).json({ message: 'Cannot assign task to Inactive or Suspended client' });
+    if (clientId && clientId.trim() !== '') {
+      const clientObj = await Client.findById(clientId);
+      if (!clientObj) {
+        return res.status(404).json({ message: 'Selected client not found' });
+      }
+      if (clientObj.status !== 'Active') {
+        return res.status(400).json({ message: 'Cannot assign task to Inactive or Suspended client' });
+      }
+      validClientId = clientObj._id;
     }
 
     const fileAttachment = getFileUrl(req.file);
 
     const task = await Task.create({
-      client: clientId,
-      department,
+      client: validClientId,
+      taskType: taskType || (validClientId ? 'Client Task' : 'Common Task'),
+      department: department || 'GST',
       taskName,
       priority: priority || 'Medium',
       assignedBy: req.user._id,
@@ -40,7 +47,7 @@ exports.createTask = async (req, res) => {
       dueDate,
       reminderDays: reminderDays || 3,
       repeat: repeat || 'One Time',
-      status: 'Pending',
+      status: status || 'Assigned',
       remarks,
       attachment: fileAttachment
     });
@@ -66,24 +73,45 @@ exports.getTasks = async (req, res) => {
       startDate,
       endDate,
       myTasksOnly,
+      taskType,
       search
     } = req.query;
 
     let filter = {};
 
-    const isStaff = !req.user.role.includes('Admin');
+    const isSuperAdmin = req.user.role === 'Super Admin';
+    const isAdmin = req.user.role.includes('Admin') && !isSuperAdmin;
 
-    // Role & Hierarchy based task filtering
-    if (myTasksOnly === 'true' || isStaff) {
+    // Role & Hierarchy based task visibility rules
+    if (isSuperAdmin) {
+      if (myTasksOnly === 'true') {
+        filter.assignedEmployee = req.user._id;
+      } else if (assignedEmployee) {
+        filter.assignedEmployee = assignedEmployee;
+      }
+    } else if (isAdmin) {
+      if (myTasksOnly === 'true') {
+        filter.assignedEmployee = req.user._id;
+      } else if (assignedEmployee) {
+        filter.assignedEmployee = assignedEmployee;
+      } else {
+        // Admin sees their assigned tasks + created tasks + department tasks
+        filter.$or = [
+          { department: req.user.department },
+          { assignedEmployee: req.user._id },
+          { assignedBy: req.user._id }
+        ];
+      }
+    } else {
+      // Junior Executive / Staff sees ONLY their assigned tasks
       filter.assignedEmployee = req.user._id;
-    } else if (assignedEmployee) {
-      filter.assignedEmployee = assignedEmployee;
     }
 
     if (department) filter.department = department;
     if (status) filter.status = status;
     if (priority) filter.priority = priority;
     if (client) filter.client = client;
+    if (taskType) filter.taskType = taskType;
 
     // Date Filters
     const now = new Date();
@@ -102,16 +130,26 @@ exports.getTasks = async (req, res) => {
       filter.dueDate = { $gte: start, $lte: end };
     } else if (dateFilter === 'overdue') {
       filter.dueDate = { $lt: now };
-      filter.status = { $ne: 'Completed' };
+      filter.status = { $nin: ['Completed', 'Cancelled'] };
     } else if (startDate && endDate) {
       filter.dueDate = { $gte: new Date(startDate), $lte: new Date(endDate) };
     }
 
     if (search) {
-      filter.$or = [
-        { taskName: { $regex: search, $options: 'i' } },
-        { remarks: { $regex: search, $options: 'i' } }
-      ];
+      const searchRegex = { $regex: search, $options: 'i' };
+      if (filter.$or) {
+        filter = {
+          $and: [
+            { $or: filter.$or },
+            { $or: [{ taskName: searchRegex }, { remarks: searchRegex }] }
+          ]
+        };
+      } else {
+        filter.$or = [
+          { taskName: searchRegex },
+          { remarks: searchRegex }
+        ];
+      }
     }
 
     const tasks = await Task.find(filter)
