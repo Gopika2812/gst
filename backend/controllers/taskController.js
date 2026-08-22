@@ -231,3 +231,42 @@ exports.deleteTask = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+// Delegate / Reassign Task to Junior Executive or Staff
+exports.delegateTask = async (req, res) => {
+  try {
+    const { assignedEmployee, remarks } = req.body;
+    const task = await Task.findById(req.params.id);
+    if (!task) {
+      return res.status(404).json({ message: 'Task not found' });
+    }
+
+    const assignedUser = await User.findById(assignedEmployee);
+    if (!assignedUser) {
+      return res.status(404).json({ message: 'Assigned employee not found' });
+    }
+
+    task.assignedBy = req.user._id;
+    task.assignedEmployee = assignedUser._id;
+    if (remarks) task.remarks = remarks;
+
+    await task.save();
+
+    await logAudit(
+      req.user,
+      'Delegate Task',
+      'Task Board',
+      `Delegated task ${task.taskName} to ${assignedUser.name} (${assignedUser.role})`,
+      req
+    );
+
+    const updatedTask = await Task.findById(task._id)
+      .populate('client', 'clientName tradeName pan gstin phone status')
+      .populate('assignedEmployee', 'name email role department designation')
+      .populate('assignedBy', 'name email role department designation');
+
+    res.json({ message: `Task delegated successfully to ${assignedUser.name}`, task: updatedTask });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};

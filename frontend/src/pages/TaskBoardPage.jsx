@@ -3,6 +3,7 @@ import GlacierCard from '../components/common/GlacierCard';
 import KanbanBoard from '../components/tasks/KanbanBoard';
 import TaskTable from '../components/tasks/TaskTable';
 import TaskModal from '../components/tasks/TaskModal';
+import DelegateModal from '../components/tasks/DelegateModal';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { KanbanSquare, Table, Plus, Filter, Calendar, User, Clock, CheckCircle2, Building2 } from 'lucide-react';
@@ -20,6 +21,8 @@ const TaskBoardPage = () => {
   const [taskTypeFilter, setTaskTypeFilter] = useState('');
   const [myTasksOnly, setMyTasksOnly] = useState(false);
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
+  const [isDelegateModalOpen, setIsDelegateModalOpen] = useState(false);
+  const [delegatingTask, setDelegatingTask] = useState(null);
 
   const fetchTasks = async () => {
     setLoading(true);
@@ -63,6 +66,11 @@ const TaskBoardPage = () => {
       alert('Failed to update task status');
       fetchTasks();
     }
+  };
+
+  const handleOpenDelegateModal = (taskToDelegate) => {
+    setDelegatingTask(taskToDelegate);
+    setIsDelegateModalOpen(true);
   };
 
   const handleDeleteTask = async (taskId, taskName) => {
@@ -191,6 +199,7 @@ const TaskBoardPage = () => {
           tasks={tasks}
           onStatusChange={handleStatusChange}
           onDeleteTask={handleDeleteTask}
+          onDelegateTask={handleOpenDelegateModal}
           currentUser={user}
         />
       ) : (
@@ -203,6 +212,18 @@ const TaskBoardPage = () => {
         onRefresh={fetchTasks}
         clients={clients}
         employees={employees}
+      />
+
+      <DelegateModal
+        isOpen={isDelegateModalOpen}
+        onClose={() => {
+          setIsDelegateModalOpen(false);
+          setDelegatingTask(null);
+        }}
+        task={delegatingTask}
+        employees={employees}
+        onDelegated={fetchTasks}
+        currentUser={user}
       />
     </div>
   );

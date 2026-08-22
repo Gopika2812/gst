@@ -1,8 +1,8 @@
 import React from 'react';
-import { Calendar, User, Clock, AlertTriangle, CheckCircle2, XCircle, ArrowRight, Building2, Trash2 } from 'lucide-react';
+import { Calendar, User, Clock, AlertTriangle, CheckCircle2, XCircle, ArrowRight, Building2, Trash2, UserPlus } from 'lucide-react';
 import Badge from '../common/Badge';
 
-const TaskTable = ({ tasks = [], onStatusChange, onDeleteTask, currentUser }) => {
+const TaskTable = ({ tasks = [], onStatusChange, onDeleteTask, onDelegateTask, currentUser }) => {
   const statusOptions = ['Assigned', 'In Progress', 'Completed', "Can't Complete"];
 
   const getStatusBadgeStyle = (status) => {
@@ -104,6 +104,16 @@ const TaskTable = ({ tasks = [], onStatusChange, onDeleteTask, currentUser }) =>
                       <span className="text-[10px] text-slate-400 block mt-0.5">
                         ({task.assignedEmployee?.designation || task.assignedEmployee?.role || 'Executive'})
                       </span>
+                      {isSuperOrDeptAdmin && onDelegateTask && (
+                        <button
+                          onClick={() => onDelegateTask(task)}
+                          title="Delegate / Reassign task to Junior Executive"
+                          className="mt-1.5 flex items-center space-x-1 rounded-lg bg-blue-50 px-2 py-1 text-[10px] font-extrabold text-blue-700 hover:bg-blue-100 transition cursor-pointer border border-blue-200"
+                        >
+                          <UserPlus className="h-3 w-3" />
+                          <span>Delegate to Junior</span>
+                        </button>
+                      )}
                     </td>
 
                     {/* Priority */}
