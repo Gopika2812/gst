@@ -49,12 +49,13 @@ exports.getDashboardSummary = async (req, res) => {
     const pendingCertificates = await Certification.countDocuments({ status: 'Waiting For Certificate' });
     
     const now = new Date();
-    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    const endOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59);
-
     const todaysTasksCount = await Task.countDocuments({
       ...taskFilter,
-      dueDate: { $gte: startOfToday, $lte: endOfToday }
+      $or: [
+        { createdAt: { $gte: startOfToday, $lte: endOfToday } },
+        { assignedDate: { $gte: startOfToday, $lte: endOfToday } },
+        { dueDate: { $gte: startOfToday, $lte: endOfToday } }
+      ]
     });
 
     const pendingTasksCount = await Task.countDocuments({

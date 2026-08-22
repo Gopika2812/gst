@@ -49,7 +49,7 @@ const Dashboard = () => {
         api.get('/reports/dashboard-summary'),
         isSuperAdmin || isAdmin ? api.get('/clients') : Promise.resolve({ data: [] }),
         isSuperAdmin || isAdmin ? api.get('/users') : Promise.resolve({ data: [] }),
-        api.get('/tasks', { params: { myTasksOnly: true } })
+        api.get('/tasks', { params: { myTasksOnly: isExecutive ? true : false } })
       ]);
       setSummary(sumRes.data);
       setClients(clientRes.data);
@@ -102,7 +102,7 @@ const Dashboard = () => {
             </div>
           </div>
 
-          {/* Action Buttons: Super Admin has Add Client + Assign Task; Dept Admin has Assign Task; Executives have NO action buttons */}
+          {/* Action Buttons */}
           {(isSuperAdmin || isAdmin) && (
             <div className="flex items-center space-x-2 sm:space-x-3">
               {isSuperAdmin && (
@@ -127,7 +127,7 @@ const Dashboard = () => {
       {/* Date Filter Bar */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5">
         <h2 className="text-xs sm:text-sm font-bold text-[#0F2B48] uppercase tracking-wider">
-          {isExecutive ? 'My Daily Workflow Overview' : (isSuperAdmin ? 'Firm Executive Overview' : `${user?.department} Department Overview`)}
+          {isExecutive ? 'My Daily Workflow Overview' : (isSuperAdmin ? 'Firm Task Process Overview' : `${user?.department} Task Process Overview`)}
         </h2>
         <div className="flex items-center space-x-1 rounded-xl bg-slate-200/60 p-1 overflow-x-auto no-scrollbar">
           {['Today', 'This Week', 'This Month', 'Custom Date'].map((filter) => (
@@ -146,152 +146,63 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* EXECUTIVE / STAFF TAILORED DASHBOARD */}
+      {/* 1st ROW: TASK PROCESS STAT CARDS (Today's Tasks, Pending Tasks, Completed Tasks, Overdue Tasks) */}
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <StatCard
+          title="Today's Tasks"
+          value={counters.todaysTasksCount || 0}
+          subtitle="Tasks assigned or created today"
+          icon={Calendar}
+          color="navy"
+        />
+        <StatCard
+          title="Pending Tasks"
+          value={counters.pendingTasksCount || 0}
+          subtitle="Awaiting progress or completion"
+          icon={Clock}
+          color="amber"
+        />
+        <StatCard
+          title="Completed Tasks"
+          value={counters.completedTasksCount || 0}
+          subtitle="Successfully finished tasks"
+          icon={CheckCircle2}
+          color="green"
+        />
+        <StatCard
+          title="Overdue Tasks"
+          value={counters.overdueTasksCount || 0}
+          subtitle="Passed deadline date"
+          icon={AlertTriangle}
+          color="rose"
+        />
+      </div>
+
+      {/* EXECUTIVE / STAFF TAILORED WORKFLOW TABLE */}
       {isExecutive ? (
-        <div className="space-y-6">
-          {/* Executive Stat Cards */}
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-            <div className="glacier-card rounded-2xl p-4 border-l-4 border-blue-500">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-slate-600">Today's Assigned</span>
-                <Calendar className="h-4 w-4 text-blue-500" />
-              </div>
-              <p className="mt-2 text-2xl font-extrabold text-slate-800">{counters.todaysTasksCount || 0}</p>
-            </div>
-            <div className="glacier-card rounded-2xl p-4 border-l-4 border-amber-500">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-slate-600">Pending Tasks</span>
-                <Clock className="h-4 w-4 text-amber-500" />
-              </div>
-              <p className="mt-2 text-2xl font-extrabold text-slate-800">{counters.pendingTasksCount || 0}</p>
-            </div>
-            <div className="glacier-card rounded-2xl p-4 border-l-4 border-emerald-500">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-slate-600">Completed Tasks</span>
-                <CheckCircle2 className="h-4 w-4 text-emerald-500" />
-              </div>
-              <p className="mt-2 text-2xl font-extrabold text-slate-800">{counters.completedTasksCount || 0}</p>
-            </div>
-            <div className="glacier-card rounded-2xl p-4 border-l-4 border-rose-500">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-slate-600">Overdue Tasks</span>
-                <AlertTriangle className="h-4 w-4 text-rose-500" />
-              </div>
-              <p className="mt-2 text-2xl font-extrabold text-rose-600">{counters.overdueTasksCount || 0}</p>
-            </div>
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <h3 className="text-sm font-extrabold text-[#0F2B48] flex items-center space-x-2">
+              <CheckSquare className="h-4 w-4 text-[#52A636]" />
+              <span>My Daily Assigned Tasks</span>
+            </h3>
+            <span className="text-xs font-semibold text-slate-500">Showing {myTasks.length} tasks</span>
           </div>
 
-          {/* Executive Daily Assigned Tasks List */}
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <h3 className="text-sm font-extrabold text-[#0F2B48] flex items-center space-x-2">
-                <CheckSquare className="h-4 w-4 text-[#52A636]" />
-                <span>My Assigned Daily Tasks</span>
-              </h3>
-              <span className="text-xs font-semibold text-slate-500">Showing {myTasks.length} tasks</span>
-            </div>
-
-            <TaskTable
-              tasks={myTasks}
-              onStatusChange={handleTaskStatusChange}
-              currentUser={user}
-            />
-          </div>
+          <TaskTable
+            tasks={myTasks}
+            onStatusChange={handleTaskStatusChange}
+            currentUser={user}
+          />
         </div>
       ) : (
-        /* SUPER ADMIN & DEPARTMENT ADMIN DASHBOARD */
+        /* SUPER ADMIN & DEPARTMENT ADMIN TASK MANAGEMENT VIEW */
         <div className="space-y-6">
-          {/* Stat Cards Grid */}
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <StatCard
-              title="Total Active Clients"
-              value={counters.activeClients || 0}
-              subtitle={`Total Registered: ${counters.totalClients || 0}`}
-              icon={Users}
-              color="navy"
-              trend="+12% from last month"
-            />
-            <StatCard
-              title="Pending Certificates"
-              value={counters.pendingCertificates || 0}
-              subtitle="Waiting for Certificate approval"
-              icon={Award}
-              color="amber"
-            />
-            {isSuperAdmin ? (
-              <>
-                <StatCard
-                  title="Total Revenue (Billed)"
-                  value={`₹${(counters.totalRevenue || 0).toLocaleString('en-IN')}`}
-                  subtitle={`Collected: ₹${(counters.totalCollected || 0).toLocaleString('en-IN')}`}
-                  icon={Receipt}
-                  color="green"
-                />
-                <StatCard
-                  title="Outstanding Receivable"
-                  value={`₹${(counters.totalOutstanding || 0).toLocaleString('en-IN')}`}
-                  subtitle="Pending invoices due"
-                  icon={AlertTriangle}
-                  color="rose"
-                />
-              </>
-            ) : (
-              <>
-                <StatCard
-                  title="Department Pending Tasks"
-                  value={counters.pendingTasksCount || 0}
-                  subtitle="Tasks awaiting completion"
-                  icon={Clock}
-                  color="blue"
-                />
-                <StatCard
-                  title="Department Completed Tasks"
-                  value={counters.completedTasksCount || 0}
-                  subtitle="Successfully processed tasks"
-                  icon={CheckCircle2}
-                  color="green"
-                />
-              </>
-            )}
-          </div>
-
-          {/* Task State Cards Row */}
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-            <div className="glacier-card rounded-2xl p-4 border-l-4 border-blue-500">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-semibold text-slate-500">Today's Tasks</span>
-                <Calendar className="h-4 w-4 text-blue-500" />
-              </div>
-              <p className="mt-2 text-xl font-bold text-slate-800">{counters.todaysTasksCount || 0}</p>
-            </div>
-            <div className="glacier-card rounded-2xl p-4 border-l-4 border-amber-500">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-semibold text-slate-500">Pending Tasks</span>
-                <Clock className="h-4 w-4 text-amber-500" />
-              </div>
-              <p className="mt-2 text-xl font-bold text-slate-800">{counters.pendingTasksCount || 0}</p>
-            </div>
-            <div className="glacier-card rounded-2xl p-4 border-l-4 border-emerald-500">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-semibold text-slate-500">Completed Tasks</span>
-                <CheckCircle2 className="h-4 w-4 text-emerald-500" />
-              </div>
-              <p className="mt-2 text-xl font-bold text-slate-800">{counters.completedTasksCount || 0}</p>
-            </div>
-            <div className="glacier-card rounded-2xl p-4 border-l-4 border-rose-500">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-semibold text-slate-500">Overdue Tasks</span>
-                <AlertTriangle className="h-4 w-4 text-rose-500" />
-              </div>
-              <p className="mt-2 text-xl font-bold text-rose-600">{counters.overdueTasksCount || 0}</p>
-            </div>
-          </div>
-
           {/* Performance Charts & Activity */}
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
             {/* Monthly Revenue Chart for Super Admin, or Dept Performance for Admin */}
             {isSuperAdmin ? (
-              <GlacierCard title="Monthly Revenue Trend" subtitle="Billed revenue vs collections (₹)" className="lg:col-span-2">
+              <GlacierCard title="Monthly Performance & Tasks" subtitle="Billed revenue vs collections (₹)" className="lg:col-span-2">
                 <div className="h-72 w-full pt-4">
                   <ResponsiveContainer width="100%" height="100%">
                     <AreaChart data={monthlyRevenue}>
@@ -316,18 +227,22 @@ const Dashboard = () => {
                 </div>
               </GlacierCard>
             ) : (
-              <GlacierCard title={`${user?.department} Task Management`} subtitle="Department task distribution" className="lg:col-span-2">
+              <GlacierCard title={`${user?.department} Department Task Breakdown`} subtitle="Department task distribution" className="lg:col-span-2">
                 <div className="p-4 space-y-4">
-                  <div className="flex items-center justify-between p-3 bg-slate-50 rounded-xl">
-                    <span className="font-bold text-slate-700 text-xs">Total Department Pending Tasks</span>
-                    <span className="font-extrabold text-[#0F2B48] text-sm">{counters.pendingTasksCount || 0}</span>
+                  <div className="flex items-center justify-between p-3 bg-blue-50 rounded-xl">
+                    <span className="font-bold text-blue-900 text-xs">Today's Department Tasks</span>
+                    <span className="font-extrabold text-blue-700 text-sm">{counters.todaysTasksCount || 0}</span>
+                  </div>
+                  <div className="flex items-center justify-between p-3 bg-amber-50 rounded-xl">
+                    <span className="font-bold text-amber-900 text-xs">Department Pending Tasks</span>
+                    <span className="font-extrabold text-amber-700 text-sm">{counters.pendingTasksCount || 0}</span>
                   </div>
                   <div className="flex items-center justify-between p-3 bg-emerald-50 rounded-xl">
-                    <span className="font-bold text-emerald-800 text-xs">Total Department Completed Tasks</span>
+                    <span className="font-bold text-emerald-900 text-xs">Department Completed Tasks</span>
                     <span className="font-extrabold text-[#52A636] text-sm">{counters.completedTasksCount || 0}</span>
                   </div>
                   <div className="flex items-center justify-between p-3 bg-rose-50 rounded-xl">
-                    <span className="font-bold text-rose-800 text-xs">Total Department Overdue Tasks</span>
+                    <span className="font-bold text-rose-900 text-xs">Department Overdue Tasks</span>
                     <span className="font-extrabold text-rose-600 text-sm">{counters.overdueTasksCount || 0}</span>
                   </div>
                 </div>
