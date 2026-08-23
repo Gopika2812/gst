@@ -10,7 +10,7 @@ exports.getAllServices = async (req, res) => {
     if (department) {
       query.department = department;
     }
-    const services = await ServiceMaster.find(query).sort({ department: 1, serviceName: 1 });
+    const services = await ServiceMaster.find(query).sort({ department: 1, serviceName: 1 }).lean();
     res.json(services);
   } catch (error) {
     res.status(500).json({ message: error.message });

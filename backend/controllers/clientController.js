@@ -100,7 +100,8 @@ exports.getClients = async (req, res) => {
 
     const clients = await Client.find(filter)
       .populate('responsibleEmployee', 'name email role')
-      .sort({ createdAt: -1 });
+      .sort({ createdAt: -1 })
+      .lean();
 
     res.json(clients);
   } catch (error) {

@@ -44,8 +44,8 @@ const Dashboard = () => {
   const isAdmin = user?.role && user.role.includes('Admin') && !isSuperAdmin;
   const isExecutive = !isSuperAdmin && !isAdmin;
 
-  const fetchDashboardData = async () => {
-    setLoading(true);
+  const fetchDashboardData = async (isInitial = false) => {
+    if (isInitial || !summary) setLoading(true);
     try {
       const [sumRes, clientRes, userRes, taskRes] = await Promise.all([
         api.get('/reports/dashboard-summary'),
@@ -65,7 +65,7 @@ const Dashboard = () => {
   };
 
   useEffect(() => {
-    fetchDashboardData();
+    fetchDashboardData(true);
   }, []);
 
   const handleTaskStatusChange = async (taskId, newStatus) => {

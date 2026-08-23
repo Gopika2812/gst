@@ -4,7 +4,7 @@ const Task = require('../models/Task');
 const User = require('../models/User');
 const Certification = require('../models/Certification');
 
-// Executive Dashboard Counters & Summary
+// Executive Dashboard Counters & Summary (Optimized with Concurrent Execution & Lean Queries)
 exports.getDashboardSummary = async (req, res) => {
   try {
     const userRole = req.user.role || '';
@@ -42,54 +42,58 @@ exports.getDashboardSummary = async (req, res) => {
       recentTaskFilter = { assignedEmployee: userId };
     }
 
-    const totalClients = await Client.countDocuments(clientFilter);
-    const activeClients = await Client.countDocuments({ ...clientFilter, status: 'Active' });
-    const inactiveClients = await Client.countDocuments({ ...clientFilter, status: 'Inactive' });
-    
-    const pendingCertificates = await Certification.countDocuments({ status: 'Waiting For Certificate' });
-    
     const now = new Date();
     const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0);
     const endOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59);
 
-    const todaysTasksCount = await Task.countDocuments({
-      ...taskFilter,
-      $or: [
-        { createdAt: { $gte: startOfToday, $lte: endOfToday } },
-        { assignedDate: { $gte: startOfToday, $lte: endOfToday } },
-        { dueDate: { $gte: startOfToday, $lte: endOfToday } }
-      ]
-    });
+    // Parallelize all database queries concurrently
+    const [
+      totalClients,
+      activeClients,
+      inactiveClients,
+      pendingCertificates,
+      todaysTasksCount,
+      pendingTasksCount,
+      inProgressTasksCount,
+      completedTasksCount,
+      cantCompleteTasksCount,
+      overdueTasksCount,
+      invoices,
+      recentTasks
+    ] = await Promise.all([
+      Client.countDocuments(clientFilter),
+      Client.countDocuments({ ...clientFilter, status: 'Active' }),
+      Client.countDocuments({ ...clientFilter, status: 'Inactive' }),
+      Certification.countDocuments({ status: 'Waiting For Certificate' }),
+      Task.countDocuments({
+        ...taskFilter,
+        $or: [
+          { createdAt: { $gte: startOfToday, $lte: endOfToday } },
+          { assignedDate: { $gte: startOfToday, $lte: endOfToday } },
+          { dueDate: { $gte: startOfToday, $lte: endOfToday } }
+        ]
+      }),
+      Task.countDocuments({ ...taskFilter, status: { $in: ['Assigned', 'Pending'] } }),
+      Task.countDocuments({ ...taskFilter, status: 'In Progress' }),
+      Task.countDocuments({ ...taskFilter, status: 'Completed' }),
+      Task.countDocuments({ ...taskFilter, status: { $in: ["Can't Complete", 'On Hold', 'Waiting', 'Cancelled'] } }),
+      Task.countDocuments({ ...taskFilter, dueDate: { $lt: now }, status: { $nin: ['Completed', 'Cancelled'] } }),
+      (isSuperAdmin || isAdmin) ? Invoice.find().select('total paidAmount pendingAmount').lean() : Promise.resolve([]),
+      Task.find(recentTaskFilter)
+        .populate('client', 'clientName')
+        .populate('assignedEmployee', 'name role department')
+        .populate('assignedBy', 'name role')
+        .sort({ updatedAt: -1 })
+        .limit(6)
+        .lean()
+    ]);
 
-    const pendingTasksCount = await Task.countDocuments({
-      ...taskFilter,
-      status: { $in: ['Assigned', 'Pending'] }
-    });
-    const inProgressTasksCount = await Task.countDocuments({
-      ...taskFilter,
-      status: 'In Progress'
-    });
-    const completedTasksCount = await Task.countDocuments({
-      ...taskFilter,
-      status: 'Completed'
-    });
-    const cantCompleteTasksCount = await Task.countDocuments({
-      ...taskFilter,
-      status: { $in: ["Can't Complete", 'On Hold', 'Waiting', 'Cancelled'] }
-    });
-    const overdueTasksCount = await Task.countDocuments({
-      ...taskFilter,
-      dueDate: { $lt: now },
-      status: { $nin: ['Completed', 'Cancelled'] }
-    });
-
-    // Revenue Metrics (Only for Super Admin and Dept Admins)
-    const invoices = (isSuperAdmin || isAdmin) ? await Invoice.find() : [];
+    // Revenue Metrics
     const totalRevenue = invoices.reduce((sum, inv) => sum + (inv.total || 0), 0);
     const totalCollected = invoices.reduce((sum, inv) => sum + (inv.paidAmount || 0), 0);
     const totalOutstanding = invoices.reduce((sum, inv) => sum + (inv.pendingAmount || 0), 0);
 
-    // Monthly Performance Data (Last 6 Months)
+    // Monthly Performance Data
     const monthlyRevenue = [
       { month: 'Mar', revenue: 145000, collected: 130000, tasks: 42 },
       { month: 'Apr', revenue: 180000, collected: 175000, tasks: 58 },
@@ -98,14 +102,6 @@ exports.getDashboardSummary = async (req, res) => {
       { month: 'Jul', revenue: 240000, collected: 220000, tasks: 78 },
       { month: 'Aug', revenue: totalRevenue, collected: totalCollected, tasks: completedTasksCount + pendingTasksCount }
     ];
-
-    // Recent Activity Tasks
-    const recentTasks = await Task.find(recentTaskFilter)
-      .populate('client', 'clientName')
-      .populate('assignedEmployee', 'name role department')
-      .populate('assignedBy', 'name role')
-      .sort({ updatedAt: -1 })
-      .limit(6);
 
     res.json({
       counters: {
@@ -134,7 +130,7 @@ exports.getDashboardSummary = async (req, res) => {
 // Client Report
 exports.getClientReport = async (req, res) => {
   try {
-    const clients = await Client.find().populate('responsibleEmployee', 'name email');
+    const clients = await Client.find().populate('responsibleEmployee', 'name email').lean();
     res.json(clients);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -144,7 +140,7 @@ exports.getClientReport = async (req, res) => {
 // Billing & Outstanding Revenue Report
 exports.getBillingReport = async (req, res) => {
   try {
-    const invoices = await Invoice.find().populate('client', 'clientName tradeName pan gstin');
+    const invoices = await Invoice.find().populate('client', 'clientName tradeName pan gstin').lean();
     res.json(invoices);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -154,17 +150,19 @@ exports.getBillingReport = async (req, res) => {
 // Employee Performance Matrix
 exports.getEmployeePerformanceReport = async (req, res) => {
   try {
-    const staff = await User.find({ status: 'Approved' }).select('name email role department');
+    const staff = await User.find({ status: 'Approved' }).select('name email role department').lean();
     const performance = await Promise.all(
       staff.map(async (emp) => {
-        const assigned = await Task.countDocuments({ assignedEmployee: emp._id });
-        const completed = await Task.countDocuments({ assignedEmployee: emp._id, status: 'Completed' });
-        const pending = await Task.countDocuments({ assignedEmployee: emp._id, status: 'Pending' });
-        const overdue = await Task.countDocuments({
-          assignedEmployee: emp._id,
-          dueDate: { $lt: new Date() },
-          status: { $ne: 'Completed' }
-        });
+        const [assigned, completed, pending, overdue] = await Promise.all([
+          Task.countDocuments({ assignedEmployee: emp._id }),
+          Task.countDocuments({ assignedEmployee: emp._id, status: 'Completed' }),
+          Task.countDocuments({ assignedEmployee: emp._id, status: 'Pending' }),
+          Task.countDocuments({
+            assignedEmployee: emp._id,
+            dueDate: { $lt: new Date() },
+            status: { $ne: 'Completed' }
+          })
+        ]);
         const completionRate = assigned > 0 ? Math.round((completed / assigned) * 100) : 100;
 
         return {

@@ -22,7 +22,8 @@ exports.getUsers = async (req, res) => {
     const users = await User.find(filter)
       .select('-password')
       .populate('reportsTo', 'name email role department designation')
-      .sort({ createdAt: -1 });
+      .sort({ createdAt: -1 })
+      .lean();
     res.json(users);
   } catch (error) {
     res.status(500).json({ message: error.message });

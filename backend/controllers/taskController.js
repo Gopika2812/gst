@@ -157,7 +157,8 @@ exports.getTasks = async (req, res) => {
       .populate('client', 'clientName tradeName pan gstin phone status')
       .populate('assignedEmployee', 'name email role department designation')
       .populate('assignedBy', 'name email role department designation')
-      .sort({ dueDate: 1 });
+      .sort({ dueDate: 1 })
+      .lean();
 
     res.json(tasks);
   } catch (error) {
