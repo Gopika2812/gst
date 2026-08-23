@@ -187,6 +187,61 @@ const Dashboard = () => {
         />
       </div>
 
+      {/* CLIENT SUBSCRIBED SERVICE REMINDERS (START DATE ➔ DUE DATE) */}
+      <GlacierCard title="Client Service Filing Reminders" subtitle="Automated Start Date to Due Date Tracking per Client Service">
+        <div className="mt-2 space-y-3">
+          {clients.filter((c) => c.subscribedServices && c.subscribedServices.length > 0).length === 0 ? (
+            <div className="py-6 text-center text-xs text-slate-400">
+              No active client service subscriptions configured yet. Add services during Client Registration to enable automated start-to-due-date reminders.
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {clients.flatMap((client) =>
+                (client.subscribedServices || []).map((service, idx) => {
+                  const now = new Date();
+                  const year = now.getFullYear();
+                  const month = now.getMonth();
+
+                  const startDate = new Date(year, month, service.startDayOfMonth || 1);
+                  const dueDate = new Date(year, month, service.dueDayOfMonth || 11);
+
+                  const startDateStr = startDate.toLocaleDateString('en-IN', { day: '2-digit', month: '2-digit', year: 'numeric' });
+                  const dueDateStr = dueDate.toLocaleDateString('en-IN', { day: '2-digit', month: '2-digit', year: 'numeric' });
+
+                  const assignedStaffObj = employees.find((e) => String(e._id) === String(service.assignedStaff)) || client.responsibleEmployee;
+
+                  return (
+                    <div key={`${client._id}-${idx}`} className="rounded-2xl bg-slate-50 p-3.5 border border-slate-200/80 hover:bg-slate-100/60 transition space-y-2">
+                      <div className="flex items-start justify-between">
+                        <div>
+                          <span className="text-[9px] font-extrabold uppercase px-1.5 py-0.5 rounded bg-[#0F2B48] text-white">
+                            {service.department}
+                          </span>
+                          <h4 className="text-xs font-bold text-slate-900 mt-1">{service.subServiceName}</h4>
+                          <p className="text-[11px] font-semibold text-[#52A636]">{client.clientName}</p>
+                        </div>
+                        <span className="text-[10px] font-bold text-rose-600 bg-rose-50 px-2 py-0.5 rounded-full border border-rose-200">
+                          Due: {dueDateStr}
+                        </span>
+                      </div>
+
+                      <div className="flex items-center justify-between text-[11px] text-slate-600 pt-1 border-t border-slate-200/60">
+                        <span>Window: <strong>{startDateStr}</strong> ➔ <strong>{dueDateStr}</strong></span>
+                      </div>
+
+                      <div className="flex items-center justify-between text-[10px] text-slate-500">
+                        <span>Assigned Staff:</span>
+                        <strong className="text-slate-800">{assignedStaffObj?.name || 'Assigned Executive'}</strong>
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+          )}
+        </div>
+      </GlacierCard>
+
       {/* EXECUTIVE / STAFF TAILORED WORKFLOW TABLE */}
       {isExecutive ? (
         <div className="space-y-3">

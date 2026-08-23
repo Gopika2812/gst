@@ -53,6 +53,20 @@ const clientSchema = new mongoose.Schema(
     certificateDoc: { type: String },
     otherDocs: [{ name: String, fileUrl: String }],
 
+    // Subscribed Services & Assigned Staff Reminders
+    subscribedServices: [
+      {
+        department: { type: String, required: true },
+        serviceName: { type: String, required: true },
+        subServiceName: { type: String, required: true },
+        assignedStaff: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+        startDayOfMonth: { type: Number, default: 1 },
+        dueDayOfMonth: { type: Number, default: 11 },
+        periodicity: { type: String, default: 'Monthly' },
+        status: { type: String, default: 'Active' }
+      }
+    ],
+
     // Status
     status: { type: String, enum: ['Active', 'Inactive', 'Suspended'], default: 'Active' },
     createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }

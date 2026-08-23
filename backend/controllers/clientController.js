@@ -25,6 +25,15 @@ exports.createClient = async (req, res) => {
       clientData.registrationCategory = 'Registered Client';
     }
 
+    // Parse subscribedServices if sent as JSON string via FormData
+    if (clientData.subscribedServices && typeof clientData.subscribedServices === 'string') {
+      try {
+        clientData.subscribedServices = JSON.parse(clientData.subscribedServices);
+      } catch (e) {
+        clientData.subscribedServices = [];
+      }
+    }
+
     clientData.clientCode = await generateClientCode();
     clientData.createdBy = req.user._id;
 

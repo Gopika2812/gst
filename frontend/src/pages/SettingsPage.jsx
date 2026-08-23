@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import GlacierCard from '../components/common/GlacierCard';
-import { Settings, Save, ShieldCheck, Mail, Bell, Building } from 'lucide-react';
+import ServiceMasterModal from '../components/services/ServiceMasterModal';
+import { Settings, Save, ShieldCheck, Mail, Bell, Building, Layers, ArrowRight } from 'lucide-react';
 
 const SettingsPage = () => {
   const [firmInfo, setFirmInfo] = useState({
@@ -9,10 +10,9 @@ const SettingsPage = () => {
     phone: '+91 98765 43210',
     email: 'contact@vigneshassociates.com',
     address: 'No. 45, Mount Road, Guindy, Chennai - 600032',
-    defaultGstRate: 18,
-    enableEmailAlerts: true,
-    enableWhatsAppAlerts: true
+    defaultGstRate: 18
   });
+  const [isServiceModalOpen, setIsServiceModalOpen] = useState(false);
   const [msg, setMsg] = useState('');
 
   const handleSubmit = (e) => {
@@ -24,7 +24,7 @@ const SettingsPage = () => {
     <div className="space-y-6">
       <div>
         <h1 className="text-lg sm:text-xl font-bold text-[#0F2B48]">ERP System Settings</h1>
-        <p className="text-xs text-slate-500">Configure Vignesh Associates firm profile, tax defaults & notifications</p>
+        <p className="text-xs text-slate-500">Configure Vignesh Associates firm profile, tax defaults & master services</p>
       </div>
 
       {msg && <div className="rounded-xl bg-emerald-50 p-3 text-xs font-semibold text-emerald-700 border border-emerald-200">{msg}</div>}
@@ -71,6 +71,29 @@ const SettingsPage = () => {
           </div>
         </GlacierCard>
 
+        {/* Master Services & Sub-Services Configuration Card */}
+        <GlacierCard title="Master Services & Sub-Services Setup">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mt-2 p-3 bg-slate-50 rounded-2xl border border-slate-200/80">
+            <div>
+              <h4 className="text-xs font-extrabold text-[#0F2B48] flex items-center space-x-1.5">
+                <Layers className="h-4 w-4 text-[#52A636]" />
+                <span>Department Services, Start Days & Due Days Master</span>
+              </h4>
+              <p className="text-[11px] text-slate-500 mt-0.5">
+                Manage GSTR-1, GSTR-3B, ITR, TDS, and Accounts sub-services with automated start date & due date reminder windows.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setIsServiceModalOpen(true)}
+              className="flex items-center justify-center space-x-1.5 rounded-xl bg-[#0F2B48] px-4 py-2.5 text-xs font-bold text-white shadow-md hover:bg-[#16385C] transition shrink-0"
+            >
+              <span>Manage Services & Sub-Services</span>
+              <ArrowRight className="h-4 w-4 text-[#52A636]" />
+            </button>
+          </div>
+        </GlacierCard>
+
         <div className="flex justify-end">
           <button
             type="submit"
@@ -81,6 +104,12 @@ const SettingsPage = () => {
           </button>
         </div>
       </form>
+
+      {/* Service Master Modal */}
+      <ServiceMasterModal
+        isOpen={isServiceModalOpen}
+        onClose={() => setIsServiceModalOpen(false)}
+      />
     </div>
   );
 };

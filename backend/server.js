@@ -19,6 +19,7 @@ const taskRoutes = require('./routes/taskRoutes');
 const filingRoutes = require('./routes/filingRoutes');
 const reportRoutes = require('./routes/reportRoutes');
 const auditRoutes = require('./routes/auditRoutes');
+const serviceRoutes = require('./routes/serviceRoutes');
 
 const seedOrgHierarchy = require('./config/seedHierarchy');
 
@@ -48,6 +49,7 @@ app.use('/api/tasks', taskRoutes);
 app.use('/api/filings', filingRoutes);
 app.use('/api/reports', reportRoutes);
 app.use('/api/audits', auditRoutes);
+app.use('/api/services', serviceRoutes);
 
 // Root Endpoint
 app.get('/', (req, res) => {

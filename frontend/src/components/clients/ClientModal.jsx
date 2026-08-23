@@ -36,9 +36,18 @@ const ClientModal = ({ isOpen, onClose, onRefresh, employees = [] }) => {
     remarks: ''
   });
 
+  const [masterServices, setMasterServices] = useState([]);
+  const [subscribedServices, setSubscribedServices] = useState([]);
+
   const [files, setFiles] = useState({});
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  React.useEffect(() => {
+    if (isOpen) {
+      api.get('/services').then((res) => setMasterServices(res.data)).catch(console.error);
+    }
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
@@ -48,6 +57,32 @@ const ClientModal = ({ isOpen, onClose, onRefresh, employees = [] }) => {
 
   const handleFileChange = (e) => {
     setFiles({ ...files, [e.target.name]: e.target.files[0] });
+  };
+
+  const handleToggleSubService = (serviceItem) => {
+    const existsIndex = subscribedServices.findIndex((s) => s.subServiceName === serviceItem.subServiceName);
+    if (existsIndex > -1) {
+      setSubscribedServices(subscribedServices.filter((_, idx) => idx !== existsIndex));
+    } else {
+      setSubscribedServices([
+        ...subscribedServices,
+        {
+          department: serviceItem.department,
+          serviceName: serviceItem.serviceName,
+          subServiceName: serviceItem.subServiceName,
+          assignedStaff: formData.responsibleEmployee || '',
+          startDayOfMonth: serviceItem.startDayOfMonth,
+          dueDayOfMonth: serviceItem.dueDayOfMonth,
+          periodicity: serviceItem.periodicity
+        }
+      ]);
+    }
+  };
+
+  const handleSubServiceStaffChange = (subServiceName, staffId) => {
+    setSubscribedServices((prev) =>
+      prev.map((s) => (s.subServiceName === subServiceName ? { ...s, assignedStaff: staffId } : s))
+    );
   };
 
   const handleSubmit = async (e) => {
@@ -61,6 +96,7 @@ const ClientModal = ({ isOpen, onClose, onRefresh, employees = [] }) => {
         data.append(key, formData[key]);
       });
       data.append('registrationCategory', registrationCategory);
+      data.append('subscribedServices', JSON.stringify(subscribedServices));
 
       if (files.panDoc) data.append('panDoc', files.panDoc);
       if (files.gstDoc) data.append('gstDoc', files.gstDoc);
@@ -330,6 +366,76 @@ const ClientModal = ({ isOpen, onClose, onRefresh, employees = [] }) => {
                   className="mt-1 w-full rounded-xl border border-slate-200 p-2 text-xs outline-none focus:border-[#52A636]"
                 />
               </div>
+            </div>
+          </div>
+
+          {/* Section 4: Subscribed Department Services & Staff Assignment */}
+          <div className="border-t border-slate-100 pt-4">
+            <div className="flex items-center justify-between mb-3">
+              <h4 className="flex items-center text-xs font-bold text-[#0F2B48] uppercase tracking-wider">
+                <ShieldCheck className="mr-1.5 h-4 w-4 text-[#52A636]" /> Client Subscribed Services & Staff Reminders
+              </h4>
+              <span className="text-[10px] font-semibold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full">
+                {subscribedServices.length} Selected
+              </span>
+            </div>
+
+            <p className="text-xs text-slate-500 mb-3">
+              Select Department Sub-Services required by this client. Assigned staff will get automated start day to due date reminders.
+            </p>
+
+            <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
+              {masterServices.map((ms) => {
+                const isSelected = subscribedServices.some((s) => s.subServiceName === ms.subServiceName);
+                const selectedSub = subscribedServices.find((s) => s.subServiceName === ms.subServiceName);
+
+                return (
+                  <div
+                    key={ms._id}
+                    className={`rounded-2xl p-3 border transition ${
+                      isSelected ? 'border-[#52A636] bg-emerald-50/40 shadow-xs' : 'border-slate-200 bg-slate-50/50 hover:bg-slate-100/60'
+                    }`}
+                  >
+                    <div className="flex items-start justify-between">
+                      <div className="flex items-center space-x-2">
+                        <input
+                          type="checkbox"
+                          checked={isSelected}
+                          onChange={() => handleToggleSubService(ms)}
+                          className="h-4 w-4 rounded accent-[#52A636] cursor-pointer"
+                        />
+                        <div>
+                          <span className="text-[10px] font-extrabold uppercase px-1.5 py-0.5 rounded bg-slate-200 text-slate-700">
+                            {ms.department}
+                          </span>
+                          <h5 className="text-xs font-bold text-slate-900 mt-1">{ms.subServiceName}</h5>
+                        </div>
+                      </div>
+                      <span className="text-[10px] font-bold text-rose-600 bg-rose-50 px-2 py-0.5 rounded-full">
+                        Day {ms.startDayOfMonth} ➔ Day {ms.dueDayOfMonth}
+                      </span>
+                    </div>
+
+                    {isSelected && (
+                      <div className="mt-2.5 pt-2 border-t border-slate-200/60 flex items-center justify-between">
+                        <label className="text-[10px] font-semibold text-slate-600">Assign Staff:</label>
+                        <select
+                          value={selectedSub?.assignedStaff || formData.responsibleEmployee || ''}
+                          onChange={(e) => handleSubServiceStaffChange(ms.subServiceName, e.target.value)}
+                          className="text-xs rounded-lg border border-slate-300 bg-white p-1 outline-none max-w-[180px]"
+                        >
+                          <option value="">-- Select Staff --</option>
+                          {employees.map((e) => (
+                            <option key={e._id} value={e._id}>
+                              {e.name} ({e.department})
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           </div>
 
