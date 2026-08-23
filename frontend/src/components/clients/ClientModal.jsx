@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Building, CreditCard, ShieldCheck, Search, CheckCircle2, AlertCircle, PhoneCall, Layers } from 'lucide-react';
+import { X, Building, CreditCard, ShieldCheck, Search, CheckCircle2, AlertCircle, PhoneCall, Layers, CheckSquare, Square } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import api from '../../services/api';
 
@@ -15,6 +15,10 @@ const ClientModal = ({ isOpen, onClose, onRefresh, employees = [] }) => {
   const [lookupLoading, setLookupLoading] = useState(false);
   const [lookupResultMsg, setLookupResultMsg] = useState('');
   const [lookupStatus, setLookupStatus] = useState(null);
+
+  // Step 2 Search & Filter State
+  const [serviceSearchQuery, setServiceSearchQuery] = useState('');
+  const [serviceDeptTab, setServiceDeptTab] = useState('All');
 
   const [formData, setFormData] = useState({
     clientName: '',
@@ -58,6 +62,8 @@ const ClientModal = ({ isOpen, onClose, onRefresh, employees = [] }) => {
     setLookupLoading(false);
     setLookupResultMsg('');
     setLookupStatus(null);
+    setServiceSearchQuery('');
+    setServiceDeptTab('All');
     setSubscribedServices([]);
     setFiles({});
     setError('');
@@ -174,6 +180,45 @@ const ClientModal = ({ isOpen, onClose, onRefresh, employees = [] }) => {
     setSubscribedServices((prev) =>
       prev.map((s) => (s.subServiceName === subServiceName ? { ...s, assignedStaff: staffId } : s))
     );
+  };
+
+  // Filter master services by search query and department tab
+  const filteredMasterServices = masterServices.filter((s) => {
+    const matchesSearch =
+      s.subServiceName.toLowerCase().includes(serviceSearchQuery.toLowerCase()) ||
+      s.serviceName.toLowerCase().includes(serviceSearchQuery.toLowerCase()) ||
+      s.department.toLowerCase().includes(serviceSearchQuery.toLowerCase());
+
+    const matchesDept =
+      serviceDeptTab === 'All' ||
+      s.department === serviceDeptTab ||
+      (serviceDeptTab === 'GST Filing' && s.department === 'GST') ||
+      (serviceDeptTab === 'Income Tax' && s.department === 'IT Filing');
+
+    return matchesSearch && matchesDept;
+  });
+
+  const handleSelectAllFiltered = () => {
+    const newSubs = [...subscribedServices];
+    filteredMasterServices.forEach((ms) => {
+      if (!newSubs.some((s) => s.subServiceName === ms.subServiceName)) {
+        newSubs.push({
+          department: ms.department,
+          serviceName: ms.serviceName,
+          subServiceName: ms.subServiceName,
+          assignedStaff: '',
+          startDayOfMonth: ms.startDayOfMonth,
+          dueDayOfMonth: ms.dueDayOfMonth,
+          periodicity: ms.periodicity
+        });
+      }
+    });
+    setSubscribedServices(newSubs);
+  };
+
+  const handleDeselectAllFiltered = () => {
+    const filteredSubNames = filteredMasterServices.map((ms) => ms.subServiceName);
+    setSubscribedServices(subscribedServices.filter((s) => !filteredSubNames.includes(s.subServiceName)));
   };
 
   const handleSubmit = async (e) => {
@@ -332,60 +377,119 @@ const ClientModal = ({ isOpen, onClose, onRefresh, employees = [] }) => {
             </div>
           </div>
 
-          {/* STEP 2: Service Subscriptions */}
-          <div className="space-y-2 pt-2 border-t border-slate-100">
-            <div className="flex items-center justify-between">
+          {/* STEP 2: Service Subscriptions with Search & Multi-Select */}
+          <div className="space-y-3 pt-2 border-t border-slate-100">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
               <h4 className="text-xs font-extrabold text-[#0F2B48] flex items-center space-x-1.5">
                 <Layers className="h-4 w-4 text-[#52A636]" />
-                <span>Step 2: Subscribed Services ({subscribedServices.length})</span>
+                <span>Step 2: Subscribed Services ({subscribedServices.length} Selected)</span>
               </h4>
+
+              {/* Quick Select All / Deselect All */}
+              <div className="flex items-center space-x-2">
+                <button
+                  type="button"
+                  onClick={handleSelectAllFiltered}
+                  className="text-[10px] font-bold text-[#52A636] hover:underline"
+                >
+                  Select All
+                </button>
+                <span className="text-slate-300">|</span>
+                <button
+                  type="button"
+                  onClick={handleDeselectAllFiltered}
+                  className="text-[10px] font-bold text-slate-500 hover:underline"
+                >
+                  Deselect All
+                </button>
+              </div>
             </div>
 
-            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-              {masterServices.map((ms) => {
-                const isSelected = subscribedServices.some((s) => s.subServiceName === ms.subServiceName);
-                const selectedSub = subscribedServices.find((s) => s.subServiceName === ms.subServiceName);
+            {/* Search Input & Department Filter Tabs */}
+            <div className="flex flex-col sm:flex-row gap-2">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-2.5 h-3.5 w-3.5 text-slate-400" />
+                <input
+                  type="text"
+                  value={serviceSearchQuery}
+                  onChange={(e) => setServiceSearchQuery(e.target.value)}
+                  placeholder="Search service e.g. GSTR-1, ITR, Bookkeeping..."
+                  className="w-full rounded-xl border border-slate-200 pl-8 pr-3 py-1.5 text-xs outline-none focus:border-[#52A636]"
+                />
+              </div>
 
-                return (
-                  <div
-                    key={ms._id}
-                    className={`rounded-xl p-2.5 border transition ${
-                      isSelected ? 'border-[#52A636] bg-emerald-50/40' : 'border-slate-200 bg-white hover:bg-slate-50'
+              <div className="flex space-x-1 overflow-x-auto shrink-0">
+                {['All', 'GST Filing', 'Income Tax', 'Accounts'].map((dept) => (
+                  <button
+                    key={dept}
+                    type="button"
+                    onClick={() => setServiceDeptTab(dept)}
+                    className={`rounded-lg px-2.5 py-1 text-[11px] font-bold transition whitespace-nowrap ${
+                      serviceDeptTab === dept
+                        ? 'bg-[#0F2B48] text-white'
+                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                     }`}
                   >
-                    <div className="flex items-center justify-between">
-                      <label className="flex items-center space-x-2 cursor-pointer">
-                        <input
-                          type="checkbox"
-                          checked={isSelected}
-                          onChange={() => handleToggleSubService(ms)}
-                          className="h-4 w-4 rounded accent-[#52A636]"
-                        />
-                        <span className="text-xs font-bold text-slate-800">{ms.subServiceName}</span>
-                      </label>
-                      <span className="text-[10px] font-semibold text-slate-400">{ms.department}</span>
-                    </div>
+                    {dept}
+                  </button>
+                ))}
+              </div>
+            </div>
 
-                    {isSelected && (
-                      <div className="mt-2 pt-2 border-t border-slate-200/60 flex items-center justify-between text-[11px]">
-                        <span className="text-slate-500 font-semibold">Assign Staff:</span>
-                        <select
-                          value={selectedSub?.assignedStaff || ''}
-                          onChange={(e) => handleSubServiceStaffChange(ms.subServiceName, e.target.value)}
-                          className="text-xs rounded-lg border border-slate-300 bg-white p-1 outline-none max-w-[170px]"
-                        >
-                          <option value="">-- Select Staff --</option>
-                          {employees.map((e) => (
-                            <option key={e._id} value={e._id}>
-                              {e.name} ({e.department})
-                            </option>
-                          ))}
-                        </select>
+            {/* Filtered Master Services Multi-Select Grid */}
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 max-h-56 overflow-y-auto p-1 border border-slate-100 rounded-2xl bg-slate-50/50">
+              {filteredMasterServices.length === 0 ? (
+                <div className="col-span-2 py-4 text-center text-xs text-slate-400">
+                  No matching services found for "{serviceSearchQuery}"
+                </div>
+              ) : (
+                filteredMasterServices.map((ms) => {
+                  const isSelected = subscribedServices.some((s) => s.subServiceName === ms.subServiceName);
+                  const selectedSub = subscribedServices.find((s) => s.subServiceName === ms.subServiceName);
+
+                  return (
+                    <div
+                      key={ms._id}
+                      className={`rounded-xl p-2.5 border transition ${
+                        isSelected ? 'border-[#52A636] bg-emerald-50/60 shadow-xs' : 'border-slate-200 bg-white hover:bg-slate-50'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <label className="flex items-center space-x-2 cursor-pointer select-none">
+                          <input
+                            type="checkbox"
+                            checked={isSelected}
+                            onChange={() => handleToggleSubService(ms)}
+                            className="h-4 w-4 rounded accent-[#52A636] cursor-pointer"
+                          />
+                          <span className="text-xs font-bold text-slate-800">{ms.subServiceName}</span>
+                        </label>
+                        <span className="text-[10px] font-semibold text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded">
+                          {ms.department}
+                        </span>
                       </div>
-                    )}
-                  </div>
-                );
-              })}
+
+                      {isSelected && (
+                        <div className="mt-2 pt-2 border-t border-slate-200/60 flex items-center justify-between text-[11px]">
+                          <span className="text-slate-600 font-semibold">Assign Staff:</span>
+                          <select
+                            value={selectedSub?.assignedStaff || ''}
+                            onChange={(e) => handleSubServiceStaffChange(ms.subServiceName, e.target.value)}
+                            className="text-xs rounded-lg border border-slate-300 bg-white p-1 outline-none max-w-[170px]"
+                          >
+                            <option value="">-- Select Staff --</option>
+                            {employees.map((e) => (
+                              <option key={e._id} value={e._id}>
+                                {e.name} ({e.department})
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })
+              )}
             </div>
           </div>
 
