@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Lock, Mail, ArrowRight, ShieldCheck, Eye, EyeOff } from 'lucide-react';
+import { Lock, Mail, ArrowRight, Eye, EyeOff } from 'lucide-react';
 
 const Login = () => {
-  const [email, setEmail] = useState('superadmin@vigneshassociates.com');
-  const [password, setPassword] = useState('admin123');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const { login, loading } = useAuth();
@@ -23,8 +23,11 @@ const Login = () => {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-slate-100 p-4">
-      <div className="glacier-card w-full max-w-md rounded-3xl p-8 shadow-2xl border border-slate-200">
+    <div className="flex min-h-screen items-center justify-center bg-[#0A1E36] bg-[url('/login_bg.jpg')] bg-cover bg-center bg-no-repeat p-4 relative overflow-hidden">
+      {/* Subtle Overlay to make card pop */}
+      <div className="absolute inset-0 bg-slate-950/40 backdrop-blur-xs"></div>
+
+      <div className="relative z-10 w-full max-w-md rounded-3xl bg-white/95 p-8 shadow-2xl backdrop-blur-xl border border-white/60 transition-all">
         {/* Brand Header */}
         <div className="text-center">
           <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-white p-1 shadow-md overflow-hidden border border-slate-200">
@@ -34,47 +37,48 @@ const Login = () => {
             <span className="rounded bg-[#0F2B48] px-2 py-0.5 font-extrabold text-sm text-white">Vignesh</span>
             <span className="rounded bg-[#52A636] px-2 py-0.5 font-extrabold text-sm text-white">Associates</span>
           </div>
-          <h2 className="mt-2 text-xl font-bold text-slate-800">Auditor ERP Portal</h2>
-          <p className="mt-1 text-xs text-slate-500">Sign in to manage GST, Audit, Ledger & Client Tasks</p>
+          <h2 className="mt-2 text-xl font-extrabold text-[#0F2B48]">Auditor ERP Portal</h2>
+          <p className="mt-1 text-xs font-medium text-slate-500">Sign in to manage GST, Audit, Ledger & Client Tasks</p>
         </div>
 
         {error && (
-          <div className="mt-4 rounded-xl bg-rose-50 p-3 text-xs font-medium text-rose-600 border border-rose-200 text-center">
+          <div className="mt-4 rounded-xl bg-rose-50 p-3 text-xs font-semibold text-rose-600 border border-rose-200 text-center">
             {error}
           </div>
         )}
 
         <form onSubmit={handleSubmit} className="mt-6 space-y-4">
           <div>
-            <label className="text-xs font-semibold text-slate-700">Email Address</label>
-            <div className="mt-1 flex items-center rounded-xl border border-slate-200 bg-white p-2.5 shadow-xs focus-within:border-[#52A636]">
-              <Mail className="mr-2 h-4 w-4 text-slate-400" />
+            <label className="text-xs font-bold text-slate-700">Email Address</label>
+            <div className="mt-1.5 flex items-center rounded-xl border border-slate-200 bg-white/80 p-3 shadow-xs transition focus-within:border-[#52A636] focus-within:bg-white focus-within:ring-2 focus-within:ring-[#52A636]/20">
+              <Mail className="mr-2 h-4 w-4 text-slate-400 shrink-0" />
               <input
                 type="email"
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full bg-transparent text-xs text-slate-800 outline-none"
-                placeholder="user@vigneshassociates.com"
+                className="w-full bg-transparent text-xs text-slate-800 outline-none font-medium"
+                placeholder="enter your email address..."
               />
             </div>
           </div>
 
           <div>
-            <div className="flex items-center justify-between">
-              <label className="text-xs font-semibold text-slate-700">Password</label>
+            <div className="flex items-center justify-between mb-1.5">
+              <label className="text-xs font-bold text-slate-700">Password</label>
               <Link to="/forgot-password" className="text-xs font-semibold text-[#52A636] hover:underline">
                 Forgot password?
               </Link>
             </div>
-            <div className="mt-1 flex items-center rounded-xl border border-slate-200 bg-white p-2.5 shadow-xs focus-within:border-[#52A636]">
+            <div className="flex items-center rounded-xl border border-slate-200 bg-white/80 p-3 shadow-xs transition focus-within:border-[#52A636] focus-within:bg-white focus-within:ring-2 focus-within:ring-[#52A636]/20">
               <Lock className="mr-2 h-4 w-4 text-slate-400 shrink-0" />
               <input
                 type={showPassword ? 'text' : 'password'}
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full bg-transparent text-xs text-slate-800 outline-none"
+                placeholder="••••••••"
+                className="w-full bg-transparent text-xs text-slate-800 outline-none font-medium"
               />
               <button
                 type="button"
@@ -91,33 +95,19 @@ const Login = () => {
             </div>
           </div>
 
-          {/* Quick Demo Credentials Switcher */}
-          <div className="rounded-xl bg-slate-100/80 p-2.5 text-[11px] text-slate-600 space-y-1">
-            <p className="font-semibold text-slate-700">Quick Login:</p>
-            <div className="flex flex-wrap gap-1">
-              <button
-                type="button"
-                onClick={() => { setEmail('superadmin@vigneshassociates.com'); setPassword('admin123'); }}
-                className="rounded bg-white px-2 py-0.5 border text-[10px] hover:bg-slate-50 font-medium"
-              >
-                Super Admin (Default)
-              </button>
-            </div>
-          </div>
-
           <button
             type="submit"
             disabled={loading}
-            className="flex w-full items-center justify-center space-x-2 rounded-xl bg-[#52A636] py-3 text-xs font-semibold text-white shadow-lg transition hover:bg-[#438A2B]"
+            className="flex w-full items-center justify-center space-x-2 rounded-xl bg-[#52A636] py-3 text-xs font-bold text-white shadow-lg transition hover:bg-[#438A2B] active:scale-[0.99] disabled:opacity-50"
           >
             <span>{loading ? 'Authenticating...' : 'Sign In to ERP Portal'}</span>
             <ArrowRight className="h-4 w-4" />
           </button>
         </form>
 
-        <p className="mt-6 text-center text-xs text-slate-500">
+        <p className="mt-6 text-center text-xs font-medium text-slate-500">
           Need an ERP account?{' '}
-          <Link to="/register" className="font-semibold text-[#0F2B48] hover:underline">
+          <Link to="/register" className="font-bold text-[#0F2B48] hover:underline">
             Register Here
           </Link>
         </p>

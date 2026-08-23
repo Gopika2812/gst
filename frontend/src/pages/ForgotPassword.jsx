@@ -22,8 +22,9 @@ const ForgotPassword = () => {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-slate-100 p-4">
-      <div className="glacier-card w-full max-w-md rounded-3xl p-8 shadow-2xl border border-slate-200">
+    <div className="flex min-h-screen items-center justify-center bg-[#0A1E36] bg-[url('/login_bg.jpg')] bg-cover bg-center bg-no-repeat p-4 relative overflow-hidden">
+      <div className="absolute inset-0 bg-slate-950/40 backdrop-blur-xs"></div>
+      <div className="relative z-10 w-full max-w-md rounded-3xl bg-white/95 p-8 shadow-2xl backdrop-blur-xl border border-white/60">
         <div className="text-center">
           <h2 className="text-xl font-bold text-[#0F2B48]">Reset Password</h2>
           <p className="mt-1 text-xs text-slate-500">Enter your registered email address to receive reset link</p>

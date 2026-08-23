@@ -90,8 +90,9 @@ const Register = () => {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-slate-100 p-4">
-      <div className="glacier-card w-full max-w-md rounded-3xl p-8 shadow-2xl border border-slate-200">
+    <div className="flex min-h-screen items-center justify-center bg-[#0A1E36] bg-[url('/login_bg.jpg')] bg-cover bg-center bg-no-repeat p-4 relative overflow-hidden">
+      <div className="absolute inset-0 bg-slate-950/40 backdrop-blur-xs"></div>
+      <div className="relative z-10 w-full max-w-md rounded-3xl bg-white/95 p-8 shadow-2xl backdrop-blur-xl border border-white/60">
         <div className="text-center">
           <div className="mx-auto mb-3 flex h-16 w-16 items-center justify-center rounded-2xl bg-white p-1 shadow-md overflow-hidden border border-slate-200">
             <img src="/logo.jpg" alt="Vignesh Associates Logo" className="h-full w-full object-cover rounded-xl" />
