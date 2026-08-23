@@ -132,35 +132,42 @@ const CertificationPage = () => {
                 </tr>
               ) : (
                 certifications.map((c) => (
-                  <tr key={c._id} className="hover:bg-slate-50">
-                    <td className="p-3.5 font-bold text-slate-800">
-                      {c.client?.clientName || 'N/A'}
+                  <tr key={c._id} className="hover:bg-slate-50 transition">
+                    <td className="p-3.5">
+                      <div className="font-bold text-slate-900">{c.client?.clientName || 'N/A'}</div>
+                      <div className="text-[10px] text-slate-500 font-mono">{c.client?.phone || ''}</div>
                     </td>
                     <td className="p-3.5 font-semibold text-slate-700">{c.certificateType}</td>
                     <td className="p-3.5 text-slate-600">
-                      {new Date(c.applicationDate).toLocaleDateString('en-IN')}
+                      {c.applicationDate ? new Date(c.applicationDate).toLocaleDateString('en-IN') : 'N/A'}
                     </td>
                     <td className="p-3.5 text-slate-600">
-                      {c.expectedDate ? new Date(c.expectedDate).toLocaleDateString('en-IN') : 'N/A'}
+                      {c.expectedDate ? new Date(c.expectedDate).toLocaleDateString('en-IN') : 'Existing Cert'}
                     </td>
                     <td className="p-3.5 font-mono text-[11px] text-slate-800">
                       {c.certificateNumber || 'Pending'}
                     </td>
                     <td className="p-3.5">
-                      <Badge status={c.certificateReceived === 'Yes' ? 'Yes' : 'Pending'} text={c.certificateReceived} />
+                      <Badge status={c.certificateReceived === 'Yes' ? 'Yes' : 'Pending'} text={c.certificateReceived === 'Yes' ? 'Received' : 'Pending'} />
                     </td>
                     <td className="p-3.5">
-                      <Badge status={c.status} />
+                      {c.remarks && c.remarks.includes('Existing Client') ? (
+                        <span className="inline-flex items-center rounded-full bg-emerald-100 px-2.5 py-0.5 text-[10px] font-extrabold text-emerald-800 border border-emerald-300">
+                          Already Has Certificate
+                        </span>
+                      ) : (
+                        <Badge status={c.status} />
+                      )}
                     </td>
                     <td className="p-3.5 text-center">
-                      {c.status === 'Certificate Received' ? (
-                        <span className="inline-flex items-center text-[11px] font-semibold text-emerald-600">
-                          <CheckCircle2 className="mr-1 h-3.5 w-3.5" /> Moved to Billing
+                      {c.status === 'Certificate Received' || c.movedToBilling ? (
+                        <span className="inline-flex items-center text-[11px] font-extrabold text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200">
+                          <CheckCircle2 className="mr-1 h-3.5 w-3.5 text-[#52A636]" /> Moved to Billing Phase
                         </span>
                       ) : (
                         <button
                           onClick={() => handleOpenUpdate(c)}
-                          className="rounded-lg bg-[#52A636] px-3 py-1 text-xs font-semibold text-white hover:bg-[#438A2B]"
+                          className="rounded-lg bg-[#52A636] px-3 py-1 text-xs font-bold text-white hover:bg-[#438A2B] shadow-xs transition"
                         >
                           Update Status
                         </button>

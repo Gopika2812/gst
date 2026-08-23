@@ -1,5 +1,6 @@
 const Client = require('../models/Client');
 const Ledger = require('../models/Ledger');
+const Certification = require('../models/Certification');
 const { logAudit } = require('../middleware/auditLogger');
 const { getFileUrl } = require('../middleware/uploadMiddleware');
 
@@ -54,6 +55,31 @@ exports.createClient = async (req, res) => {
 
     const client = await Client.create(clientData);
 
+    // Automatically create Certification Tracking Record (Module 2)
+    if (clientData.registrationCategory === 'New Client') {
+      await Certification.create({
+        client: client._id,
+        certificateType: clientData.businessType || 'GST Registration',
+        applicationDate: new Date(),
+        status: 'Waiting For Certificate',
+        certificateReceived: 'Pending',
+        movedToBilling: false,
+        remarks: 'New Client Registration - Pending Certificate Approval'
+      });
+    } else {
+      // Existing Client (Option 2): Already Has Certificate -> Auto-marked as Certificate Received & Ready for Billing
+      await Certification.create({
+        client: client._id,
+        certificateType: client.gstin ? 'GST Certificate' : 'PAN / Incorporation',
+        applicationDate: new Date(),
+        certificateNumber: client.gstin || client.pan || 'EX-CERTIFIED',
+        status: 'Certificate Received',
+        certificateReceived: 'Yes',
+        movedToBilling: true,
+        remarks: 'Existing Client - Certificate Already Present (Ready for Billing)'
+      });
+    }
+
     // Initial Ledger Opening Balance record
     if (client.openingBalance && client.openingBalance !== 0) {
       await Ledger.create({
@@ -73,6 +99,32 @@ exports.createClient = async (req, res) => {
     await logAudit(req.user, 'Client Registration', 'Clients', `Created client: ${client.clientName} (${client.clientCode})`, req);
 
     res.status(201).json({ message: 'Client created successfully', client });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// Lookup Client by Phone Number
+exports.lookupByPhone = async (req, res) => {
+  try {
+    const { phone } = req.params;
+    const searchPhone = phone.trim();
+
+    const client = await Client.findOne({
+      $or: [
+        { phone: searchPhone },
+        { phone: `+91${searchPhone}` },
+        { phone: searchPhone.replace('+91', '') }
+      ]
+    })
+      .populate('responsibleEmployee', 'name email role')
+      .lean();
+
+    if (!client) {
+      return res.status(404).json({ message: 'No existing client found with this phone number.' });
+    }
+
+    res.json(client);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -143,6 +195,15 @@ exports.updateClient = async (req, res) => {
       }
     }
 
+    // Parse subscribedServices if sent as JSON string via FormData
+    if (updateData.subscribedServices && typeof updateData.subscribedServices === 'string') {
+      try {
+        updateData.subscribedServices = JSON.parse(updateData.subscribedServices);
+      } catch (e) {
+        updateData.subscribedServices = [];
+      }
+    }
+
     // Strict Rule: Only Super Admin can edit Credit Limit
     if (req.user.role !== 'Super Admin' && updateData.creditLimit !== undefined) {
       delete updateData.creditLimit;
@@ -166,7 +227,7 @@ exports.updateClient = async (req, res) => {
   }
 };
 
-// Soft Deactivate / Reactivate Client (Deleting clients is forbidden!)
+// Soft Deactivate / Reactivate Client
 exports.toggleClientStatus = async (req, res) => {
   try {
     const client = await Client.findById(req.params.id);

@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { X, Upload, Building, CreditCard, ShieldCheck } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { X, Upload, Building, CreditCard, ShieldCheck, Search, CheckCircle2, AlertCircle, PhoneCall } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import api from '../../services/api';
 
@@ -7,7 +7,15 @@ const ClientModal = ({ isOpen, onClose, onRefresh, employees = [] }) => {
   const { user } = useAuth();
   const isSuperAdmin = user?.role === 'Super Admin';
 
-  const [registrationCategory, setRegistrationCategory] = useState('Registered Client');
+  const [registrationCategory, setRegistrationCategory] = useState('New Client');
+  const [existingClientId, setExistingClientId] = useState(null);
+
+  // Phone Lookup State for Option 2
+  const [searchPhone, setSearchPhone] = useState('');
+  const [lookupLoading, setLookupLoading] = useState(false);
+  const [lookupResultMsg, setLookupResultMsg] = useState('');
+  const [lookupStatus, setLookupStatus] = useState(null); // 'success' | 'not_found' | null
+
   const [formData, setFormData] = useState({
     clientName: '',
     phone: '',
@@ -43,13 +51,59 @@ const ClientModal = ({ isOpen, onClose, onRefresh, employees = [] }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (isOpen) {
       api.get('/services').then((res) => setMasterServices(res.data)).catch(console.error);
+      resetModalState();
     }
   }, [isOpen]);
 
   if (!isOpen) return null;
+
+  const resetModalState = () => {
+    setExistingClientId(null);
+    setSearchPhone('');
+    setLookupLoading(false);
+    setLookupResultMsg('');
+    setLookupStatus(null);
+    setSubscribedServices([]);
+    setFiles({});
+    setError('');
+    setFormData({
+      clientName: '',
+      phone: '',
+      email: '',
+      clientGroup: 'General',
+      clientType: 'Proprietorship',
+      responsibleEmployee: '',
+      leadSource: 'Direct',
+      tradeName: '',
+      businessType: 'Services',
+      cin: '',
+      llpin: '',
+      dateOfIncorporation: '',
+      pan: '',
+      tan: '',
+      gstin: '',
+      gstType: 'Regular',
+      state: 'Tamil Nadu',
+      address: '',
+      contactPerson: '',
+      billingAddress: '',
+      city: 'Chennai',
+      pincode: '',
+      openingBalance: 0,
+      creditLimit: 50000,
+      remarks: ''
+    });
+  };
+
+  const handleCategorySwitch = (cat) => {
+    setRegistrationCategory(cat);
+    if (cat === 'New Client') {
+      resetModalState();
+    }
+  };
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -57,6 +111,67 @@ const ClientModal = ({ isOpen, onClose, onRefresh, employees = [] }) => {
 
   const handleFileChange = (e) => {
     setFiles({ ...files, [e.target.name]: e.target.files[0] });
+  };
+
+  // Phone Lookup for Existing Clients (Option 2)
+  const handlePhoneLookup = async () => {
+    if (!searchPhone.trim()) {
+      setLookupResultMsg('Please enter a valid phone number to search.');
+      setLookupStatus('not_found');
+      return;
+    }
+
+    setLookupLoading(true);
+    setLookupResultMsg('');
+    setLookupStatus(null);
+
+    try {
+      const res = await api.get(`/clients/lookup-phone/${encodeURIComponent(searchPhone.trim())}`);
+      const client = res.data;
+
+      setExistingClientId(client._id);
+      setLookupStatus('success');
+      setLookupResultMsg(`Found Client: ${client.clientName} (${client.clientCode || 'Code N/A'})`);
+
+      // Auto-fill form fields
+      setFormData({
+        clientName: client.clientName || '',
+        phone: client.phone || searchPhone,
+        email: client.email || '',
+        clientGroup: client.clientGroup || 'General',
+        clientType: client.clientType || 'Proprietorship',
+        responsibleEmployee: client.responsibleEmployee?._id || client.responsibleEmployee || '',
+        leadSource: client.leadSource || 'Direct',
+        tradeName: client.tradeName || '',
+        businessType: client.businessType || 'Services',
+        cin: client.cin || '',
+        llpin: client.llpin || '',
+        dateOfIncorporation: client.dateOfIncorporation ? new Date(client.dateOfIncorporation).toISOString().split('T')[0] : '',
+        pan: client.pan || '',
+        tan: client.tan || '',
+        gstin: client.gstin || '',
+        gstType: client.gstType || 'Regular',
+        state: client.state || 'Tamil Nadu',
+        address: client.address || '',
+        contactPerson: client.contactPerson || '',
+        billingAddress: client.billingAddress || '',
+        city: client.city || 'Chennai',
+        pincode: client.pincode || '',
+        openingBalance: client.openingBalance || 0,
+        creditLimit: client.creditLimit || 50000,
+        remarks: client.remarks || ''
+      });
+
+      if (client.subscribedServices && Array.isArray(client.subscribedServices)) {
+        setSubscribedServices(client.subscribedServices);
+      }
+    } catch (err) {
+      setExistingClientId(null);
+      setLookupStatus('not_found');
+      setLookupResultMsg(err.response?.data?.message || 'No existing client found with this contact number. You can fill out details below to add them.');
+    } finally {
+      setLookupLoading(false);
+    }
   };
 
   const handleToggleSubService = (serviceItem) => {
@@ -103,14 +218,22 @@ const ClientModal = ({ isOpen, onClose, onRefresh, employees = [] }) => {
       if (files.aadhaarDoc) data.append('aadhaarDoc', files.aadhaarDoc);
       if (files.certificateDoc) data.append('certificateDoc', files.certificateDoc);
 
-      await api.post('/clients', data, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-      });
+      if (existingClientId) {
+        // Update existing client
+        await api.put(`/clients/${existingClientId}`, data, {
+          headers: { 'Content-Type': 'multipart/form-data' }
+        });
+      } else {
+        // Create new client record
+        await api.post('/clients', data, {
+          headers: { 'Content-Type': 'multipart/form-data' }
+        });
+      }
 
       onRefresh && onRefresh();
       onClose();
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to register client');
+      setError(err.response?.data?.message || 'Failed to process client registration');
     } finally {
       setLoading(false);
     }
@@ -131,31 +254,90 @@ const ClientModal = ({ isOpen, onClose, onRefresh, employees = [] }) => {
 
         {error && <div className="mt-4 rounded-xl bg-rose-50 p-3 text-xs font-medium text-rose-600 border border-rose-200">{error}</div>}
 
-        {/* Option Toggle */}
+        {/* Option Toggle Tabs */}
         <div className="mt-4 flex flex-col sm:flex-row gap-1 rounded-xl bg-slate-100 p-1">
           <button
             type="button"
-            onClick={() => setRegistrationCategory('Option 1: New Client')}
-            className={`flex-1 rounded-lg py-2 px-2 text-xs font-semibold transition ${
-              registrationCategory === 'Option 1: New Client'
-                ? 'bg-white text-[#0F2B48] shadow-sm'
+            onClick={() => handleCategorySwitch('New Client')}
+            className={`flex-1 rounded-lg py-2.5 px-3 text-xs font-bold transition flex items-center justify-center space-x-2 ${
+              registrationCategory === 'New Client'
+                ? 'bg-white text-[#0F2B48] shadow-sm border border-slate-200'
                 : 'text-slate-500 hover:text-slate-800'
             }`}
           >
-            Option 1: New Client (No Registrations Yet)
+            <span>Option 1: New Client (No Registrations Yet)</span>
           </button>
           <button
             type="button"
-            onClick={() => setRegistrationCategory('Registered Client')}
-            className={`flex-1 rounded-lg py-2 px-2 text-xs font-semibold transition ${
+            onClick={() => handleCategorySwitch('Registered Client')}
+            className={`flex-1 rounded-lg py-2.5 px-3 text-xs font-bold transition flex items-center justify-center space-x-2 ${
               registrationCategory === 'Registered Client'
                 ? 'bg-[#52A636] text-white shadow-sm'
                 : 'text-slate-500 hover:text-slate-800'
             }`}
           >
-            Option 2: Registered Client (Existing GST/PAN)
+            <span>Option 2: Registered Client (Existing GST/PAN)</span>
           </button>
         </div>
+
+        {/* Informational Banner based on Option Selected */}
+        {registrationCategory === 'New Client' ? (
+          <div className="mt-3 p-3 rounded-xl bg-blue-50/80 border border-blue-200 text-xs text-blue-800 flex items-center space-x-2">
+            <AlertCircle className="h-4 w-4 text-blue-600 shrink-0" />
+            <span>
+              <strong>New Client Phase:</strong> Client is completely new for GST / IT / Bookkeeping. This automatically initiates Certificate Tracking in <strong>Module 2 (Waiting For Certificate)</strong>.
+            </span>
+          </div>
+        ) : (
+          <div className="mt-3 p-3.5 rounded-2xl bg-emerald-50/80 border border-emerald-200/80 space-y-2">
+            <div className="flex items-center space-x-2 text-xs font-bold text-emerald-900">
+              <PhoneCall className="h-4 w-4 text-[#52A636]" />
+              <span>Track & Auto-fill Existing Client via Phone Number</span>
+            </div>
+            <p className="text-[11px] text-emerald-700">
+              Enter the client's contact phone number to search existing records and update services or staff assignments without registering a new certificate.
+            </p>
+
+            {/* Phone Lookup Input Bar */}
+            <div className="flex items-center space-x-2 pt-1">
+              <div className="relative flex-1">
+                <input
+                  type="text"
+                  value={searchPhone}
+                  onChange={(e) => setSearchPhone(e.target.value)}
+                  placeholder="Enter Contact Phone Number (e.g. 98400 11223)"
+                  className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs outline-none focus:border-[#52A636]"
+                />
+              </div>
+              <button
+                type="button"
+                onClick={handlePhoneLookup}
+                disabled={lookupLoading}
+                className="flex items-center space-x-1 rounded-xl bg-[#0F2B48] px-4 py-2 text-xs font-bold text-white hover:bg-[#16385C] transition shrink-0"
+              >
+                <Search className="h-3.5 w-3.5" />
+                <span>{lookupLoading ? 'Searching...' : 'Lookup Phone'}</span>
+              </button>
+            </div>
+
+            {lookupResultMsg && (
+              <div
+                className={`p-2.5 rounded-xl text-xs font-medium border flex items-center space-x-2 ${
+                  lookupStatus === 'success'
+                    ? 'bg-emerald-100 text-emerald-800 border-emerald-300'
+                    : 'bg-amber-100 text-amber-800 border-amber-300'
+                }`}
+              >
+                {lookupStatus === 'success' ? (
+                  <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0" />
+                ) : (
+                  <AlertCircle className="h-4 w-4 text-amber-600 shrink-0" />
+                )}
+                <span>{lookupResultMsg}</span>
+              </div>
+            )}
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} className="mt-5 space-y-5">
           {/* Section 1: Basic Info */}
@@ -177,10 +359,11 @@ const ClientModal = ({ isOpen, onClose, onRefresh, employees = [] }) => {
                 />
               </div>
               <div>
-                <label className="text-[11px] font-semibold text-slate-600">Phone</label>
+                <label className="text-[11px] font-semibold text-slate-600">Phone Number *</label>
                 <input
                   type="text"
                   name="phone"
+                  required
                   value={formData.phone}
                   onChange={handleChange}
                   placeholder="+91 98400 11223"
@@ -188,7 +371,7 @@ const ClientModal = ({ isOpen, onClose, onRefresh, employees = [] }) => {
                 />
               </div>
               <div>
-                <label className="text-[11px] font-semibold text-slate-600">Email</label>
+                <label className="text-[11px] font-semibold text-slate-600">Email Address</label>
                 <input
                   type="email"
                   name="email"
@@ -439,25 +622,25 @@ const ClientModal = ({ isOpen, onClose, onRefresh, employees = [] }) => {
             </div>
           </div>
 
-          {/* Document Uploads */}
+          {/* Section 5: Document Image Uploads */}
           <div className="border-t border-slate-100 pt-4">
-            <h4 className="text-xs font-bold text-[#0F2B48] uppercase tracking-wider mb-3">Document Uploads</h4>
+            <h4 className="text-xs font-bold text-[#0F2B48] uppercase tracking-wider mb-3">Document Image Uploads</h4>
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
               <div>
-                <label className="text-[10px] font-semibold text-slate-600">Upload PAN</label>
-                <input type="file" name="panDoc" onChange={handleFileChange} className="mt-1 w-full text-xs text-slate-500" />
+                <label className="text-[10px] font-semibold text-slate-600">Upload PAN Image</label>
+                <input type="file" accept="image/*,.pdf" name="panDoc" onChange={handleFileChange} className="mt-1 w-full text-xs text-slate-500" />
               </div>
               <div>
-                <label className="text-[10px] font-semibold text-slate-600">Upload GST Certificate</label>
-                <input type="file" name="gstDoc" onChange={handleFileChange} className="mt-1 w-full text-xs text-slate-500" />
+                <label className="text-[10px] font-semibold text-slate-600">Upload GST Cert Image</label>
+                <input type="file" accept="image/*,.pdf" name="gstDoc" onChange={handleFileChange} className="mt-1 w-full text-xs text-slate-500" />
               </div>
               <div>
-                <label className="text-[10px] font-semibold text-slate-600">Upload Aadhaar</label>
-                <input type="file" name="aadhaarDoc" onChange={handleFileChange} className="mt-1 w-full text-xs text-slate-500" />
+                <label className="text-[10px] font-semibold text-slate-600">Upload Aadhaar Image</label>
+                <input type="file" accept="image/*,.pdf" name="aadhaarDoc" onChange={handleFileChange} className="mt-1 w-full text-xs text-slate-500" />
               </div>
               <div>
                 <label className="text-[10px] font-semibold text-slate-600">Upload Incorporation Cert</label>
-                <input type="file" name="certificateDoc" onChange={handleFileChange} className="mt-1 w-full text-xs text-slate-500" />
+                <input type="file" accept="image/*,.pdf" name="certificateDoc" onChange={handleFileChange} className="mt-1 w-full text-xs text-slate-500" />
               </div>
             </div>
           </div>
@@ -474,9 +657,9 @@ const ClientModal = ({ isOpen, onClose, onRefresh, employees = [] }) => {
             <button
               type="submit"
               disabled={loading}
-              className="rounded-xl bg-[#52A636] px-5 py-2 text-xs font-semibold text-white shadow-md transition hover:bg-[#438A2B]"
+              className="rounded-xl bg-[#52A636] px-5 py-2 text-xs font-bold text-white shadow-md transition hover:bg-[#438A2B]"
             >
-              {loading ? 'Saving Client...' : 'Register Client'}
+              {loading ? 'Saving Client...' : existingClientId ? 'Update Existing Client & Services' : 'Register Client'}
             </button>
           </div>
         </form>

@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const {
   createClient,
+  lookupByPhone,
   getClients,
   getClientById,
   updateClient,
@@ -18,6 +19,7 @@ const clientFields = [
   { name: 'certificateDoc', maxCount: 1 }
 ];
 
+router.get('/lookup-phone/:phone', protect, checkPermission('Clients', 'view'), lookupByPhone);
 router.post('/', protect, checkPermission('Clients', 'create'), upload.fields(clientFields), createClient);
 router.get('/', protect, checkPermission('Clients', 'view'), getClients);
 router.get('/:id', protect, checkPermission('Clients', 'view'), getClientById);
