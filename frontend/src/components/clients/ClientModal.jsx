@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Upload, Building, CreditCard, ShieldCheck, Search, CheckCircle2, AlertCircle, PhoneCall, Layers } from 'lucide-react';
+import { X, Building, CreditCard, ShieldCheck, Search, CheckCircle2, AlertCircle, PhoneCall, Layers } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import api from '../../services/api';
 
@@ -14,7 +14,7 @@ const ClientModal = ({ isOpen, onClose, onRefresh, employees = [] }) => {
   const [searchPhone, setSearchPhone] = useState('');
   const [lookupLoading, setLookupLoading] = useState(false);
   const [lookupResultMsg, setLookupResultMsg] = useState('');
-  const [lookupStatus, setLookupStatus] = useState(null); // 'success' | 'not_found' | null
+  const [lookupStatus, setLookupStatus] = useState(null);
 
   const [formData, setFormData] = useState({
     clientName: '',
@@ -100,7 +100,7 @@ const ClientModal = ({ isOpen, onClose, onRefresh, employees = [] }) => {
   // Phone Lookup for Existing Clients (Option 2)
   const handlePhoneLookup = async () => {
     if (!searchPhone.trim()) {
-      setLookupResultMsg('Please enter a valid phone number to search.');
+      setLookupResultMsg('Please enter a valid phone number.');
       setLookupStatus('not_found');
       return;
     }
@@ -115,7 +115,7 @@ const ClientModal = ({ isOpen, onClose, onRefresh, employees = [] }) => {
 
       setExistingClientId(client._id);
       setLookupStatus('success');
-      setLookupResultMsg(`Found Client: ${client.clientName} (${client.clientCode || 'Code N/A'})`);
+      setLookupResultMsg(`Client Found: ${client.clientName}`);
 
       // Auto-fill form fields
       setFormData({
@@ -144,7 +144,7 @@ const ClientModal = ({ isOpen, onClose, onRefresh, employees = [] }) => {
     } catch (err) {
       setExistingClientId(null);
       setLookupStatus('not_found');
-      setLookupResultMsg(err.response?.data?.message || 'No existing client found with this contact number. You can fill out details below to add them.');
+      setLookupResultMsg('No record found for this phone number. You can enter details below to register.');
     } finally {
       setLookupLoading(false);
     }
@@ -176,10 +176,6 @@ const ClientModal = ({ isOpen, onClose, onRefresh, employees = [] }) => {
     );
   };
 
-  // Helper flags for dynamic Tax & Business Information fields
-  const hasGstService = subscribedServices.some((s) => s.department === 'GST Filing' || s.department === 'GST' || s.subServiceName.toUpperCase().includes('GST'));
-  const hasItService = subscribedServices.some((s) => s.department === 'Income Tax' || s.department === 'IT Filing' || s.subServiceName.toUpperCase().includes('ITR') || s.subServiceName.toUpperCase().includes('TAX'));
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -199,12 +195,10 @@ const ClientModal = ({ isOpen, onClose, onRefresh, employees = [] }) => {
       if (files.certificateDoc) data.append('certificateDoc', files.certificateDoc);
 
       if (existingClientId) {
-        // Update existing client
         await api.put(`/clients/${existingClientId}`, data, {
           headers: { 'Content-Type': 'multipart/form-data' }
         });
       } else {
-        // Create new client record
         await api.post('/clients', data, {
           headers: { 'Content-Type': 'multipart/form-data' }
         });
@@ -213,7 +207,7 @@ const ClientModal = ({ isOpen, onClose, onRefresh, employees = [] }) => {
       onRefresh && onRefresh();
       onClose();
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to process client registration');
+      setError(err.response?.data?.message || 'Failed to register client');
     } finally {
       setLoading(false);
     }
@@ -221,125 +215,99 @@ const ClientModal = ({ isOpen, onClose, onRefresh, employees = [] }) => {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-sm overflow-y-auto">
-      <div className="relative w-full max-w-4xl rounded-2xl bg-white p-6 shadow-2xl max-h-[90vh] overflow-y-auto">
-        <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+      <div className="relative w-full max-w-3xl rounded-3xl bg-white p-6 shadow-2xl max-h-[90vh] overflow-y-auto border border-slate-100">
+        
+        {/* Header */}
+        <div className="flex items-center justify-between border-b border-slate-100 pb-3">
           <div>
-            <h3 className="text-lg font-bold text-[#0F2B48]">Client Registration (Module 1)</h3>
-            <p className="text-xs text-slate-500">Register new or existing client accounts into Auditor ERP</p>
+            <h3 className="text-base font-bold text-[#0F2B48]">Client Registration</h3>
+            <p className="text-xs text-slate-500">Add or update client service subscriptions</p>
           </div>
-          <button onClick={onClose} className="rounded-xl p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600">
+          <button onClick={onClose} className="rounded-xl p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition">
             <X className="h-5 w-5" />
           </button>
         </div>
 
-        {error && <div className="mt-4 rounded-xl bg-rose-50 p-3 text-xs font-medium text-rose-600 border border-rose-200">{error}</div>}
+        {error && <div className="mt-3 rounded-xl bg-rose-50 p-2.5 text-xs font-semibold text-rose-600 border border-rose-200">{error}</div>}
 
-        {/* Option Toggle Tabs */}
-        <div className="mt-4 flex flex-col sm:flex-row gap-1 rounded-xl bg-slate-100 p-1">
+        {/* Clean Option Switcher */}
+        <div className="mt-4 flex rounded-xl bg-slate-100 p-1">
           <button
             type="button"
             onClick={() => handleCategorySwitch('New Client')}
-            className={`flex-1 rounded-lg py-2.5 px-3 text-xs font-bold transition flex items-center justify-center space-x-2 ${
+            className={`flex-1 rounded-lg py-2 text-xs font-bold transition ${
               registrationCategory === 'New Client'
-                ? 'bg-white text-[#0F2B48] shadow-sm border border-slate-200'
-                : 'text-slate-500 hover:text-slate-800'
+                ? 'bg-white text-[#0F2B48] shadow-xs'
+                : 'text-slate-500 hover:text-slate-700'
             }`}
           >
-            <span>Option 1: New Client (No Registrations Yet)</span>
+            New Client Registration
           </button>
           <button
             type="button"
             onClick={() => handleCategorySwitch('Registered Client')}
-            className={`flex-1 rounded-lg py-2.5 px-3 text-xs font-bold transition flex items-center justify-center space-x-2 ${
+            className={`flex-1 rounded-lg py-2 text-xs font-bold transition ${
               registrationCategory === 'Registered Client'
-                ? 'bg-[#52A636] text-white shadow-sm'
-                : 'text-slate-500 hover:text-slate-800'
+                ? 'bg-[#52A636] text-white shadow-xs'
+                : 'text-slate-500 hover:text-slate-700'
             }`}
           >
-            <span>Option 2: Registered Client (Existing GST/PAN)</span>
+            Existing Client (Phone Lookup)
           </button>
         </div>
 
-        {/* Informational Banner based on Option Selected */}
-        {registrationCategory === 'New Client' ? (
-          <div className="mt-3 p-3 rounded-xl bg-blue-50/80 border border-blue-200 text-xs text-blue-800 flex items-center space-x-2">
-            <AlertCircle className="h-4 w-4 text-blue-600 shrink-0" />
-            <span>
-              <strong>New Client Phase:</strong> Client is completely new for GST / IT / Bookkeeping. This automatically initiates Certificate Tracking in <strong>Module 2 (Waiting For Certificate)</strong>.
-            </span>
-          </div>
-        ) : (
-          <div className="mt-3 p-3.5 rounded-2xl bg-emerald-50/80 border border-emerald-200/80 space-y-2">
-            <div className="flex items-center space-x-2 text-xs font-bold text-emerald-900">
-              <PhoneCall className="h-4 w-4 text-[#52A636]" />
-              <span>Track & Auto-fill Existing Client via Phone Number</span>
-            </div>
-            <p className="text-[11px] text-emerald-700">
-              Enter the client's contact phone number to search existing records and update services or staff assignments without registering a new certificate.
-            </p>
-
-            {/* Phone Lookup Input Bar */}
-            <div className="flex items-center space-x-2 pt-1">
-              <div className="relative flex-1">
-                <input
-                  type="text"
-                  value={searchPhone}
-                  onChange={(e) => setSearchPhone(e.target.value)}
-                  placeholder="Enter Contact Phone Number (e.g. 98400 11223)"
-                  className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs outline-none focus:border-[#52A636]"
-                />
-              </div>
+        {/* Phone Lookup for Existing Clients */}
+        {registrationCategory === 'Registered Client' && (
+          <div className="mt-3 p-3 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-2">
+            <div className="flex items-center space-x-2">
+              <input
+                type="text"
+                value={searchPhone}
+                onChange={(e) => setSearchPhone(e.target.value)}
+                placeholder="Enter Phone Number (e.g. 9840011223)..."
+                className="flex-1 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs outline-none focus:border-[#52A636]"
+              />
               <button
                 type="button"
                 onClick={handlePhoneLookup}
                 disabled={lookupLoading}
-                className="flex items-center space-x-1 rounded-xl bg-[#0F2B48] px-4 py-2 text-xs font-bold text-white hover:bg-[#16385C] transition shrink-0"
+                className="rounded-xl bg-[#0F2B48] px-4 py-2 text-xs font-bold text-white hover:bg-[#16385C] transition shrink-0 flex items-center space-x-1"
               >
                 <Search className="h-3.5 w-3.5" />
-                <span>{lookupLoading ? 'Searching...' : 'Lookup Phone'}</span>
+                <span>{lookupLoading ? 'Searching...' : 'Search'}</span>
               </button>
             </div>
 
             {lookupResultMsg && (
-              <div
-                className={`p-2.5 rounded-xl text-xs font-medium border flex items-center space-x-2 ${
-                  lookupStatus === 'success'
-                    ? 'bg-emerald-100 text-emerald-800 border-emerald-300'
-                    : 'bg-amber-100 text-amber-800 border-amber-300'
-                }`}
-              >
-                {lookupStatus === 'success' ? (
-                  <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0" />
-                ) : (
-                  <AlertCircle className="h-4 w-4 text-amber-600 shrink-0" />
-                )}
-                <span>{lookupResultMsg}</span>
+              <div className={`text-xs font-semibold px-2 py-1 rounded-lg ${lookupStatus === 'success' ? 'text-emerald-700' : 'text-amber-700'}`}>
+                {lookupResultMsg}
               </div>
             )}
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="mt-5 space-y-5">
+        <form onSubmit={handleSubmit} className="mt-4 space-y-5">
           {/* STEP 1: Basic Information */}
-          <div>
-            <h4 className="flex items-center text-xs font-bold text-[#0F2B48] uppercase tracking-wider mb-3">
-              <Building className="mr-1.5 h-4 w-4 text-[#52A636]" /> Step 1: Basic Information
+          <div className="space-y-2">
+            <h4 className="text-xs font-extrabold text-[#0F2B48] flex items-center space-x-1.5">
+              <Building className="h-4 w-4 text-[#52A636]" />
+              <span>Step 1: Basic Details</span>
             </h4>
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
               <div>
-                <label className="text-[11px] font-semibold text-slate-600">Client Name *</label>
+                <label className="text-[11px] font-semibold text-slate-700">Client Name *</label>
                 <input
                   type="text"
                   name="clientName"
                   required
                   value={formData.clientName}
                   onChange={handleChange}
-                  placeholder="e.g. Apex Logistics Solutions"
+                  placeholder="e.g. Apex Logistics"
                   className="mt-1 w-full rounded-xl border border-slate-200 p-2 text-xs outline-none focus:border-[#52A636]"
                 />
               </div>
               <div>
-                <label className="text-[11px] font-semibold text-slate-600">Phone Number *</label>
+                <label className="text-[11px] font-semibold text-slate-700">Phone Number *</label>
                 <input
                   type="text"
                   name="phone"
@@ -351,7 +319,7 @@ const ClientModal = ({ isOpen, onClose, onRefresh, employees = [] }) => {
                 />
               </div>
               <div>
-                <label className="text-[11px] font-semibold text-slate-600">Email Address</label>
+                <label className="text-[11px] font-semibold text-slate-700">Email Address</label>
                 <input
                   type="email"
                   name="email"
@@ -364,22 +332,16 @@ const ClientModal = ({ isOpen, onClose, onRefresh, employees = [] }) => {
             </div>
           </div>
 
-          {/* STEP 2: Select Subscribed Department Services & Staff Assignment */}
-          <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-3">
+          {/* STEP 2: Service Subscriptions */}
+          <div className="space-y-2 pt-2 border-t border-slate-100">
             <div className="flex items-center justify-between">
-              <h4 className="flex items-center text-xs font-extrabold text-[#0F2B48] uppercase tracking-wider">
-                <Layers className="mr-1.5 h-4 w-4 text-[#52A636]" /> Step 2: Subscribe Department Services & Assign Staff
+              <h4 className="text-xs font-extrabold text-[#0F2B48] flex items-center space-x-1.5">
+                <Layers className="h-4 w-4 text-[#52A636]" />
+                <span>Step 2: Subscribed Services ({subscribedServices.length})</span>
               </h4>
-              <span className="text-[10px] font-extrabold text-[#52A636] bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200">
-                {subscribedServices.length} Service(s) Selected
-              </span>
             </div>
 
-            <p className="text-xs text-slate-500">
-              Select the required services below (GST, Income Tax, Accounts). Subscribing to services will dynamically present relevant tax fields.
-            </p>
-
-            <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
               {masterServices.map((ms) => {
                 const isSelected = subscribedServices.some((s) => s.subServiceName === ms.subServiceName);
                 const selectedSub = subscribedServices.find((s) => s.subServiceName === ms.subServiceName);
@@ -387,37 +349,30 @@ const ClientModal = ({ isOpen, onClose, onRefresh, employees = [] }) => {
                 return (
                   <div
                     key={ms._id}
-                    className={`rounded-2xl p-3 border transition ${
-                      isSelected ? 'border-[#52A636] bg-emerald-50/50 shadow-xs' : 'border-slate-200 bg-white hover:bg-slate-100/60'
+                    className={`rounded-xl p-2.5 border transition ${
+                      isSelected ? 'border-[#52A636] bg-emerald-50/40' : 'border-slate-200 bg-white hover:bg-slate-50'
                     }`}
                   >
-                    <div className="flex items-start justify-between">
-                      <div className="flex items-center space-x-2">
+                    <div className="flex items-center justify-between">
+                      <label className="flex items-center space-x-2 cursor-pointer">
                         <input
                           type="checkbox"
                           checked={isSelected}
                           onChange={() => handleToggleSubService(ms)}
-                          className="h-4 w-4 rounded accent-[#52A636] cursor-pointer"
+                          className="h-4 w-4 rounded accent-[#52A636]"
                         />
-                        <div>
-                          <span className="text-[10px] font-extrabold uppercase px-1.5 py-0.5 rounded bg-slate-200 text-slate-700">
-                            {ms.department}
-                          </span>
-                          <h5 className="text-xs font-bold text-slate-900 mt-1">{ms.subServiceName}</h5>
-                        </div>
-                      </div>
-                      <span className="text-[10px] font-bold text-rose-600 bg-rose-50 px-2 py-0.5 rounded-full">
-                        Day {ms.startDayOfMonth} ➔ Day {ms.dueDayOfMonth}
-                      </span>
+                        <span className="text-xs font-bold text-slate-800">{ms.subServiceName}</span>
+                      </label>
+                      <span className="text-[10px] font-semibold text-slate-400">{ms.department}</span>
                     </div>
 
                     {isSelected && (
-                      <div className="mt-2.5 pt-2 border-t border-slate-200/60 flex items-center justify-between">
-                        <label className="text-[10px] font-semibold text-slate-600">Assign Staff:</label>
+                      <div className="mt-2 pt-2 border-t border-slate-200/60 flex items-center justify-between text-[11px]">
+                        <span className="text-slate-500 font-semibold">Assign Staff:</span>
                         <select
                           value={selectedSub?.assignedStaff || ''}
                           onChange={(e) => handleSubServiceStaffChange(ms.subServiceName, e.target.value)}
-                          className="text-xs rounded-lg border border-slate-300 bg-white p-1 outline-none max-w-[180px]"
+                          className="text-xs rounded-lg border border-slate-300 bg-white p-1 outline-none max-w-[170px]"
                         >
                           <option value="">-- Select Staff --</option>
                           {employees.map((e) => (
@@ -434,66 +389,48 @@ const ClientModal = ({ isOpen, onClose, onRefresh, employees = [] }) => {
             </div>
           </div>
 
-          {/* STEP 3: Dynamic Tax & Business Information (Based on Subscribed Services) */}
-          <div className="border-t border-slate-100 pt-4">
-            <div className="flex items-center justify-between mb-3">
-              <h4 className="flex items-center text-xs font-bold text-[#0F2B48] uppercase tracking-wider">
-                <CreditCard className="mr-1.5 h-4 w-4 text-[#52A636]" /> Step 3: Tax & Business Information
-              </h4>
-              <span className="text-[10px] text-slate-500 italic">
-                (Fields dynamically configured based on Step 1 services)
-              </span>
-            </div>
-
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+          {/* STEP 3: Business & Tax Details */}
+          <div className="space-y-2 pt-2 border-t border-slate-100">
+            <h4 className="text-xs font-extrabold text-[#0F2B48] flex items-center space-x-1.5">
+              <CreditCard className="h-4 w-4 text-[#52A636]" />
+              <span>Step 3: Tax & Business Details</span>
+            </h4>
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-4">
               <div>
-                <label className="text-[11px] font-semibold text-slate-600">Trade Name / Business Name</label>
+                <label className="text-[11px] font-semibold text-slate-700">Trade Name</label>
                 <input
                   type="text"
                   name="tradeName"
                   value={formData.tradeName}
                   onChange={handleChange}
-                  placeholder="e.g. Apex Express"
+                  placeholder="Trade Name"
                   className="mt-1 w-full rounded-xl border border-slate-200 p-2 text-xs outline-none focus:border-[#52A636]"
                 />
               </div>
-
-              {/* Display PAN Number for IT or general services */}
-              {(hasItService || !hasGstService || subscribedServices.length === 0) && (
-                <div>
-                  <label className="text-[11px] font-semibold text-slate-600">
-                    PAN Number {hasItService ? '*' : ''}
-                  </label>
-                  <input
-                    type="text"
-                    name="pan"
-                    value={formData.pan}
-                    onChange={handleChange}
-                    placeholder="AAACA1234F"
-                    className="mt-1 w-full rounded-xl border border-slate-200 p-2 text-xs uppercase outline-none focus:border-[#52A636]"
-                  />
-                </div>
-              )}
-
-              {/* Display GSTIN Number for GST or Accounts services */}
-              {(hasGstService || subscribedServices.length === 0) && (
-                <div>
-                  <label className="text-[11px] font-semibold text-slate-600">
-                    GSTIN Number {hasGstService ? '*' : ''}
-                  </label>
-                  <input
-                    type="text"
-                    name="gstin"
-                    value={formData.gstin}
-                    onChange={handleChange}
-                    placeholder="33AAACA1234F1Z5"
-                    className="mt-1 w-full rounded-xl border border-slate-200 p-2 text-xs uppercase outline-none focus:border-[#52A636]"
-                  />
-                </div>
-              )}
-
               <div>
-                <label className="text-[11px] font-semibold text-slate-600">State / Region</label>
+                <label className="text-[11px] font-semibold text-slate-700">PAN Number</label>
+                <input
+                  type="text"
+                  name="pan"
+                  value={formData.pan}
+                  onChange={handleChange}
+                  placeholder="AAACA1234F"
+                  className="mt-1 w-full rounded-xl border border-slate-200 p-2 text-xs uppercase outline-none focus:border-[#52A636]"
+                />
+              </div>
+              <div>
+                <label className="text-[11px] font-semibold text-slate-700">GSTIN Number</label>
+                <input
+                  type="text"
+                  name="gstin"
+                  value={formData.gstin}
+                  onChange={handleChange}
+                  placeholder="33AAACA1234F1Z5"
+                  className="mt-1 w-full rounded-xl border border-slate-200 p-2 text-xs uppercase outline-none focus:border-[#52A636]"
+                />
+              </div>
+              <div>
+                <label className="text-[11px] font-semibold text-slate-700">State</label>
                 <input
                   type="text"
                   name="state"
@@ -505,14 +442,15 @@ const ClientModal = ({ isOpen, onClose, onRefresh, employees = [] }) => {
             </div>
           </div>
 
-          {/* STEP 4: Financial Setup */}
-          <div className="border-t border-slate-100 pt-4">
-            <h4 className="flex items-center text-xs font-bold text-[#0F2B48] uppercase tracking-wider mb-3">
-              <ShieldCheck className="mr-1.5 h-4 w-4 text-[#52A636]" /> Step 4: Financial Setup
+          {/* STEP 4: Financials & Location */}
+          <div className="space-y-2 pt-2 border-t border-slate-100">
+            <h4 className="text-xs font-extrabold text-[#0F2B48] flex items-center space-x-1.5">
+              <ShieldCheck className="h-4 w-4 text-[#52A636]" />
+              <span>Step 4: Financial Setup</span>
             </h4>
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
               <div>
-                <label className="text-[11px] font-semibold text-slate-600">Opening Balance (₹)</label>
+                <label className="text-[11px] font-semibold text-slate-700">Opening Balance (₹)</label>
                 <input
                   type="number"
                   name="openingBalance"
@@ -522,12 +460,7 @@ const ClientModal = ({ isOpen, onClose, onRefresh, employees = [] }) => {
                 />
               </div>
               <div>
-                <div className="flex items-center justify-between">
-                  <label className="text-[11px] font-semibold text-slate-600">Credit Limit (₹)</label>
-                  {!isSuperAdmin && (
-                    <span className="text-[9px] text-amber-600 font-medium">(Super Admin Only Edit)</span>
-                  )}
-                </div>
+                <label className="text-[11px] font-semibold text-slate-700">Credit Limit (₹)</label>
                 <input
                   type="number"
                   name="creditLimit"
@@ -540,7 +473,7 @@ const ClientModal = ({ isOpen, onClose, onRefresh, employees = [] }) => {
                 />
               </div>
               <div>
-                <label className="text-[11px] font-semibold text-slate-600">City / Location</label>
+                <label className="text-[11px] font-semibold text-slate-700">City / Location</label>
                 <input
                   type="text"
                   name="city"
@@ -552,44 +485,44 @@ const ClientModal = ({ isOpen, onClose, onRefresh, employees = [] }) => {
             </div>
           </div>
 
-          {/* STEP 5: Document Image Uploads */}
-          <div className="border-t border-slate-100 pt-4">
-            <h4 className="text-xs font-bold text-[#0F2B48] uppercase tracking-wider mb-3">Step 5: Document Image Uploads</h4>
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+          {/* STEP 5: Document Uploads */}
+          <div className="space-y-2 pt-2 border-t border-slate-100">
+            <h4 className="text-xs font-extrabold text-[#0F2B48]">Step 5: Document Uploads</h4>
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 text-xs">
               <div>
-                <label className="text-[10px] font-semibold text-slate-600">Upload PAN Image</label>
-                <input type="file" accept="image/*,.pdf" name="panDoc" onChange={handleFileChange} className="mt-1 w-full text-xs text-slate-500" />
+                <label className="text-[10px] font-semibold text-slate-600">PAN Image</label>
+                <input type="file" accept="image/*,.pdf" name="panDoc" onChange={handleFileChange} className="mt-1 w-full text-slate-500 text-[11px]" />
               </div>
               <div>
-                <label className="text-[10px] font-semibold text-slate-600">Upload GST Cert Image</label>
-                <input type="file" accept="image/*,.pdf" name="gstDoc" onChange={handleFileChange} className="mt-1 w-full text-xs text-slate-500" />
+                <label className="text-[10px] font-semibold text-slate-600">GST Cert Image</label>
+                <input type="file" accept="image/*,.pdf" name="gstDoc" onChange={handleFileChange} className="mt-1 w-full text-slate-500 text-[11px]" />
               </div>
               <div>
-                <label className="text-[10px] font-semibold text-slate-600">Upload Aadhaar Image</label>
-                <input type="file" accept="image/*,.pdf" name="aadhaarDoc" onChange={handleFileChange} className="mt-1 w-full text-xs text-slate-500" />
+                <label className="text-[10px] font-semibold text-slate-600">Aadhaar Image</label>
+                <input type="file" accept="image/*,.pdf" name="aadhaarDoc" onChange={handleFileChange} className="mt-1 w-full text-slate-500 text-[11px]" />
               </div>
               <div>
-                <label className="text-[10px] font-semibold text-slate-600">Upload Incorporation Cert</label>
-                <input type="file" accept="image/*,.pdf" name="certificateDoc" onChange={handleFileChange} className="mt-1 w-full text-xs text-slate-500" />
+                <label className="text-[10px] font-semibold text-slate-600">Incorporation Cert</label>
+                <input type="file" accept="image/*,.pdf" name="certificateDoc" onChange={handleFileChange} className="mt-1 w-full text-slate-500 text-[11px]" />
               </div>
             </div>
           </div>
 
-          {/* Action Buttons */}
-          <div className="flex items-center justify-end space-x-3 border-t border-slate-100 pt-4">
+          {/* Footer Action Buttons */}
+          <div className="flex items-center justify-end space-x-3 pt-3 border-t border-slate-100">
             <button
               type="button"
               onClick={onClose}
-              className="rounded-xl border border-slate-200 px-4 py-2 text-xs font-medium text-slate-600 hover:bg-slate-50"
+              className="rounded-xl border border-slate-200 px-4 py-2 text-xs font-bold text-slate-600 hover:bg-slate-50 transition"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={loading}
-              className="rounded-xl bg-[#52A636] px-5 py-2 text-xs font-bold text-white shadow-md transition hover:bg-[#438A2B]"
+              className="rounded-xl bg-[#52A636] px-5 py-2 text-xs font-bold text-white shadow-md hover:bg-[#438A2B] transition"
             >
-              {loading ? 'Saving Client...' : existingClientId ? 'Update Existing Client & Services' : 'Register Client'}
+              {loading ? 'Saving...' : existingClientId ? 'Update Client' : 'Register Client'}
             </button>
           </div>
         </form>
