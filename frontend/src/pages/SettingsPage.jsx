@@ -71,35 +71,6 @@ const SettingsPage = () => {
           </div>
         </GlacierCard>
 
-        <GlacierCard title="Notification & Automated Task Dispatch">
-          <div className="space-y-3 mt-2">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-2">
-              <div>
-                <p className="text-xs font-semibold text-slate-800">Email Notifications (Nodemailer)</p>
-                <p className="text-[11px] text-slate-500">Automatically dispatch invoice PDFs and task reminders to clients</p>
-              </div>
-              <input
-                type="checkbox"
-                checked={firmInfo.enableEmailAlerts}
-                onChange={(e) => setFirmInfo({ ...firmInfo, enableEmailAlerts: e.target.checked })}
-                className="h-4 w-4 rounded accent-[#52A636]"
-              />
-            </div>
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs font-semibold text-slate-800">WhatsApp Integration Links</p>
-                <p className="text-[11px] text-slate-500">Enable direct WhatsApp link generation for invoice sharing</p>
-              </div>
-              <input
-                type="checkbox"
-                checked={firmInfo.enableWhatsAppAlerts}
-                onChange={(e) => setFirmInfo({ ...firmInfo, enableWhatsAppAlerts: e.target.checked })}
-                className="h-4 w-4 rounded accent-[#52A636]"
-              />
-            </div>
-          </div>
-        </GlacierCard>
-
         <div className="flex justify-end">
           <button
             type="submit"
