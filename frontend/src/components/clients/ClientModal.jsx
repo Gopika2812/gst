@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Upload, Building, CreditCard, ShieldCheck, Search, CheckCircle2, AlertCircle, PhoneCall } from 'lucide-react';
+import { X, Upload, Building, CreditCard, ShieldCheck, Search, CheckCircle2, AlertCircle, PhoneCall, Layers } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import api from '../../services/api';
 
@@ -20,23 +20,15 @@ const ClientModal = ({ isOpen, onClose, onRefresh, employees = [] }) => {
     clientName: '',
     phone: '',
     email: '',
-    clientGroup: 'General',
     clientType: 'Proprietorship',
-    responsibleEmployee: '',
-    leadSource: 'Direct',
     tradeName: '',
     businessType: 'Services',
-    cin: '',
-    llpin: '',
-    dateOfIncorporation: '',
     pan: '',
     tan: '',
     gstin: '',
-    gstType: 'Regular',
     state: 'Tamil Nadu',
     address: '',
     contactPerson: '',
-    billingAddress: '',
     city: 'Chennai',
     pincode: '',
     openingBalance: 0,
@@ -73,23 +65,15 @@ const ClientModal = ({ isOpen, onClose, onRefresh, employees = [] }) => {
       clientName: '',
       phone: '',
       email: '',
-      clientGroup: 'General',
       clientType: 'Proprietorship',
-      responsibleEmployee: '',
-      leadSource: 'Direct',
       tradeName: '',
       businessType: 'Services',
-      cin: '',
-      llpin: '',
-      dateOfIncorporation: '',
       pan: '',
       tan: '',
       gstin: '',
-      gstType: 'Regular',
       state: 'Tamil Nadu',
       address: '',
       contactPerson: '',
-      billingAddress: '',
       city: 'Chennai',
       pincode: '',
       openingBalance: 0,
@@ -138,23 +122,15 @@ const ClientModal = ({ isOpen, onClose, onRefresh, employees = [] }) => {
         clientName: client.clientName || '',
         phone: client.phone || searchPhone,
         email: client.email || '',
-        clientGroup: client.clientGroup || 'General',
         clientType: client.clientType || 'Proprietorship',
-        responsibleEmployee: client.responsibleEmployee?._id || client.responsibleEmployee || '',
-        leadSource: client.leadSource || 'Direct',
         tradeName: client.tradeName || '',
         businessType: client.businessType || 'Services',
-        cin: client.cin || '',
-        llpin: client.llpin || '',
-        dateOfIncorporation: client.dateOfIncorporation ? new Date(client.dateOfIncorporation).toISOString().split('T')[0] : '',
         pan: client.pan || '',
         tan: client.tan || '',
         gstin: client.gstin || '',
-        gstType: client.gstType || 'Regular',
         state: client.state || 'Tamil Nadu',
         address: client.address || '',
         contactPerson: client.contactPerson || '',
-        billingAddress: client.billingAddress || '',
         city: client.city || 'Chennai',
         pincode: client.pincode || '',
         openingBalance: client.openingBalance || 0,
@@ -185,7 +161,7 @@ const ClientModal = ({ isOpen, onClose, onRefresh, employees = [] }) => {
           department: serviceItem.department,
           serviceName: serviceItem.serviceName,
           subServiceName: serviceItem.subServiceName,
-          assignedStaff: formData.responsibleEmployee || '',
+          assignedStaff: '',
           startDayOfMonth: serviceItem.startDayOfMonth,
           dueDayOfMonth: serviceItem.dueDayOfMonth,
           periodicity: serviceItem.periodicity
@@ -199,6 +175,10 @@ const ClientModal = ({ isOpen, onClose, onRefresh, employees = [] }) => {
       prev.map((s) => (s.subServiceName === subServiceName ? { ...s, assignedStaff: staffId } : s))
     );
   };
+
+  // Helper flags for dynamic Tax & Business Information fields
+  const hasGstService = subscribedServices.some((s) => s.department === 'GST Filing' || s.department === 'GST' || s.subServiceName.toUpperCase().includes('GST'));
+  const hasItService = subscribedServices.some((s) => s.department === 'Income Tax' || s.department === 'IT Filing' || s.subServiceName.toUpperCase().includes('ITR') || s.subServiceName.toUpperCase().includes('TAX'));
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -340,12 +320,82 @@ const ClientModal = ({ isOpen, onClose, onRefresh, employees = [] }) => {
         )}
 
         <form onSubmit={handleSubmit} className="mt-5 space-y-5">
-          {/* Section 1: Basic Info */}
-          <div>
+          {/* STEP 1 FIRST: Select Subscribed Department Services & Staff Assignment */}
+          <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-3">
+            <div className="flex items-center justify-between">
+              <h4 className="flex items-center text-xs font-extrabold text-[#0F2B48] uppercase tracking-wider">
+                <Layers className="mr-1.5 h-4 w-4 text-[#52A636]" /> Step 1: Subscribe Department Services & Assign Staff
+              </h4>
+              <span className="text-[10px] font-extrabold text-[#52A636] bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200">
+                {subscribedServices.length} Service(s) Selected
+              </span>
+            </div>
+
+            <p className="text-xs text-slate-500">
+              Select the required services below (GST, Income Tax, Accounts). Subscribing to services will dynamically present relevant tax fields.
+            </p>
+
+            <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
+              {masterServices.map((ms) => {
+                const isSelected = subscribedServices.some((s) => s.subServiceName === ms.subServiceName);
+                const selectedSub = subscribedServices.find((s) => s.subServiceName === ms.subServiceName);
+
+                return (
+                  <div
+                    key={ms._id}
+                    className={`rounded-2xl p-3 border transition ${
+                      isSelected ? 'border-[#52A636] bg-emerald-50/50 shadow-xs' : 'border-slate-200 bg-white hover:bg-slate-100/60'
+                    }`}
+                  >
+                    <div className="flex items-start justify-between">
+                      <div className="flex items-center space-x-2">
+                        <input
+                          type="checkbox"
+                          checked={isSelected}
+                          onChange={() => handleToggleSubService(ms)}
+                          className="h-4 w-4 rounded accent-[#52A636] cursor-pointer"
+                        />
+                        <div>
+                          <span className="text-[10px] font-extrabold uppercase px-1.5 py-0.5 rounded bg-slate-200 text-slate-700">
+                            {ms.department}
+                          </span>
+                          <h5 className="text-xs font-bold text-slate-900 mt-1">{ms.subServiceName}</h5>
+                        </div>
+                      </div>
+                      <span className="text-[10px] font-bold text-rose-600 bg-rose-50 px-2 py-0.5 rounded-full">
+                        Day {ms.startDayOfMonth} ➔ Day {ms.dueDayOfMonth}
+                      </span>
+                    </div>
+
+                    {isSelected && (
+                      <div className="mt-2.5 pt-2 border-t border-slate-200/60 flex items-center justify-between">
+                        <label className="text-[10px] font-semibold text-slate-600">Assign Staff:</label>
+                        <select
+                          value={selectedSub?.assignedStaff || ''}
+                          onChange={(e) => handleSubServiceStaffChange(ms.subServiceName, e.target.value)}
+                          className="text-xs rounded-lg border border-slate-300 bg-white p-1 outline-none max-w-[180px]"
+                        >
+                          <option value="">-- Select Staff --</option>
+                          {employees.map((e) => (
+                            <option key={e._id} value={e._id}>
+                              {e.name} ({e.department})
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* STEP 2: Basic Information */}
+          <div className="border-t border-slate-100 pt-4">
             <h4 className="flex items-center text-xs font-bold text-[#0F2B48] uppercase tracking-wider mb-3">
-              <Building className="mr-1.5 h-4 w-4 text-[#52A636]" /> Basic Information
+              <Building className="mr-1.5 h-4 w-4 text-[#52A636]" /> Step 2: Basic Information
             </h4>
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
               <div>
                 <label className="text-[11px] font-semibold text-slate-600">Client Name *</label>
                 <input
@@ -397,44 +447,23 @@ const ClientModal = ({ isOpen, onClose, onRefresh, employees = [] }) => {
                   <option>Individual</option>
                 </select>
               </div>
-              <div>
-                <label className="text-[11px] font-semibold text-slate-600">Responsible Staff</label>
-                <select
-                  name="responsibleEmployee"
-                  value={formData.responsibleEmployee}
-                  onChange={handleChange}
-                  className="mt-1 w-full rounded-xl border border-slate-200 p-2 text-xs outline-none focus:border-[#52A636]"
-                >
-                  <option value="">Select Employee</option>
-                  {employees.map((e) => (
-                    <option key={e._id} value={e._id}>
-                      {e.name} ({e.department})
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="text-[11px] font-semibold text-slate-600">Client Group</label>
-                <input
-                  type="text"
-                  name="clientGroup"
-                  value={formData.clientGroup}
-                  onChange={handleChange}
-                  placeholder="e.g. Corporate / Retail"
-                  className="mt-1 w-full rounded-xl border border-slate-200 p-2 text-xs outline-none focus:border-[#52A636]"
-                />
-              </div>
             </div>
           </div>
 
-          {/* Section 2: Business & Tax Information */}
+          {/* STEP 3: Dynamic Tax & Business Information (Based on Subscribed Services) */}
           <div className="border-t border-slate-100 pt-4">
-            <h4 className="flex items-center text-xs font-bold text-[#0F2B48] uppercase tracking-wider mb-3">
-              <CreditCard className="mr-1.5 h-4 w-4 text-[#52A636]" /> Tax & Business Information
-            </h4>
+            <div className="flex items-center justify-between mb-3">
+              <h4 className="flex items-center text-xs font-bold text-[#0F2B48] uppercase tracking-wider">
+                <CreditCard className="mr-1.5 h-4 w-4 text-[#52A636]" /> Step 3: Tax & Business Information
+              </h4>
+              <span className="text-[10px] text-slate-500 italic">
+                (Fields dynamically configured based on Step 1 services)
+              </span>
+            </div>
+
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
               <div>
-                <label className="text-[11px] font-semibold text-slate-600">Trade Name</label>
+                <label className="text-[11px] font-semibold text-slate-600">Trade Name / Business Name</label>
                 <input
                   type="text"
                   name="tradeName"
@@ -444,56 +473,43 @@ const ClientModal = ({ isOpen, onClose, onRefresh, employees = [] }) => {
                   className="mt-1 w-full rounded-xl border border-slate-200 p-2 text-xs outline-none focus:border-[#52A636]"
                 />
               </div>
+
+              {/* Display PAN Number for IT or general services */}
+              {(hasItService || !hasGstService || subscribedServices.length === 0) && (
+                <div>
+                  <label className="text-[11px] font-semibold text-slate-600">
+                    PAN Number {hasItService ? '*' : ''}
+                  </label>
+                  <input
+                    type="text"
+                    name="pan"
+                    value={formData.pan}
+                    onChange={handleChange}
+                    placeholder="AAACA1234F"
+                    className="mt-1 w-full rounded-xl border border-slate-200 p-2 text-xs uppercase outline-none focus:border-[#52A636]"
+                  />
+                </div>
+              )}
+
+              {/* Display GSTIN Number for GST or Accounts services */}
+              {(hasGstService || subscribedServices.length === 0) && (
+                <div>
+                  <label className="text-[11px] font-semibold text-slate-600">
+                    GSTIN Number {hasGstService ? '*' : ''}
+                  </label>
+                  <input
+                    type="text"
+                    name="gstin"
+                    value={formData.gstin}
+                    onChange={handleChange}
+                    placeholder="33AAACA1234F1Z5"
+                    className="mt-1 w-full rounded-xl border border-slate-200 p-2 text-xs uppercase outline-none focus:border-[#52A636]"
+                  />
+                </div>
+              )}
+
               <div>
-                <label className="text-[11px] font-semibold text-slate-600">PAN Number</label>
-                <input
-                  type="text"
-                  name="pan"
-                  value={formData.pan}
-                  onChange={handleChange}
-                  placeholder="AAACA1234F"
-                  className="mt-1 w-full rounded-xl border border-slate-200 p-2 text-xs uppercase outline-none focus:border-[#52A636]"
-                />
-              </div>
-              <div>
-                <label className="text-[11px] font-semibold text-slate-600">GSTIN Number</label>
-                <input
-                  type="text"
-                  name="gstin"
-                  value={formData.gstin}
-                  onChange={handleChange}
-                  placeholder="33AAACA1234F1Z5"
-                  className="mt-1 w-full rounded-xl border border-slate-200 p-2 text-xs uppercase outline-none focus:border-[#52A636]"
-                />
-              </div>
-              <div>
-                <label className="text-[11px] font-semibold text-slate-600">CIN / LLPIN</label>
-                <input
-                  type="text"
-                  name="cin"
-                  value={formData.cin}
-                  onChange={handleChange}
-                  placeholder="U60200TN2021PTC145890"
-                  className="mt-1 w-full rounded-xl border border-slate-200 p-2 text-xs uppercase outline-none focus:border-[#52A636]"
-                />
-              </div>
-              <div>
-                <label className="text-[11px] font-semibold text-slate-600">GST Type</label>
-                <select
-                  name="gstType"
-                  value={formData.gstType}
-                  onChange={handleChange}
-                  className="mt-1 w-full rounded-xl border border-slate-200 p-2 text-xs outline-none focus:border-[#52A636]"
-                >
-                  <option>Regular</option>
-                  <option>Composition</option>
-                  <option>SEZ</option>
-                  <option>Casual</option>
-                  <option>Unregistered</option>
-                </select>
-              </div>
-              <div>
-                <label className="text-[11px] font-semibold text-slate-600">State</label>
+                <label className="text-[11px] font-semibold text-slate-600">State / Region</label>
                 <input
                   type="text"
                   name="state"
@@ -505,10 +521,10 @@ const ClientModal = ({ isOpen, onClose, onRefresh, employees = [] }) => {
             </div>
           </div>
 
-          {/* Section 3: Financials & Credit Limit */}
+          {/* STEP 4: Financial Setup */}
           <div className="border-t border-slate-100 pt-4">
             <h4 className="flex items-center text-xs font-bold text-[#0F2B48] uppercase tracking-wider mb-3">
-              <ShieldCheck className="mr-1.5 h-4 w-4 text-[#52A636]" /> Financial Setup
+              <ShieldCheck className="mr-1.5 h-4 w-4 text-[#52A636]" /> Step 4: Financial Setup
             </h4>
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
               <div>
@@ -552,79 +568,9 @@ const ClientModal = ({ isOpen, onClose, onRefresh, employees = [] }) => {
             </div>
           </div>
 
-          {/* Section 4: Subscribed Department Services & Staff Assignment */}
+          {/* STEP 5: Document Image Uploads */}
           <div className="border-t border-slate-100 pt-4">
-            <div className="flex items-center justify-between mb-3">
-              <h4 className="flex items-center text-xs font-bold text-[#0F2B48] uppercase tracking-wider">
-                <ShieldCheck className="mr-1.5 h-4 w-4 text-[#52A636]" /> Client Subscribed Services & Staff Reminders
-              </h4>
-              <span className="text-[10px] font-semibold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full">
-                {subscribedServices.length} Selected
-              </span>
-            </div>
-
-            <p className="text-xs text-slate-500 mb-3">
-              Select Department Sub-Services required by this client. Assigned staff will get automated start day to due date reminders.
-            </p>
-
-            <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
-              {masterServices.map((ms) => {
-                const isSelected = subscribedServices.some((s) => s.subServiceName === ms.subServiceName);
-                const selectedSub = subscribedServices.find((s) => s.subServiceName === ms.subServiceName);
-
-                return (
-                  <div
-                    key={ms._id}
-                    className={`rounded-2xl p-3 border transition ${
-                      isSelected ? 'border-[#52A636] bg-emerald-50/40 shadow-xs' : 'border-slate-200 bg-slate-50/50 hover:bg-slate-100/60'
-                    }`}
-                  >
-                    <div className="flex items-start justify-between">
-                      <div className="flex items-center space-x-2">
-                        <input
-                          type="checkbox"
-                          checked={isSelected}
-                          onChange={() => handleToggleSubService(ms)}
-                          className="h-4 w-4 rounded accent-[#52A636] cursor-pointer"
-                        />
-                        <div>
-                          <span className="text-[10px] font-extrabold uppercase px-1.5 py-0.5 rounded bg-slate-200 text-slate-700">
-                            {ms.department}
-                          </span>
-                          <h5 className="text-xs font-bold text-slate-900 mt-1">{ms.subServiceName}</h5>
-                        </div>
-                      </div>
-                      <span className="text-[10px] font-bold text-rose-600 bg-rose-50 px-2 py-0.5 rounded-full">
-                        Day {ms.startDayOfMonth} ➔ Day {ms.dueDayOfMonth}
-                      </span>
-                    </div>
-
-                    {isSelected && (
-                      <div className="mt-2.5 pt-2 border-t border-slate-200/60 flex items-center justify-between">
-                        <label className="text-[10px] font-semibold text-slate-600">Assign Staff:</label>
-                        <select
-                          value={selectedSub?.assignedStaff || formData.responsibleEmployee || ''}
-                          onChange={(e) => handleSubServiceStaffChange(ms.subServiceName, e.target.value)}
-                          className="text-xs rounded-lg border border-slate-300 bg-white p-1 outline-none max-w-[180px]"
-                        >
-                          <option value="">-- Select Staff --</option>
-                          {employees.map((e) => (
-                            <option key={e._id} value={e._id}>
-                              {e.name} ({e.department})
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Section 5: Document Image Uploads */}
-          <div className="border-t border-slate-100 pt-4">
-            <h4 className="text-xs font-bold text-[#0F2B48] uppercase tracking-wider mb-3">Document Image Uploads</h4>
+            <h4 className="text-xs font-bold text-[#0F2B48] uppercase tracking-wider mb-3">Step 5: Document Image Uploads</h4>
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
               <div>
                 <label className="text-[10px] font-semibold text-slate-600">Upload PAN Image</label>
