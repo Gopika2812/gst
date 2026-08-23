@@ -63,14 +63,17 @@ const MainLayout = () => {
   };
 
   return (
-    <div className="flex min-h-screen bg-slate-50 relative">
+    <div className="flex min-h-screen bg-[#0A1E36] bg-[url('/login_bg.jpg')] bg-cover bg-center bg-fixed relative">
+      {/* Semi-transparent dark/light glassmorphic backdrop layer */}
+      <div className="absolute inset-0 bg-slate-100/90 backdrop-blur-md pointer-events-none"></div>
+
       <Sidebar
         isOpen={isMobileSidebarOpen}
         onClose={() => setIsMobileSidebarOpen(false)}
         isCollapsed={isSidebarCollapsed}
         onToggleCollapse={toggleDesktopCollapse}
       />
-      <div className={`flex-1 flex flex-col min-w-0 transition-all duration-300 ${isSidebarCollapsed ? 'lg:ml-20' : 'lg:ml-64'}`}>
+      <div className={`relative z-10 flex-1 flex flex-col min-w-0 transition-all duration-300 ${isSidebarCollapsed ? 'lg:ml-20' : 'lg:ml-64'}`}>
         <Navbar
           globalSearch={globalSearch}
           onSearchChange={setGlobalSearch}
