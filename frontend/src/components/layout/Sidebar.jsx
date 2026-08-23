@@ -16,10 +16,12 @@ import {
   ShieldAlert,
   UserCheck,
   Settings,
-  X
+  X,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react';
 
-const Sidebar = ({ isOpen, onClose }) => {
+const Sidebar = ({ isOpen, onClose, isCollapsed, onToggleCollapse }) => {
   const { user } = useAuth();
 
   const isSuperOrAdmin = user && (user.role === 'Super Admin' || (user.role && user.role.includes('Admin')));
@@ -59,25 +61,37 @@ const Sidebar = ({ isOpen, onClose }) => {
 
       {/* Sidebar Container */}
       <aside
-        className={`glacier-sidebar fixed top-0 left-0 z-50 flex h-screen w-64 flex-col border-r border-slate-800 text-slate-300 shadow-2xl transition-transform duration-300 ease-in-out ${
-          isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
-        }`}
+        className={`glacier-sidebar fixed top-0 left-0 z-50 flex h-screen flex-col border-r border-slate-800 text-slate-300 shadow-2xl transition-all duration-300 ease-in-out ${
+          isCollapsed ? 'w-64 lg:w-20' : 'w-64'
+        } ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}
       >
         {/* Brand Header & Logo Graphic */}
-        <div className="flex h-20 items-center justify-between border-b border-slate-700/60 px-5">
-          <div className="flex items-center space-x-3">
+        <div className={`flex h-20 items-center border-b border-slate-700/60 px-4 ${isCollapsed ? 'justify-center lg:justify-center' : 'justify-between'}`}>
+          <div className="flex items-center space-x-3 overflow-hidden">
             {/* Logo Graphic */}
-            <div className="relative flex h-10 w-10 items-center justify-center rounded-xl bg-white p-0.5 shadow-md overflow-hidden border border-slate-700/50">
+            <div className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white p-0.5 shadow-md overflow-hidden border border-slate-700/50">
               <img src="/logo.jpg" alt="Vignesh Associates Logo" className="h-full w-full object-cover rounded-lg" />
             </div>
-            <div>
+            <div className={`transition-opacity duration-200 ${isCollapsed ? 'lg:hidden' : 'block'}`}>
               <div className="flex items-center space-x-1">
                 <span className="rounded bg-[#0F2B48] px-1.5 py-0.5 font-bold text-xs text-white border border-slate-600">Vignesh</span>
                 <span className="rounded bg-[#52A636] px-1.5 py-0.5 font-bold text-xs text-white">Associates</span>
               </div>
-              <p className="mt-0.5 text-[10px] tracking-wider text-slate-400 font-medium uppercase">Auditor ERP System</p>
+              <p className="mt-0.5 text-[10px] tracking-wider text-slate-400 font-medium uppercase whitespace-nowrap">Auditor ERP System</p>
             </div>
           </div>
+
+          {/* Desktop Toggle Button */}
+          <button
+            onClick={onToggleCollapse}
+            className={`hidden lg:flex rounded-xl p-1.5 text-slate-400 transition hover:bg-white/10 hover:text-white ${
+              isCollapsed ? 'ml-0' : ''
+            }`}
+            title={isCollapsed ? 'Expand Sidebar' : 'Collapse Sidebar'}
+            aria-label="Toggle sidebar collapse"
+          >
+            {isCollapsed ? <ChevronRight className="h-5 w-5" /> : <ChevronLeft className="h-5 w-5" />}
+          </button>
 
           {/* Close button for mobile drawer */}
           <button
@@ -94,9 +108,16 @@ const Sidebar = ({ isOpen, onClose }) => {
           {navItems.map((item, idx) => {
             if (item.section) {
               return (
-                <div key={idx} className="pt-4 pb-1 px-3 text-[10px] font-bold tracking-wider text-slate-400 uppercase">
-                  {item.section}
-                </div>
+                <React.Fragment key={idx}>
+                  <div
+                    className={`pt-4 pb-1 px-3 text-[10px] font-bold tracking-wider text-slate-400 uppercase ${
+                      isCollapsed ? 'lg:hidden' : 'block'
+                    }`}
+                  >
+                    {item.section}
+                  </div>
+                  <div className={`my-2 border-t border-slate-700/60 hidden ${isCollapsed ? 'lg:block' : ''}`} title={item.section} />
+                </React.Fragment>
               );
             }
 
@@ -116,17 +137,20 @@ const Sidebar = ({ isOpen, onClose }) => {
               <NavLink
                 key={item.path}
                 to={item.path}
+                title={item.name}
                 onClick={() => onClose && onClose()}
                 className={({ isActive }) =>
-                  `flex items-center space-x-3 rounded-xl px-3.5 py-2.5 text-xs font-medium transition-all ${
+                  `flex items-center rounded-xl py-2.5 text-xs font-medium transition-all ${
+                    isCollapsed ? 'px-3 lg:justify-center' : 'px-3.5 space-x-3'
+                  } ${
                     isActive
                       ? 'bg-[#52A636] text-white font-semibold shadow-md shadow-[#52A636]/30'
                       : 'text-slate-300 hover:bg-white/10 hover:text-white'
                   }`
                 }
               >
-                <Icon className="h-4 w-4 shrink-0" />
-                <span>{item.name}</span>
+                <Icon className="h-5 w-5 shrink-0" />
+                <span className={`truncate ${isCollapsed ? 'lg:hidden' : 'block'}`}>{item.name}</span>
               </NavLink>
             );
           })}
@@ -134,12 +158,19 @@ const Sidebar = ({ isOpen, onClose }) => {
 
         {/* Footer System Status */}
         <div className="border-t border-slate-700/60 p-4">
-          <div className="flex items-center justify-between rounded-xl bg-slate-900/60 p-3 text-xs">
+          <div
+            className={`flex items-center justify-between rounded-xl bg-slate-900/60 p-3 text-xs ${
+              isCollapsed ? 'lg:justify-center lg:p-2' : ''
+            }`}
+            title="Live API Server v1.0"
+          >
             <div className="flex items-center space-x-2">
-              <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse"></span>
-              <span className="font-medium text-slate-300">Live API Server</span>
+              <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse shrink-0"></span>
+              <span className={`font-medium text-slate-300 ${isCollapsed ? 'lg:hidden' : 'block'}`}>Live API Server</span>
             </div>
-            <span className="rounded bg-slate-800 px-1.5 py-0.5 text-[10px] font-semibold text-emerald-400">v1.0</span>
+            <span className={`rounded bg-slate-800 px-1.5 py-0.5 text-[10px] font-semibold text-emerald-400 ${isCollapsed ? 'lg:hidden' : 'block'}`}>
+              v1.0
+            </span>
           </div>
         </div>
       </aside>

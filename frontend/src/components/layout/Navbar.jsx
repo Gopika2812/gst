@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
-import { Bell, Search, User, LogOut, ShieldCheck, ChevronDown, CheckCircle2, AlertTriangle, Calendar, Menu } from 'lucide-react';
+import { Bell, Search, User, LogOut, ShieldCheck, ChevronDown, CheckCircle2, AlertTriangle, Calendar, Menu, PanelLeftClose, PanelLeftOpen } from 'lucide-react';
 
-const Navbar = ({ onSearchChange, globalSearch, onToggleMobileMenu }) => {
+const Navbar = ({ onSearchChange, globalSearch, onToggleMobileMenu, isSidebarCollapsed }) => {
   const { user, logout } = useAuth();
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
@@ -16,13 +16,19 @@ const Navbar = ({ onSearchChange, globalSearch, onToggleMobileMenu }) => {
   return (
     <header className="sticky top-0 z-30 flex h-16 w-full items-center justify-between border-b border-slate-200/80 bg-white/90 px-3 sm:px-6 backdrop-blur-md">
       <div className="flex items-center flex-1 pr-2">
-        {/* Mobile Hamburger Menu Toggle Button */}
+        {/* Sidebar Toggle Button (Desktop & Mobile) */}
         <button
           onClick={onToggleMobileMenu}
-          className="mr-2 sm:mr-3 rounded-xl border border-slate-200 p-2 text-slate-600 transition hover:bg-slate-100 hover:text-[#0F2B48] lg:hidden"
-          aria-label="Open sidebar menu"
+          className="mr-2 sm:mr-3 rounded-xl border border-slate-200 p-2 text-slate-600 transition hover:bg-slate-100 hover:text-[#0F2B48] flex items-center justify-center"
+          title={isSidebarCollapsed ? 'Expand Sidebar' : 'Collapse Sidebar'}
+          aria-label="Toggle sidebar menu"
         >
-          <Menu className="h-5 w-5" />
+          {isSidebarCollapsed ? (
+            <PanelLeftOpen className="h-5 w-5 hidden lg:block text-[#52A636]" />
+          ) : (
+            <PanelLeftClose className="h-5 w-5 hidden lg:block text-slate-600" />
+          )}
+          <Menu className="h-5 w-5 lg:hidden" />
         </button>
 
         {/* Global Search Bar */}

@@ -36,15 +36,46 @@ const ProtectedRoute = ({ children }) => {
 const MainLayout = () => {
   const [globalSearch, setGlobalSearch] = useState('');
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(() => {
+    return localStorage.getItem('sidebar_collapsed') === 'true';
+  });
+
+  const toggleSidebar = () => {
+    // If mobile screen (< 1024px), toggle mobile menu drawer
+    if (window.innerWidth < 1024) {
+      setIsMobileSidebarOpen((prev) => !prev);
+    } else {
+      // On desktop, toggle collapse state
+      setIsSidebarCollapsed((prev) => {
+        const next = !prev;
+        localStorage.setItem('sidebar_collapsed', String(next));
+        return next;
+      });
+    }
+  };
+
+  const toggleDesktopCollapse = () => {
+    setIsSidebarCollapsed((prev) => {
+      const next = !prev;
+      localStorage.setItem('sidebar_collapsed', String(next));
+      return next;
+    });
+  };
 
   return (
     <div className="flex min-h-screen bg-slate-50 relative">
-      <Sidebar isOpen={isMobileSidebarOpen} onClose={() => setIsMobileSidebarOpen(false)} />
-      <div className="flex-1 lg:ml-64 flex flex-col min-w-0">
+      <Sidebar
+        isOpen={isMobileSidebarOpen}
+        onClose={() => setIsMobileSidebarOpen(false)}
+        isCollapsed={isSidebarCollapsed}
+        onToggleCollapse={toggleDesktopCollapse}
+      />
+      <div className={`flex-1 flex flex-col min-w-0 transition-all duration-300 ${isSidebarCollapsed ? 'lg:ml-20' : 'lg:ml-64'}`}>
         <Navbar
           globalSearch={globalSearch}
           onSearchChange={setGlobalSearch}
-          onToggleMobileMenu={() => setIsMobileSidebarOpen(!isMobileSidebarOpen)}
+          onToggleMobileMenu={toggleSidebar}
+          isSidebarCollapsed={isSidebarCollapsed}
         />
         <main className="flex-1 p-3 sm:p-6 overflow-y-auto">
           <Routes>
