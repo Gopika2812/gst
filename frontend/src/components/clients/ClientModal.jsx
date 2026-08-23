@@ -468,24 +468,6 @@ const ClientModal = ({ isOpen, onClose, onRefresh, employees = [] }) => {
                           {ms.department}
                         </span>
                       </div>
-
-                      {isSelected && (
-                        <div className="mt-2 pt-2 border-t border-slate-200/60 flex items-center justify-between text-[11px]">
-                          <span className="text-slate-600 font-semibold">Assign Staff:</span>
-                          <select
-                            value={selectedSub?.assignedStaff || ''}
-                            onChange={(e) => handleSubServiceStaffChange(ms.subServiceName, e.target.value)}
-                            className="text-xs rounded-lg border border-slate-300 bg-white p-1 outline-none max-w-[170px]"
-                          >
-                            <option value="">-- Select Staff --</option>
-                            {employees.map((e) => (
-                              <option key={e._id} value={e._id}>
-                                {e.name} ({e.department})
-                              </option>
-                            ))}
-                          </select>
-                        </div>
-                      )}
                     </div>
                   );
                 })
