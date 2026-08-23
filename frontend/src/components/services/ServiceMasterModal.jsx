@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Plus, Trash2, Calendar, FileText, Building2, CheckCircle2, RefreshCw } from 'lucide-react';
+import { X, Plus, Trash2, Pencil, Check, RefreshCw } from 'lucide-react';
 import api from '../../services/api';
 
 const ServiceMasterModal = ({ isOpen, onClose }) => {
@@ -7,7 +7,10 @@ const ServiceMasterModal = ({ isOpen, onClose }) => {
   const [selectedDept, setSelectedDept] = useState('GST Filing');
   const [loading, setLoading] = useState(true);
 
-  // Form State for Adding New Sub-Service
+  // Edit Mode State
+  const [editingId, setEditingId] = useState(null);
+
+  // Form State for Adding/Editing Sub-Service
   const [serviceName, setServiceName] = useState('');
   const [subServiceName, setSubServiceName] = useState('');
   const [startDayOfMonth, setStartDayOfMonth] = useState(1);
@@ -33,12 +36,35 @@ const ServiceMasterModal = ({ isOpen, onClose }) => {
   useEffect(() => {
     if (isOpen) {
       fetchServices();
+      resetForm();
     }
   }, [isOpen]);
 
   if (!isOpen) return null;
 
-  const handleAddService = async (e) => {
+  const resetForm = () => {
+    setEditingId(null);
+    setServiceName('');
+    setSubServiceName('');
+    setStartDayOfMonth(1);
+    setDueDayOfMonth(11);
+    setPeriodicity('Monthly');
+    setDescription('');
+    setFormError('');
+  };
+
+  const handleEditClick = (service) => {
+    setEditingId(service._id);
+    setServiceName(service.serviceName || '');
+    setSubServiceName(service.subServiceName || '');
+    setStartDayOfMonth(service.startDayOfMonth || 1);
+    setDueDayOfMonth(service.dueDayOfMonth || 11);
+    setPeriodicity(service.periodicity || 'Monthly');
+    setDescription(service.description || '');
+    setFormError('');
+  };
+
+  const handleFormSubmit = async (e) => {
     e.preventDefault();
     if (!serviceName.trim() || !subServiceName.trim()) {
       setFormError('Service Name and Sub-Service Name are required');
@@ -49,26 +75,34 @@ const ServiceMasterModal = ({ isOpen, onClose }) => {
     setFormError('');
 
     try {
-      await api.post('/services', {
-        department: selectedDept,
-        serviceName,
-        subServiceName,
-        startDayOfMonth: Number(startDayOfMonth),
-        dueDayOfMonth: Number(dueDayOfMonth),
-        periodicity,
-        description
-      });
+      if (editingId) {
+        // Update existing service
+        await api.put(`/services/${editingId}`, {
+          department: selectedDept,
+          serviceName,
+          subServiceName,
+          startDayOfMonth: Number(startDayOfMonth),
+          dueDayOfMonth: Number(dueDayOfMonth),
+          periodicity,
+          description
+        });
+      } else {
+        // Create new service
+        await api.post('/services', {
+          department: selectedDept,
+          serviceName,
+          subServiceName,
+          startDayOfMonth: Number(startDayOfMonth),
+          dueDayOfMonth: Number(dueDayOfMonth),
+          periodicity,
+          description
+        });
+      }
 
-      // Reset form
-      setServiceName('');
-      setSubServiceName('');
-      setStartDayOfMonth(1);
-      setDueDayOfMonth(11);
-      setDescription('');
-
+      resetForm();
       fetchServices();
     } catch (err) {
-      setFormError(err.response?.data?.message || 'Failed to add service');
+      setFormError(err.response?.data?.message || 'Failed to save service');
     } finally {
       setSubmitting(false);
     }
@@ -78,6 +112,7 @@ const ServiceMasterModal = ({ isOpen, onClose }) => {
     if (!window.confirm('Are you sure you want to delete this master sub-service?')) return;
     try {
       await api.delete(`/services/${id}`);
+      if (editingId === id) resetForm();
       fetchServices();
     } catch (err) {
       alert('Failed to delete service');
@@ -113,7 +148,10 @@ const ServiceMasterModal = ({ isOpen, onClose }) => {
           {['GST Filing', 'Income Tax', 'Accounts'].map((dept) => (
             <button
               key={dept}
-              onClick={() => setSelectedDept(dept)}
+              onClick={() => {
+                setSelectedDept(dept);
+                resetForm();
+              }}
               className={`rounded-xl px-4 py-2 text-xs font-bold transition whitespace-nowrap ${
                 selectedDept === dept
                   ? 'bg-[#0F2B48] text-white shadow-sm'
@@ -125,12 +163,33 @@ const ServiceMasterModal = ({ isOpen, onClose }) => {
           ))}
         </div>
 
-        {/* Form to Add New Sub-Service */}
-        <form onSubmit={handleAddService} className="mt-4 rounded-2xl bg-slate-50 p-4 border border-slate-200/80 space-y-3">
-          <h4 className="text-xs font-bold text-[#0F2B48] flex items-center space-x-1.5">
-            <Plus className="h-4 w-4 text-[#52A636]" />
-            <span>Add New Sub-Service under {selectedDept}</span>
-          </h4>
+        {/* Form to Add or Edit Sub-Service */}
+        <form onSubmit={handleFormSubmit} className="mt-4 rounded-2xl bg-slate-50 p-4 border border-slate-200/80 space-y-3">
+          <div className="flex items-center justify-between">
+            <h4 className="text-xs font-bold text-[#0F2B48] flex items-center space-x-1.5">
+              {editingId ? (
+                <>
+                  <Pencil className="h-4 w-4 text-blue-600" />
+                  <span>Edit Sub-Service under {selectedDept}</span>
+                </>
+              ) : (
+                <>
+                  <Plus className="h-4 w-4 text-[#52A636]" />
+                  <span>Add New Sub-Service under {selectedDept}</span>
+                </>
+              )}
+            </h4>
+
+            {editingId && (
+              <button
+                type="button"
+                onClick={resetForm}
+                className="text-[11px] font-semibold text-rose-600 hover:underline"
+              >
+                Cancel Edit
+              </button>
+            )}
+          </div>
 
           {formError && <div className="text-xs text-rose-600 font-medium">{formError}</div>}
 
@@ -211,13 +270,24 @@ const ServiceMasterModal = ({ isOpen, onClose }) => {
             </div>
           </div>
 
-          <div className="flex justify-end pt-1">
+          <div className="flex justify-end space-x-2 pt-1">
+            {editingId && (
+              <button
+                type="button"
+                onClick={resetForm}
+                className="rounded-xl border border-slate-300 px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 transition"
+              >
+                Cancel
+              </button>
+            )}
             <button
               type="submit"
               disabled={submitting}
-              className="rounded-xl bg-[#52A636] px-4 py-2 text-xs font-bold text-white shadow-md hover:bg-[#438A2B] transition"
+              className={`rounded-xl px-4 py-2 text-xs font-bold text-white shadow-md transition ${
+                editingId ? 'bg-blue-600 hover:bg-blue-700' : 'bg-[#52A636] hover:bg-[#438A2B]'
+              }`}
             >
-              {submitting ? 'Adding...' : '+ Add Sub-Service'}
+              {submitting ? (editingId ? 'Updating...' : 'Adding...') : editingId ? 'Update Sub-Service' : '+ Add Sub-Service'}
             </button>
           </div>
         </form>
@@ -249,7 +319,12 @@ const ServiceMasterModal = ({ isOpen, onClose }) => {
                 </thead>
                 <tbody className="divide-y divide-slate-100 bg-white">
                   {filteredServices.map((s) => (
-                    <tr key={s._id} className="hover:bg-slate-50/80 transition">
+                    <tr
+                      key={s._id}
+                      className={`hover:bg-slate-50/80 transition ${
+                        editingId === s._id ? 'bg-blue-50/60' : ''
+                      }`}
+                    >
                       <td className="p-3 font-semibold text-[#0F2B48]">{s.serviceName}</td>
                       <td className="p-3 font-extrabold text-slate-900">{s.subServiceName}</td>
                       <td className="p-3">
@@ -259,10 +334,17 @@ const ServiceMasterModal = ({ isOpen, onClose }) => {
                       </td>
                       <td className="p-3 font-semibold text-blue-600">Day {s.startDayOfMonth} of Month</td>
                       <td className="p-3 font-bold text-rose-600">Day {s.dueDayOfMonth} of Month</td>
-                      <td className="p-3 text-right">
+                      <td className="p-3 text-right space-x-1">
+                        <button
+                          onClick={() => handleEditClick(s)}
+                          className="rounded-lg p-1.5 text-slate-500 hover:bg-blue-50 hover:text-blue-600 transition"
+                          title="Edit master service"
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </button>
                         <button
                           onClick={() => handleDelete(s._id)}
-                          className="rounded-lg p-1 text-slate-400 hover:bg-rose-50 hover:text-rose-600 transition"
+                          className="rounded-lg p-1.5 text-slate-400 hover:bg-rose-50 hover:text-rose-600 transition"
                           title="Delete master service"
                         >
                           <Trash2 className="h-4 w-4" />
