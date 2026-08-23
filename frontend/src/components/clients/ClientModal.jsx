@@ -320,11 +320,55 @@ const ClientModal = ({ isOpen, onClose, onRefresh, employees = [] }) => {
         )}
 
         <form onSubmit={handleSubmit} className="mt-5 space-y-5">
-          {/* STEP 1 FIRST: Select Subscribed Department Services & Staff Assignment */}
+          {/* STEP 1: Basic Information */}
+          <div>
+            <h4 className="flex items-center text-xs font-bold text-[#0F2B48] uppercase tracking-wider mb-3">
+              <Building className="mr-1.5 h-4 w-4 text-[#52A636]" /> Step 1: Basic Information
+            </h4>
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+              <div>
+                <label className="text-[11px] font-semibold text-slate-600">Client Name *</label>
+                <input
+                  type="text"
+                  name="clientName"
+                  required
+                  value={formData.clientName}
+                  onChange={handleChange}
+                  placeholder="e.g. Apex Logistics Solutions"
+                  className="mt-1 w-full rounded-xl border border-slate-200 p-2 text-xs outline-none focus:border-[#52A636]"
+                />
+              </div>
+              <div>
+                <label className="text-[11px] font-semibold text-slate-600">Phone Number *</label>
+                <input
+                  type="text"
+                  name="phone"
+                  required
+                  value={formData.phone}
+                  onChange={handleChange}
+                  placeholder="+91 98400 11223"
+                  className="mt-1 w-full rounded-xl border border-slate-200 p-2 text-xs outline-none focus:border-[#52A636]"
+                />
+              </div>
+              <div>
+                <label className="text-[11px] font-semibold text-slate-600">Email Address</label>
+                <input
+                  type="email"
+                  name="email"
+                  value={formData.email}
+                  onChange={handleChange}
+                  placeholder="client@company.com"
+                  className="mt-1 w-full rounded-xl border border-slate-200 p-2 text-xs outline-none focus:border-[#52A636]"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* STEP 2: Select Subscribed Department Services & Staff Assignment */}
           <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-3">
             <div className="flex items-center justify-between">
               <h4 className="flex items-center text-xs font-extrabold text-[#0F2B48] uppercase tracking-wider">
-                <Layers className="mr-1.5 h-4 w-4 text-[#52A636]" /> Step 1: Subscribe Department Services & Assign Staff
+                <Layers className="mr-1.5 h-4 w-4 text-[#52A636]" /> Step 2: Subscribe Department Services & Assign Staff
               </h4>
               <span className="text-[10px] font-extrabold text-[#52A636] bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200">
                 {subscribedServices.length} Service(s) Selected
@@ -387,50 +431,6 @@ const ClientModal = ({ isOpen, onClose, onRefresh, employees = [] }) => {
                   </div>
                 );
               })}
-            </div>
-          </div>
-
-          {/* STEP 2: Basic Information */}
-          <div className="border-t border-slate-100 pt-4">
-            <h4 className="flex items-center text-xs font-bold text-[#0F2B48] uppercase tracking-wider mb-3">
-              <Building className="mr-1.5 h-4 w-4 text-[#52A636]" /> Step 2: Basic Information
-            </h4>
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-              <div>
-                <label className="text-[11px] font-semibold text-slate-600">Client Name *</label>
-                <input
-                  type="text"
-                  name="clientName"
-                  required
-                  value={formData.clientName}
-                  onChange={handleChange}
-                  placeholder="e.g. Apex Logistics Solutions"
-                  className="mt-1 w-full rounded-xl border border-slate-200 p-2 text-xs outline-none focus:border-[#52A636]"
-                />
-              </div>
-              <div>
-                <label className="text-[11px] font-semibold text-slate-600">Phone Number *</label>
-                <input
-                  type="text"
-                  name="phone"
-                  required
-                  value={formData.phone}
-                  onChange={handleChange}
-                  placeholder="+91 98400 11223"
-                  className="mt-1 w-full rounded-xl border border-slate-200 p-2 text-xs outline-none focus:border-[#52A636]"
-                />
-              </div>
-              <div>
-                <label className="text-[11px] font-semibold text-slate-600">Email Address</label>
-                <input
-                  type="email"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleChange}
-                  placeholder="client@company.com"
-                  className="mt-1 w-full rounded-xl border border-slate-200 p-2 text-xs outline-none focus:border-[#52A636]"
-                />
-              </div>
             </div>
           </div>
 
