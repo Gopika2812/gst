@@ -395,7 +395,7 @@ const ClientModal = ({ isOpen, onClose, onRefresh, employees = [] }) => {
             <h4 className="flex items-center text-xs font-bold text-[#0F2B48] uppercase tracking-wider mb-3">
               <Building className="mr-1.5 h-4 w-4 text-[#52A636]" /> Step 2: Basic Information
             </h4>
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
               <div>
                 <label className="text-[11px] font-semibold text-slate-600">Client Name *</label>
                 <input
@@ -430,22 +430,6 @@ const ClientModal = ({ isOpen, onClose, onRefresh, employees = [] }) => {
                   placeholder="client@company.com"
                   className="mt-1 w-full rounded-xl border border-slate-200 p-2 text-xs outline-none focus:border-[#52A636]"
                 />
-              </div>
-              <div>
-                <label className="text-[11px] font-semibold text-slate-600">Client Type</label>
-                <select
-                  name="clientType"
-                  value={formData.clientType}
-                  onChange={handleChange}
-                  className="mt-1 w-full rounded-xl border border-slate-200 p-2 text-xs outline-none focus:border-[#52A636]"
-                >
-                  <option>Proprietorship</option>
-                  <option>Partnership</option>
-                  <option>LLP</option>
-                  <option>Private Limited</option>
-                  <option>Public Limited</option>
-                  <option>Individual</option>
-                </select>
               </div>
             </div>
           </div>
