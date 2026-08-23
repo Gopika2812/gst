@@ -167,7 +167,6 @@ const ClientModal = ({ isOpen, onClose, onRefresh, employees = [] }) => {
           department: serviceItem.department,
           serviceName: serviceItem.serviceName,
           subServiceName: serviceItem.subServiceName,
-          assignedStaff: '',
           startDayOfMonth: serviceItem.startDayOfMonth,
           dueDayOfMonth: serviceItem.dueDayOfMonth,
           periodicity: serviceItem.periodicity
@@ -206,7 +205,6 @@ const ClientModal = ({ isOpen, onClose, onRefresh, employees = [] }) => {
           department: ms.department,
           serviceName: ms.serviceName,
           subServiceName: ms.subServiceName,
-          assignedStaff: '',
           startDayOfMonth: ms.startDayOfMonth,
           dueDayOfMonth: ms.dueDayOfMonth,
           periodicity: ms.periodicity

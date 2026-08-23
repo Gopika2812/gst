@@ -35,6 +35,17 @@ exports.createClient = async (req, res) => {
       }
     }
 
+    // Sanitize assignedStaff empty strings in subscribedServices to prevent ObjectId cast errors
+    if (Array.isArray(clientData.subscribedServices)) {
+      clientData.subscribedServices = clientData.subscribedServices.map((sub) => {
+        const cleanedSub = { ...sub };
+        if (!cleanedSub.assignedStaff || typeof cleanedSub.assignedStaff !== 'string' || !cleanedSub.assignedStaff.trim()) {
+          delete cleanedSub.assignedStaff;
+        }
+        return cleanedSub;
+      });
+    }
+
     clientData.clientCode = await generateClientCode();
     clientData.createdBy = req.user._id;
 
@@ -206,6 +217,17 @@ exports.updateClient = async (req, res) => {
       } catch (e) {
         updateData.subscribedServices = [];
       }
+    }
+
+    // Sanitize assignedStaff empty strings in subscribedServices to prevent ObjectId cast errors
+    if (Array.isArray(updateData.subscribedServices)) {
+      updateData.subscribedServices = updateData.subscribedServices.map((sub) => {
+        const cleanedSub = { ...sub };
+        if (!cleanedSub.assignedStaff || typeof cleanedSub.assignedStaff !== 'string' || !cleanedSub.assignedStaff.trim()) {
+          delete cleanedSub.assignedStaff;
+        }
+        return cleanedSub;
+      });
     }
 
     // Strict Rule: Only Super Admin can edit Credit Limit
