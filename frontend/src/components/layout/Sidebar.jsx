@@ -37,9 +37,8 @@ const Sidebar = ({ isOpen, onClose, isCollapsed, onToggleCollapse }) => {
     // Department Portals Section
     { section: 'DEPARTMENT PORTALS' },
     { name: 'GST Filing', path: '/gst-filing', icon: FileCheck },
-    { name: 'Book Keeping', path: '/bookkeeping', icon: Calculator },
-    { name: 'IT Filing', path: '/it-filing', icon: FileSpreadsheet },
-    { name: 'Registration', path: '/registration-portal', icon: Building2 },
+    { name: 'Income Tax', path: '/it-filing', icon: FileSpreadsheet },
+    { name: 'Accounts', path: '/bookkeeping', icon: Calculator },
 
     // Management Section
     { section: 'REPORTS & ADMIN' },

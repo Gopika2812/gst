@@ -124,8 +124,6 @@ const TaskBoardPage = () => {
               <option value="GST">GST</option>
               <option value="Income Tax">Income Tax</option>
               <option value="Accounts">Accounts</option>
-              <option value="Registration">Registration</option>
-              <option value="Book Keeping">Book Keeping</option>
               <option value="Administration">Administration</option>
             </select>
 

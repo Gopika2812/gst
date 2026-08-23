@@ -158,7 +158,7 @@ const TaskModal = ({ isOpen, onClose, onRefresh, clients = [], employees = [], d
           <div>
             <label className="text-xs font-semibold text-slate-700">Department *</label>
             <div className="mt-1.5 grid grid-cols-3 sm:grid-cols-6 gap-2">
-              {['GST', 'Income Tax', 'Accounts', 'Registration', 'Book Keeping', 'Administration'].map((d) => (
+              {['GST', 'Income Tax', 'Accounts', 'Administration'].map((d) => (
                 <button
                   key={d}
                   type="button"

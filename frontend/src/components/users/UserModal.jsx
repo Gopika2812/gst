@@ -211,8 +211,6 @@ const UserModal = ({ isOpen, onClose, user, onSave, allUsers = [] }) => {
                   <option value="GST">GST</option>
                   <option value="Income Tax">Income Tax</option>
                   <option value="Accounts">Accounts</option>
-                  <option value="Book Keeping">Book Keeping</option>
-                  <option value="Registration">Registration</option>
                 </select>
               </div>
             </div>
