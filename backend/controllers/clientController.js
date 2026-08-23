@@ -56,28 +56,32 @@ exports.createClient = async (req, res) => {
     const client = await Client.create(clientData);
 
     // Automatically create Certification Tracking Record (Module 2)
-    if (clientData.registrationCategory === 'New Client') {
-      await Certification.create({
-        client: client._id,
-        certificateType: clientData.businessType || 'GST Registration',
-        applicationDate: new Date(),
-        status: 'Waiting For Certificate',
-        certificateReceived: 'Pending',
-        movedToBilling: false,
-        remarks: 'New Client Registration - Pending Certificate Approval'
-      });
-    } else {
-      // Existing Client (Option 2): Already Has Certificate -> Auto-marked as Certificate Received & Ready for Billing
-      await Certification.create({
-        client: client._id,
-        certificateType: client.gstin ? 'GST Certificate' : 'PAN / Incorporation',
-        applicationDate: new Date(),
-        certificateNumber: client.gstin || client.pan || 'EX-CERTIFIED',
-        status: 'Certificate Received',
-        certificateReceived: 'Yes',
-        movedToBilling: true,
-        remarks: 'Existing Client - Certificate Already Present (Ready for Billing)'
-      });
+    try {
+      if (clientData.registrationCategory === 'New Client') {
+        await Certification.create({
+          client: client._id,
+          certificateType: clientData.businessType || 'GST Registration',
+          applicationDate: new Date(),
+          status: 'Waiting For Certificate',
+          certificateReceived: 'No',
+          movedToBilling: false,
+          remarks: 'New Client Registration - Pending Certificate Approval'
+        });
+      } else {
+        // Existing Client (Option 2): Already Has Certificate -> Auto-marked as Certificate Received & Ready for Billing
+        await Certification.create({
+          client: client._id,
+          certificateType: client.gstin ? 'GST Certificate' : 'PAN / Incorporation',
+          applicationDate: new Date(),
+          certificateNumber: client.gstin || client.pan || 'EX-CERTIFIED',
+          status: 'Certificate Received',
+          certificateReceived: 'Yes',
+          movedToBilling: true,
+          remarks: 'Existing Client - Certificate Already Present (Ready for Billing)'
+        });
+      }
+    } catch (certError) {
+      console.error('Certification tracking creation notice:', certError.message);
     }
 
     // Initial Ledger Opening Balance record

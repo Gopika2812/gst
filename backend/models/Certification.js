@@ -8,7 +8,7 @@ const certificationSchema = new mongoose.Schema(
     applicationDate: { type: Date, default: Date.now },
     expectedDate: { type: Date },
     certificateNumber: { type: String },
-    certificateReceived: { type: String, enum: ['Yes', 'No'], default: 'No' },
+    certificateReceived: { type: String, enum: ['Yes', 'No', 'Pending'], default: 'No' },
     receivedDate: { type: Date },
     uploadedCertificate: { type: String },
     remarks: { type: String },
