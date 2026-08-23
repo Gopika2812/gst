@@ -18,7 +18,6 @@ const TaskBoardPage = () => {
   const [viewMode, setViewMode] = useState('table'); // 'table' or 'kanban'
   const [departmentFilter, setDepartmentFilter] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
-  const [taskTypeFilter, setTaskTypeFilter] = useState('');
   const [myTasksOnly, setMyTasksOnly] = useState(false);
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
   const [isDelegateModalOpen, setIsDelegateModalOpen] = useState(false);
@@ -32,7 +31,6 @@ const TaskBoardPage = () => {
           params: {
             department: departmentFilter,
             status: statusFilter,
-            taskType: taskTypeFilter,
             myTasksOnly
           }
         }),
@@ -51,7 +49,7 @@ const TaskBoardPage = () => {
 
   useEffect(() => {
     fetchTasks();
-  }, [departmentFilter, statusFilter, taskTypeFilter, myTasksOnly]);
+  }, [departmentFilter, statusFilter, myTasksOnly]);
 
   const handleStatusChange = async (taskId, newStatus) => {
     // Optimistic UI update
@@ -138,17 +136,6 @@ const TaskBoardPage = () => {
               <option value="In Progress">In Progress</option>
               <option value="Completed">Completed</option>
               <option value="Can't Complete">Can't Complete</option>
-            </select>
-
-            {/* Task Category Filter */}
-            <select
-              value={taskTypeFilter}
-              onChange={(e) => setTaskTypeFilter(e.target.value)}
-              className="rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-[#0F2B48] outline-none cursor-pointer focus:border-[#52A636]"
-            >
-              <option value="">All Task Types</option>
-              <option value="Common Task">Common Dept Tasks</option>
-              <option value="Client Task">Client Tasks</option>
             </select>
 
             {/* My Tasks Checkbox */}
