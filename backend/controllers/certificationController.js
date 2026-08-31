@@ -36,7 +36,7 @@ exports.getCertifications = async (req, res) => {
     if (certificateReceived) filter.certificateReceived = certificateReceived;
 
     const certs = await Certification.find(filter)
-      .populate('client', 'clientName tradeName pan gstin phone email status')
+      .populate('client', 'clientName tradeName pan gstin phone email status subscribedServices')
       .sort({ createdAt: -1 });
 
     res.json(certs);
@@ -48,7 +48,7 @@ exports.getCertifications = async (req, res) => {
 // Update Certification (Mark Received & Upload Certificate Document)
 exports.updateCertification = async (req, res) => {
   try {
-    const { status, remarks, movedToBilling } = req.body;
+    const { status, remarks, movedToBilling, certificateNumber, certificateReceived, receivedDate } = req.body;
     const cert = await Certification.findById(req.params.id);
 
     if (!cert) {
@@ -56,12 +56,15 @@ exports.updateCertification = async (req, res) => {
     }
 
     if (status) cert.status = status;
-    if (remarks) cert.remarks = remarks;
+    if (remarks !== undefined) cert.remarks = remarks;
+    if (certificateNumber !== undefined) cert.certificateNumber = certificateNumber;
+    if (certificateReceived !== undefined) cert.certificateReceived = certificateReceived;
+    if (receivedDate) cert.receivedDate = receivedDate;
     if (movedToBilling !== undefined) cert.movedToBilling = movedToBilling;
 
-    if (cert.certificateReceived === 'Yes') {
+    if (cert.certificateReceived === 'Yes' || certificateReceived === 'Yes') {
       cert.status = 'Certificate Received';
-      if (!cert.receivedDate) cert.receivedDate = new Date();
+      if (!cert.receivedDate) cert.receivedDate = receivedDate || new Date();
     }
 
     if (req.file) {

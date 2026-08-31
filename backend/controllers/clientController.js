@@ -68,10 +68,18 @@ exports.createClient = async (req, res) => {
 
     // Automatically create Certification Tracking Record (Module 2)
     try {
+      let derivedCertificateType = 'GST Registration';
+      if (Array.isArray(clientData.subscribedServices) && clientData.subscribedServices.length > 0) {
+        const subNames = clientData.subscribedServices.map((s) => s.subServiceName || s.serviceName).filter(Boolean);
+        derivedCertificateType = subNames.join(', ');
+      } else if (clientData.gstin) {
+        derivedCertificateType = 'GST Registration';
+      }
+
       if (clientData.registrationCategory === 'New Client') {
         await Certification.create({
           client: client._id,
-          certificateType: clientData.businessType || 'GST Registration',
+          certificateType: derivedCertificateType,
           applicationDate: new Date(),
           status: 'Waiting For Certificate',
           certificateReceived: 'No',
@@ -82,7 +90,7 @@ exports.createClient = async (req, res) => {
         // Existing Client (Option 2): Already Has Certificate -> Auto-marked as Certificate Received & Ready for Billing
         await Certification.create({
           client: client._id,
-          certificateType: client.gstin ? 'GST Certificate' : 'PAN / Incorporation',
+          certificateType: derivedCertificateType || (client.gstin ? 'GST Certificate' : 'PAN / Incorporation'),
           applicationDate: new Date(),
           certificateNumber: client.gstin || client.pan || 'EX-CERTIFIED',
           status: 'Certificate Received',

@@ -1,12 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import GlacierCard from '../components/common/GlacierCard';
 import Badge from '../components/common/Badge';
+import FilePreviewModal from '../components/common/FilePreviewModal';
 import api from '../services/api';
-import { Building2, Download } from 'lucide-react';
+import { Building2, Eye, Download, FileText } from 'lucide-react';
 
 const RegistrationPage = () => {
   const [filings, setFilings] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [previewModal, setPreviewModal] = useState({
+    isOpen: false,
+    fileUrl: '',
+    fileName: '',
+    title: '',
+    subtitle: '',
+    certNumber: ''
+  });
 
   useEffect(() => {
     const fetchFilings = async () => {
@@ -22,6 +31,17 @@ const RegistrationPage = () => {
     };
     fetchFilings();
   }, []);
+
+  const handlePreviewDoc = (f) => {
+    setPreviewModal({
+      isOpen: true,
+      fileUrl: f.filedDocumentUrl,
+      fileName: `${f.client?.clientName || 'Client'}_${f.filingPeriod}_License`,
+      title: `${f.client?.clientName || 'Client'} - ${f.filingPeriod} License/Certificate`,
+      subtitle: `Ack No: ${f.acknowledgementNumber || 'REG-SUBMITTED'} • Date: ${new Date(f.filingDate).toLocaleDateString('en-IN')}`,
+      certNumber: f.acknowledgementNumber || ''
+    });
+  };
 
   return (
     <div className="space-y-6">
@@ -66,15 +86,14 @@ const RegistrationPage = () => {
                     </td>
                     <td className="p-3.5 text-center">
                       {f.filedDocumentUrl ? (
-                        <a
-                          href={f.filedDocumentUrl}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="inline-flex items-center space-x-1 text-[11px] font-semibold text-[#52A636] hover:underline"
+                        <button
+                          type="button"
+                          onClick={() => handlePreviewDoc(f)}
+                          className="inline-flex items-center space-x-1 px-2.5 py-1 rounded-lg bg-emerald-50 text-[#52A636] hover:bg-emerald-100 border border-emerald-200 text-[11px] font-bold transition shadow-2xs cursor-pointer"
                         >
-                          <Download className="h-3.5 w-3.5" />
-                          <span>View Certificate</span>
-                        </a>
+                          <Eye className="h-3.5 w-3.5" />
+                          <span>Preview Doc</span>
+                        </button>
                       ) : (
                         <span className="text-[10px] text-slate-400">-</span>
                       )}
@@ -86,6 +105,17 @@ const RegistrationPage = () => {
           </table>
         </div>
       </GlacierCard>
+
+      {/* Global File Preview Modal */}
+      <FilePreviewModal
+        isOpen={previewModal.isOpen}
+        onClose={() => setPreviewModal((prev) => ({ ...prev, isOpen: false }))}
+        fileUrl={previewModal.fileUrl}
+        fileName={previewModal.fileName}
+        title={previewModal.title}
+        subtitle={previewModal.subtitle}
+        certNumber={previewModal.certNumber}
+      />
     </div>
   );
 };

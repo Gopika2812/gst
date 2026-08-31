@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import GlacierCard from '../components/common/GlacierCard';
 import Badge from '../components/common/Badge';
+import FilePreviewModal from '../components/common/FilePreviewModal';
 import api from '../services/api';
-import { Award, CheckCircle2, Clock, Upload, ArrowRight, ShieldCheck } from 'lucide-react';
+import { Award, CheckCircle2, Clock, Upload, ArrowRight, ShieldCheck, Eye, FileText, Image as ImageIcon, X, Trash2 } from 'lucide-react';
+import { formatFileSize, isImageFile, isPdfFile } from '../utils/fileUtils';
 
 const CertificationPage = () => {
   const [certifications, setCertifications] = useState([]);
@@ -17,6 +19,18 @@ const CertificationPage = () => {
     remarks: ''
   });
   const [certFile, setCertFile] = useState(null);
+  const [certFilePreviewUrl, setCertFilePreviewUrl] = useState(null);
+
+  // File Preview Modal State
+  const [previewModal, setPreviewModal] = useState({
+    isOpen: false,
+    fileUrl: '',
+    fileName: '',
+    fileType: '',
+    title: '',
+    subtitle: '',
+    certNumber: ''
+  });
 
   const fetchCertifications = async () => {
     setLoading(true);
@@ -34,6 +48,15 @@ const CertificationPage = () => {
     fetchCertifications();
   }, []);
 
+  // Cleanup object URL when unmounting or modal closes
+  useEffect(() => {
+    return () => {
+      if (certFilePreviewUrl) {
+        URL.revokeObjectURL(certFilePreviewUrl);
+      }
+    };
+  }, [certFilePreviewUrl]);
+
   const handleOpenUpdate = (cert) => {
     setSelectedCert(cert);
     setUpdateData({
@@ -42,7 +65,41 @@ const CertificationPage = () => {
       receivedDate: new Date().toISOString().split('T')[0],
       remarks: cert.remarks || ''
     });
+    setCertFile(null);
+    if (certFilePreviewUrl) {
+      URL.revokeObjectURL(certFilePreviewUrl);
+      setCertFilePreviewUrl(null);
+    }
     setIsUpdateModalOpen(true);
+  };
+
+  const handleCloseUpdateModal = () => {
+    setIsUpdateModalOpen(false);
+    setCertFile(null);
+    if (certFilePreviewUrl) {
+      URL.revokeObjectURL(certFilePreviewUrl);
+      setCertFilePreviewUrl(null);
+    }
+  };
+
+  const handleFileSelect = (e) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (certFilePreviewUrl) {
+        URL.revokeObjectURL(certFilePreviewUrl);
+      }
+      setCertFile(file);
+      const objUrl = URL.createObjectURL(file);
+      setCertFilePreviewUrl(objUrl);
+    }
+  };
+
+  const handleRemoveSelectedFile = () => {
+    if (certFilePreviewUrl) {
+      URL.revokeObjectURL(certFilePreviewUrl);
+    }
+    setCertFile(null);
+    setCertFilePreviewUrl(null);
   };
 
   const handleUpdateSubmit = async (e) => {
@@ -63,11 +120,34 @@ const CertificationPage = () => {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
 
-      setIsUpdateModalOpen(false);
+      handleCloseUpdateModal();
       fetchCertifications();
     } catch (err) {
       alert('Failed to update certification');
     }
+  };
+
+  const getDisplayCertType = (cert) => {
+    if (!cert) return '';
+    if (cert.certificateType && cert.certificateType !== 'Services') {
+      return cert.certificateType;
+    }
+    if (cert.client?.subscribedServices && cert.client.subscribedServices.length > 0) {
+      return cert.client.subscribedServices.map((s) => s.subServiceName || s.serviceName).join(', ');
+    }
+    return 'GST Registration';
+  };
+
+  const openPreview = ({ fileUrl, fileName, title, subtitle, certNumber, fileType = '' }) => {
+    setPreviewModal({
+      isOpen: true,
+      fileUrl,
+      fileName: fileName || 'Certificate Document',
+      fileType,
+      title: title || 'Certificate Preview',
+      subtitle: subtitle || '',
+      certNumber: certNumber || ''
+    });
   };
 
   return (
@@ -108,7 +188,7 @@ const CertificationPage = () => {
       {/* Certifications Table */}
       <GlacierCard className="p-0 overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs min-w-[700px]">
+          <table className="w-full text-left text-xs min-w-[760px]">
             <thead className="bg-[#0F2B48] text-white">
               <tr>
                 <th className="p-3.5 font-semibold">Client Name</th>
@@ -116,6 +196,7 @@ const CertificationPage = () => {
                 <th className="p-3.5 font-semibold">Application Date</th>
                 <th className="p-3.5 font-semibold">Expected Date</th>
                 <th className="p-3.5 font-semibold">Cert Number</th>
+                <th className="p-3.5 font-semibold">Certificate Doc</th>
                 <th className="p-3.5 font-semibold">Received?</th>
                 <th className="p-3.5 font-semibold">Status</th>
                 <th className="p-3.5 text-center font-semibold">Action</th>
@@ -124,11 +205,11 @@ const CertificationPage = () => {
             <tbody className="divide-y divide-slate-100">
               {loading ? (
                 <tr>
-                  <td colSpan={8} className="p-8 text-center text-slate-400">Loading certification records...</td>
+                  <td colSpan={9} className="p-8 text-center text-slate-400">Loading certification records...</td>
                 </tr>
               ) : certifications.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="p-8 text-center text-slate-400">No pending certification tracking records</td>
+                  <td colSpan={9} className="p-8 text-center text-slate-400">No pending certification tracking records</td>
                 </tr>
               ) : (
                 certifications.map((c) => (
@@ -137,7 +218,7 @@ const CertificationPage = () => {
                       <div className="font-bold text-slate-900">{c.client?.clientName || 'N/A'}</div>
                       <div className="text-[10px] text-slate-500 font-mono">{c.client?.phone || ''}</div>
                     </td>
-                    <td className="p-3.5 font-semibold text-slate-700">{c.certificateType}</td>
+                    <td className="p-3.5 font-semibold text-slate-700">{getDisplayCertType(c)}</td>
                     <td className="p-3.5 text-slate-600">
                       {c.applicationDate ? new Date(c.applicationDate).toLocaleDateString('en-IN') : 'N/A'}
                     </td>
@@ -146,6 +227,27 @@ const CertificationPage = () => {
                     </td>
                     <td className="p-3.5 font-mono text-[11px] text-slate-800">
                       {c.certificateNumber || 'Pending'}
+                    </td>
+                    <td className="p-3.5">
+                      {c.uploadedCertificate ? (
+                        <button
+                          type="button"
+                          onClick={() => openPreview({
+                            fileUrl: c.uploadedCertificate,
+                            fileName: `${c.client?.clientName || 'Client'}_${getDisplayCertType(c)}_Certificate`,
+                            title: `${c.client?.clientName || 'Client'} - ${getDisplayCertType(c)} Certificate`,
+                            subtitle: `Certificate No: ${c.certificateNumber || 'N/A'}`,
+                            certNumber: c.certificateNumber || ''
+                          })}
+                          className="inline-flex items-center space-x-1.5 px-2.5 py-1 rounded-lg bg-emerald-50 text-[#52A636] hover:bg-emerald-100 border border-emerald-200 text-[11px] font-bold transition shadow-2xs hover:shadow-xs cursor-pointer"
+                          title="Preview Certificate"
+                        >
+                          <Eye className="h-3.5 w-3.5" />
+                          <span>Preview Doc</span>
+                        </button>
+                      ) : (
+                        <span className="text-[11px] text-slate-400 italic">No file</span>
+                      )}
                     </td>
                     <td className="p-3.5">
                       <Badge status={c.certificateReceived === 'Yes' ? 'Yes' : 'Pending'} text={c.certificateReceived === 'Yes' ? 'Received' : 'Pending'} />
@@ -167,7 +269,7 @@ const CertificationPage = () => {
                       ) : (
                         <button
                           onClick={() => handleOpenUpdate(c)}
-                          className="rounded-lg bg-[#52A636] px-3 py-1 text-xs font-bold text-white hover:bg-[#438A2B] shadow-xs transition"
+                          className="rounded-lg bg-[#52A636] px-3 py-1 text-xs font-bold text-white hover:bg-[#438A2B] shadow-xs transition cursor-pointer"
                         >
                           Update Status
                         </button>
@@ -184,65 +286,161 @@ const CertificationPage = () => {
       {/* Update Certificate Modal */}
       {isUpdateModalOpen && selectedCert && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-sm">
-          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl">
-            <h3 className="text-base font-bold text-[#0F2B48]">Update Certificate Received</h3>
-            <p className="text-xs text-slate-500 mt-0.5">
-              Client: {selectedCert.client?.clientName} ({selectedCert.certificateType})
-            </p>
-
-            <form onSubmit={handleUpdateSubmit} className="mt-4 space-y-3 text-xs">
+          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl border border-slate-100 animate-fadeIn">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <div>
-                <label className="font-semibold text-slate-600">Certificate Number *</label>
+                <h3 className="text-base font-bold text-[#0F2B48]">Update Certificate Received</h3>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  Client: <span className="font-semibold text-slate-700">{selectedCert.client?.clientName}</span> <span className="text-slate-400">({getDisplayCertType(selectedCert)})</span>
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={handleCloseUpdateModal}
+                className="p-1 rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            <form onSubmit={handleUpdateSubmit} className="mt-4 space-y-3.5 text-xs">
+              <div>
+                <label className="font-semibold text-slate-700">Certificate Number *</label>
                 <input
                   type="text"
                   required
                   value={updateData.certificateNumber}
                   onChange={(e) => setUpdateData({ ...updateData, certificateNumber: e.target.value })}
                   placeholder="e.g. 33AAACA1234F1Z5"
-                  className="mt-1 w-full rounded-xl border border-slate-200 p-2 outline-none"
+                  className="mt-1 w-full rounded-xl border border-slate-200 p-2.5 outline-none focus:border-[#52A636] text-slate-800"
                 />
               </div>
 
               <div>
-                <label className="font-semibold text-slate-600">Received Date</label>
+                <label className="font-semibold text-slate-700">Received Date</label>
                 <input
                   type="date"
                   value={updateData.receivedDate}
                   onChange={(e) => setUpdateData({ ...updateData, receivedDate: e.target.value })}
-                  className="mt-1 w-full rounded-xl border border-slate-200 p-2 outline-none"
+                  className="mt-1 w-full rounded-xl border border-slate-200 p-2.5 outline-none focus:border-[#52A636] text-slate-800"
                 />
               </div>
 
+              {/* Upload Certificate File with Live Preview */}
               <div>
-                <label className="font-semibold text-slate-600">Upload Certificate File</label>
-                <input
-                  type="file"
-                  onChange={(e) => setCertFile(e.target.files[0])}
-                  className="mt-1 w-full text-slate-500"
-                />
+                <div className="flex items-center justify-between">
+                  <label className="font-semibold text-slate-700">Upload Certificate File</label>
+                  {certFile && (
+                    <span className="text-[11px] text-emerald-600 font-bold">
+                      {formatFileSize(certFile.size)}
+                    </span>
+                  )}
+                </div>
+
+                <div className="mt-1.5 space-y-2">
+                  <input
+                    type="file"
+                    id="cert-file-input"
+                    accept="image/*,.pdf"
+                    onChange={handleFileSelect}
+                    className="w-full text-slate-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-slate-100 file:text-slate-700 hover:file:bg-slate-200 cursor-pointer"
+                  />
+
+                  {/* Selected File Live Preview Card */}
+                  {certFile && certFilePreviewUrl && (
+                    <div className="flex items-center justify-between p-2.5 rounded-xl bg-emerald-50/70 border border-emerald-200">
+                      <div className="flex items-center space-x-2.5 min-w-0 pr-2">
+                        {isImageFile(certFile.name) ? (
+                          <img
+                            src={certFilePreviewUrl}
+                            alt="thumb"
+                            className="h-9 w-9 rounded-lg object-cover border border-emerald-300 shrink-0 bg-white"
+                          />
+                        ) : (
+                          <div className="h-9 w-9 rounded-lg bg-emerald-100 text-[#52A636] flex items-center justify-center shrink-0">
+                            <FileText className="h-5 w-5" />
+                          </div>
+                        )}
+                        <div className="min-w-0 truncate">
+                          <p className="font-bold text-slate-800 truncate text-[11px]">{certFile.name}</p>
+                          <p className="text-[10px] text-slate-500">{formatFileSize(certFile.size)}</p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center space-x-1.5 shrink-0">
+                        <button
+                          type="button"
+                          onClick={() => openPreview({
+                            fileUrl: certFilePreviewUrl,
+                            fileName: certFile.name,
+                            fileType: certFile.type,
+                            title: `${selectedCert.client?.clientName || 'Client'} - Certificate Preview`,
+                            subtitle: `File: ${certFile.name} (${formatFileSize(certFile.size)})`,
+                            certNumber: updateData.certificateNumber
+                          })}
+                          className="flex items-center space-x-1 px-2.5 py-1 rounded-lg bg-[#52A636] text-white hover:bg-[#438A2B] font-bold text-[11px] shadow-2xs transition"
+                          title="Preview Selected Certificate"
+                        >
+                          <Eye className="h-3.5 w-3.5" />
+                          <span>Preview</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={handleRemoveSelectedFile}
+                          className="p-1 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition"
+                          title="Remove File"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Previously Uploaded Certificate Reference */}
+                  {!certFile && selectedCert.uploadedCertificate && (
+                    <div className="flex items-center justify-between p-2 rounded-xl bg-slate-50 border border-slate-200 text-slate-600">
+                      <span className="text-[11px] font-medium truncate pr-2">Currently stored certificate file</span>
+                      <button
+                        type="button"
+                        onClick={() => openPreview({
+                          fileUrl: selectedCert.uploadedCertificate,
+                          fileName: `${selectedCert.certificateType}_Certificate`,
+                          title: `${selectedCert.client?.clientName} - Existing Certificate`,
+                          subtitle: `Certificate No: ${selectedCert.certificateNumber || 'N/A'}`,
+                          certNumber: selectedCert.certificateNumber || ''
+                        })}
+                        className="flex items-center space-x-1 px-2.5 py-1 rounded-lg bg-white border border-slate-200 text-slate-700 hover:bg-slate-100 font-bold text-[11px] shrink-0 shadow-2xs transition"
+                      >
+                        <Eye className="h-3.5 w-3.5 text-[#52A636]" />
+                        <span>Preview Existing</span>
+                      </button>
+                    </div>
+                  )}
+                </div>
               </div>
 
               <div>
-                <label className="font-semibold text-slate-600">Remarks</label>
+                <label className="font-semibold text-slate-700">Remarks</label>
                 <textarea
                   rows={2}
                   value={updateData.remarks}
                   onChange={(e) => setUpdateData({ ...updateData, remarks: e.target.value })}
-                  className="mt-1 w-full rounded-xl border border-slate-200 p-2 outline-none"
+                  placeholder="Enter remarks or approval notes..."
+                  className="mt-1 w-full rounded-xl border border-slate-200 p-2.5 outline-none focus:border-[#52A636] text-slate-800"
                 />
               </div>
 
-              <div className="flex items-center justify-end space-x-2 pt-3">
+              <div className="flex items-center justify-end space-x-2 pt-3 border-t border-slate-100">
                 <button
                   type="button"
-                  onClick={() => setIsUpdateModalOpen(false)}
-                  className="rounded-xl border border-slate-200 px-4 py-2 font-medium text-slate-600"
+                  onClick={handleCloseUpdateModal}
+                  className="rounded-xl border border-slate-200 px-4 py-2 font-medium text-slate-600 hover:bg-slate-50 transition"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="rounded-xl bg-[#52A636] px-4 py-2 font-semibold text-white hover:bg-[#438A2B]"
+                  className="rounded-xl bg-[#52A636] px-4 py-2 font-semibold text-white hover:bg-[#438A2B] shadow-md transition"
                 >
                   Confirm & Move to Billing
                 </button>
@@ -251,6 +449,18 @@ const CertificationPage = () => {
           </div>
         </div>
       )}
+
+      {/* Global File Preview Modal */}
+      <FilePreviewModal
+        isOpen={previewModal.isOpen}
+        onClose={() => setPreviewModal((prev) => ({ ...prev, isOpen: false }))}
+        fileUrl={previewModal.fileUrl}
+        fileName={previewModal.fileName}
+        fileType={previewModal.fileType}
+        title={previewModal.title}
+        subtitle={previewModal.subtitle}
+        certNumber={previewModal.certNumber}
+      />
     </div>
   );
 };
