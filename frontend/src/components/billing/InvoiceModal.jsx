@@ -32,6 +32,24 @@ const InvoiceModal = ({ isOpen, onClose, onRefresh, clients = [] }) => {
     setItems(newItems);
   };
 
+  const currentClient = clients.find((c) => c._id === selectedClient);
+
+  const handleClientChange = (clientId) => {
+    setSelectedClient(clientId);
+    const clientObj = clients.find((c) => c._id === clientId);
+    if (clientObj?.subscribedServices && clientObj.subscribedServices.length > 0) {
+      const primaryService = clientObj.subscribedServices[0].subServiceName || clientObj.subscribedServices[0].serviceName;
+      setServiceType(primaryService);
+
+      setItems(
+        clientObj.subscribedServices.map((s) => ({
+          description: `${s.subServiceName || s.serviceName} Fee`,
+          amount: 5000
+        }))
+      );
+    }
+  };
+
   const subTotal = items.reduce((sum, item) => sum + (Number(item.amount) || 0), 0);
   const gstAmount = Math.round((subTotal * gstPercent) / 100);
   const total = Math.max(0, subTotal + gstAmount - Number(discount));
@@ -95,7 +113,7 @@ const InvoiceModal = ({ isOpen, onClose, onRefresh, clients = [] }) => {
               <select
                 required
                 value={selectedClient}
-                onChange={(e) => setSelectedClient(e.target.value)}
+                onChange={(e) => handleClientChange(e.target.value)}
                 className="mt-1 w-full rounded-xl border border-slate-200 p-2 text-xs outline-none focus:border-[#52A636]"
               >
                 <option value="">-- Choose Client --</option>
@@ -113,11 +131,27 @@ const InvoiceModal = ({ isOpen, onClose, onRefresh, clients = [] }) => {
                 onChange={(e) => setServiceType(e.target.value)}
                 className="mt-1 w-full rounded-xl border border-slate-200 p-2 text-xs outline-none focus:border-[#52A636]"
               >
-                <option>GST Filing GSTR-3B & GSTR-1</option>
-                <option>Monthly Book Keeping & Reconciliation</option>
-                <option>Income Tax Return & Tax Audit</option>
-                <option>Registration & Certification Service</option>
-                <option>Annual Audit & Advisory</option>
+                {currentClient?.subscribedServices && currentClient.subscribedServices.length > 0 && (
+                  <optgroup label="Client Subscribed Services (From Registration)">
+                    {currentClient.subscribedServices.map((s, idx) => (
+                      <option key={idx} value={s.subServiceName || s.serviceName}>
+                        {s.subServiceName || s.serviceName} ({s.department})
+                      </option>
+                    ))}
+                    {currentClient.subscribedServices.length > 1 && (
+                      <option value={currentClient.subscribedServices.map((s) => s.subServiceName).join(' & ')}>
+                        All: {currentClient.subscribedServices.map((s) => s.subServiceName).join(' & ')}
+                      </option>
+                    )}
+                  </optgroup>
+                )}
+                <optgroup label="Standard Service Categories">
+                  <option>GST Filing GSTR-3B & GSTR-1</option>
+                  <option>Monthly Book Keeping & Reconciliation</option>
+                  <option>Income Tax Return & Tax Audit</option>
+                  <option>Registration & Certification Service</option>
+                  <option>Annual Audit & Advisory</option>
+                </optgroup>
               </select>
             </div>
           </div>
