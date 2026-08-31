@@ -23,6 +23,16 @@ const InvoiceModal = ({ isOpen, onClose, onRefresh, clients = [], employees = []
   });
   const [taskPriority, setTaskPriority] = useState('High');
 
+  const [localEmployees, setLocalEmployees] = useState(employees);
+
+  useEffect(() => {
+    if (employees && employees.length > 0) {
+      setLocalEmployees(employees);
+    } else if (isOpen) {
+      api.get('/users').then((res) => setLocalEmployees(res.data)).catch(console.error);
+    }
+  }, [isOpen, employees]);
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -69,7 +79,7 @@ const InvoiceModal = ({ isOpen, onClose, onRefresh, clients = [], employees = []
     }
   };
 
-  const filteredEmployees = employees.filter((emp) => {
+  const filteredEmployees = localEmployees.filter((emp) => {
     if (!assignedGroup) return true;
     return (
       emp.department === assignedGroup ||
@@ -326,7 +336,7 @@ const InvoiceModal = ({ isOpen, onClose, onRefresh, clients = [], employees = []
                         {emp.name} ({emp.designation || emp.role} - {emp.department})
                       </option>
                     ))}
-                    {filteredEmployees.length === 0 && employees.map((emp) => (
+                    {filteredEmployees.length === 0 && localEmployees.map((emp) => (
                       <option key={emp._id} value={emp._id}>
                         {emp.name} ({emp.designation || emp.role} - {emp.department})
                       </option>

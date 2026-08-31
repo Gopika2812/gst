@@ -5,6 +5,18 @@ import InvoiceModal from '../components/billing/InvoiceModal';
 import api from '../services/api';
 import { Plus, Download, Mail, Share2, Printer, Search, CheckCircle2, RefreshCw } from 'lucide-react';
 
+const formatInvoiceNumber = (num) => {
+  if (!num) return 'INV00126';
+  if (/^INV\d{5}$/.test(num)) return num;
+  const match = num.match(/INV-(\d{4})-(\d+)/);
+  if (match) {
+    const year = match[1].slice(-2);
+    const counter = String(match[2]).padStart(3, '0');
+    return `INV${counter}${year}`;
+  }
+  return num;
+};
+
 const BillingPage = () => {
   const [invoices, setInvoices] = useState([]);
   const [clients, setClients] = useState([]);
@@ -132,51 +144,54 @@ const BillingPage = () => {
                   <td colSpan={10} className="p-8 text-center text-slate-400">No invoices generated yet</td>
                 </tr>
               ) : (
-                invoices.map((inv) => (
-                  <tr key={inv._id} className="hover:bg-slate-50">
-                    <td className="p-3.5 font-bold font-mono text-[#0F2B48]">{inv.invoiceNumber}</td>
-                    <td className="p-3.5 text-slate-600">
-                      {new Date(inv.invoiceDate).toLocaleDateString('en-IN')}
-                    </td>
-                    <td className="p-3.5 font-semibold text-slate-800">
-                      {inv.client?.clientName || 'Valued Client'}
-                    </td>
-                    <td className="p-3.5 text-slate-600">{inv.serviceType}</td>
-                    <td className="p-3.5 font-bold text-slate-800">₹{inv.total.toLocaleString('en-IN')}</td>
-                    <td className="p-3.5 font-semibold text-emerald-600">₹{inv.paidAmount.toLocaleString('en-IN')}</td>
-                    <td className="p-3.5 font-semibold text-rose-600">₹{inv.pendingAmount.toLocaleString('en-IN')}</td>
-                    <td className="p-3.5">
-                      <Badge status={inv.paymentStatus} />
-                    </td>
-                    <td className="p-3.5">
-                      {inv.taskCreated ? (
-                        <span className="inline-flex items-center text-[10px] font-semibold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
-                          <CheckCircle2 className="mr-1 h-3 w-3" /> Task Created
-                        </span>
-                      ) : (
-                        <span className="text-[10px] text-slate-400">-</span>
-                      )}
-                    </td>
-                    <td className="p-3.5 text-center">
-                      <div className="flex items-center justify-center space-x-1.5">
-                        <button
-                          onClick={() => handleDownloadPDF(inv._id, inv.invoiceNumber)}
-                          title="Download Official PDF Invoice"
-                          className="rounded-lg p-1.5 text-slate-700 bg-slate-100 hover:bg-[#0F2B48] hover:text-white transition shadow-2xs cursor-pointer"
-                        >
-                          <Download className="h-4 w-4" />
-                        </button>
-                        <button
-                          onClick={() => handleWhatsAppShare(inv._id)}
-                          title="Share on WhatsApp"
-                          className="rounded-lg p-1.5 text-emerald-700 bg-emerald-50 hover:bg-emerald-600 hover:text-white transition shadow-2xs cursor-pointer"
-                        >
-                          <Share2 className="h-4 w-4" />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))
+                invoices.map((inv) => {
+                  const displayInvNo = formatInvoiceNumber(inv.invoiceNumber);
+                  return (
+                    <tr key={inv._id} className="hover:bg-slate-50">
+                      <td className="p-3.5 font-bold font-mono text-[#0F2B48]">{displayInvNo}</td>
+                      <td className="p-3.5 text-slate-600">
+                        {new Date(inv.invoiceDate).toLocaleDateString('en-IN')}
+                      </td>
+                      <td className="p-3.5 font-semibold text-slate-800">
+                        {inv.client?.clientName || 'Valued Client'}
+                      </td>
+                      <td className="p-3.5 text-slate-600">{inv.serviceType}</td>
+                      <td className="p-3.5 font-bold text-slate-800">₹{inv.total.toLocaleString('en-IN')}</td>
+                      <td className="p-3.5 font-semibold text-emerald-600">₹{inv.paidAmount.toLocaleString('en-IN')}</td>
+                      <td className="p-3.5 font-semibold text-rose-600">₹{inv.pendingAmount.toLocaleString('en-IN')}</td>
+                      <td className="p-3.5">
+                        <Badge status={inv.paymentStatus} />
+                      </td>
+                      <td className="p-3.5">
+                        {inv.taskCreated ? (
+                          <span className="inline-flex items-center text-[10px] font-semibold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                            <CheckCircle2 className="mr-1 h-3 w-3" /> Task Created
+                          </span>
+                        ) : (
+                          <span className="text-[10px] text-slate-400">-</span>
+                        )}
+                      </td>
+                      <td className="p-3.5 text-center">
+                        <div className="flex items-center justify-center space-x-1.5">
+                          <button
+                            onClick={() => handleDownloadPDF(inv._id, displayInvNo)}
+                            title="Download Official PDF Invoice"
+                            className="rounded-lg p-1.5 text-slate-700 bg-slate-100 hover:bg-[#0F2B48] hover:text-white transition shadow-2xs cursor-pointer"
+                          >
+                            <Download className="h-4 w-4" />
+                          </button>
+                          <button
+                            onClick={() => handleWhatsAppShare(inv._id)}
+                            title="Share on WhatsApp"
+                            className="rounded-lg p-1.5 text-emerald-700 bg-emerald-50 hover:bg-emerald-600 hover:text-white transition shadow-2xs cursor-pointer"
+                          >
+                            <Share2 className="h-4 w-4" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })
               )}
             </tbody>
           </table>

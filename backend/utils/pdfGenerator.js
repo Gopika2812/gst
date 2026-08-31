@@ -309,32 +309,28 @@ exports.generateInvoicePDF = (invoice, client, res) => {
     .font('Helvetica')
     .text('Thanks for your business.', leftMargin, notesTop + 14);
 
-  // Authorized Signature (Left below notes)
-  const signTop = notesTop + 45;
-
-  // Draw signature vector stroke
-  doc.save();
-  doc
-    .strokeColor('#1E3A8A')
-    .lineWidth(1.2)
-    .moveTo(leftMargin + 10, signTop + 35)
-    .bezierCurveTo(leftMargin + 30, signTop + 5, leftMargin + 50, signTop + 10, leftMargin + 70, signTop + 30)
-    .bezierCurveTo(leftMargin + 85, signTop + 45, leftMargin + 100, signTop + 10, leftMargin + 120, signTop + 25)
-    .bezierCurveTo(leftMargin + 130, signTop + 35, leftMargin + 140, signTop + 15, leftMargin + 145, signTop + 40)
-    .stroke();
-  doc.restore();
+  // Official Signature Box (Right Aligned for physical / official signing)
+  const signTop = notesTop + 20;
 
   doc
     .fillColor('#1E293B')
     .fontSize(9)
     .font('Helvetica-Bold')
-    .text('SAINATH S', leftMargin, signTop + 55);
+    .text('For VIGNESH ASSOCIATES', rightEdge - 160, signTop, { width: 160, align: 'center' });
+
+  // Official Signature Line for physical signing
+  doc
+    .moveTo(rightEdge - 160, signTop + 55)
+    .lineTo(rightEdge, signTop + 55)
+    .strokeColor('#94A3B8')
+    .lineWidth(0.8)
+    .stroke();
 
   doc
-    .fillColor('#64748B')
+    .fillColor('#475569')
     .fontSize(8.5)
-    .font('Helvetica')
-    .text('Authorized Signature', leftMargin, signTop + 67);
+    .font('Helvetica-Bold')
+    .text('Authorized Signatory', rightEdge - 160, signTop + 60, { width: 160, align: 'center' });
 
   // ==========================
   // 6. FOOTER
