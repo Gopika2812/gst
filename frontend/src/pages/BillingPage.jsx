@@ -35,8 +35,24 @@ const BillingPage = () => {
     fetchBillingData();
   }, [search]);
 
-  const handleDownloadPDF = (invoiceId, invoiceNumber) => {
-    window.open(`/api/invoices/${invoiceId}/pdf`, '_blank');
+  const handleDownloadPDF = async (invoiceId, invoiceNumber) => {
+    try {
+      const response = await api.get(`/invoices/${invoiceId}/pdf`, {
+        responseType: 'blob'
+      });
+      const blob = new Blob([response.data], { type: 'application/pdf' });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `Invoice-${invoiceNumber || 'download'}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error(err);
+      alert('Failed to download invoice PDF');
+    }
   };
 
   const handleEmailInvoice = async (invoiceId) => {

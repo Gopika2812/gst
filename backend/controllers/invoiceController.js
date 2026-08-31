@@ -157,6 +157,19 @@ exports.getInvoices = async (req, res) => {
       .populate('client', 'clientName tradeName gstin pan phone email')
       .sort({ createdAt: -1 });
 
+    // Migrate any legacy invoice numbers (e.g. INV-2026-0001) to clean short format (INV00126)
+    for (const inv of invoices) {
+      if (inv.invoiceNumber && inv.invoiceNumber.includes('-')) {
+        const match = inv.invoiceNumber.match(/INV-(\d{4})-(\d+)/);
+        if (match) {
+          const year = match[1].slice(-2);
+          const counter = String(match[2]).padStart(3, '0');
+          inv.invoiceNumber = `INV${counter}${year}`;
+          await Invoice.updateOne({ _id: inv._id }, { invoiceNumber: inv.invoiceNumber });
+        }
+      }
+    }
+
     res.json(invoices);
   } catch (error) {
     res.status(500).json({ message: error.message });
