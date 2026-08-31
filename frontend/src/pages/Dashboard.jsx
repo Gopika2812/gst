@@ -188,16 +188,51 @@ const Dashboard = () => {
       </div>
 
       {/* CLIENT SUBSCRIBED SERVICE REMINDERS (START DATE ➔ DUE DATE) */}
-      <GlacierCard title="Client Service Filing Reminders" subtitle="Automated Start Date to Due Date Tracking per Client Service">
+      <GlacierCard title="Client Service Filing Reminders" subtitle="Active Start Date to Due Date Tracking (Completed services are automatically dismissed for the month)">
         <div className="mt-2 space-y-3">
-          {clients.filter((c) => c.subscribedServices && c.subscribedServices.length > 0).length === 0 ? (
-            <div className="py-6 text-center text-xs text-slate-400">
-              No active client service subscriptions configured yet. Add services during Client Registration to enable automated start-to-due-date reminders.
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              {clients.flatMap((client) =>
-                (client.subscribedServices || []).map((service, idx) => {
+          {(() => {
+            const isServiceCompletedThisMonth = (client, service) => {
+              const now = new Date();
+              const currentMonth = now.getMonth();
+              const currentYear = now.getFullYear();
+
+              return myTasks.some((t) => {
+                const taskDate = new Date(t.dueDate || t.createdAt);
+                const sameClient = String(t.client?._id || t.client) === String(client._id);
+                const sameMonth = taskDate.getMonth() === currentMonth && taskDate.getFullYear() === currentYear;
+                const sameService =
+                  (t.taskName && service.subServiceName && t.taskName.toLowerCase().includes(service.subServiceName.toLowerCase())) ||
+                  (service.subServiceName && t.taskName && service.subServiceName.toLowerCase().includes(t.taskName.toLowerCase())) ||
+                  (t.department === service.department);
+                return sameClient && sameMonth && sameService && t.status === 'Completed';
+              });
+            };
+
+            const activeReminders = clients.flatMap((client) =>
+              (client.subscribedServices || []).filter((service) => {
+                // If executive, only show services assigned to them or their client
+                if (isExecutive) {
+                  const isAssigned = String(service.assignedStaff) === String(user?._id) || String(client.responsibleEmployee?._id || client.responsibleEmployee) === String(user?._id);
+                  if (!isAssigned) return false;
+                }
+                // Dismiss if already completed for this month
+                return !isServiceCompletedThisMonth(client, service);
+              }).map((service, idx) => ({ client, service, idx }))
+            );
+
+            if (activeReminders.length === 0) {
+              return (
+                <div className="py-6 text-center text-xs text-slate-400">
+                  {clients.length === 0
+                    ? 'No client service subscriptions configured yet.'
+                    : 'All client service reminders for this month are completed and up to date! 🎉'}
+                </div>
+              );
+            }
+
+            return (
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                {activeReminders.map(({ client, service, idx }) => {
                   const now = new Date();
                   const year = now.getFullYear();
                   const month = now.getMonth();
@@ -235,10 +270,10 @@ const Dashboard = () => {
                       </div>
                     </div>
                   );
-                })
-              )}
-            </div>
-          )}
+                })}
+              </div>
+            );
+          })()}
         </div>
       </GlacierCard>
 

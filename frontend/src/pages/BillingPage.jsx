@@ -8,6 +8,7 @@ import { Plus, Download, Mail, Share2, Printer, Search, CheckCircle2, RefreshCw 
 const BillingPage = () => {
   const [invoices, setInvoices] = useState([]);
   const [clients, setClients] = useState([]);
+  const [employees, setEmployees] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -15,12 +16,14 @@ const BillingPage = () => {
   const fetchBillingData = async () => {
     setLoading(true);
     try {
-      const [invRes, clientRes] = await Promise.all([
+      const [invRes, clientRes, userRes] = await Promise.all([
         api.get('/invoices', { params: { search } }),
-        api.get('/clients')
+        api.get('/clients'),
+        api.get('/users')
       ]);
       setInvoices(invRes.data);
       setClients(clientRes.data);
+      setEmployees(userRes.data);
     } catch (err) {
       console.error(err);
     } finally {
@@ -139,25 +142,18 @@ const BillingPage = () => {
                       )}
                     </td>
                     <td className="p-3.5 text-center">
-                      <div className="flex items-center justify-center space-x-1">
+                      <div className="flex items-center justify-center space-x-1.5">
                         <button
                           onClick={() => handleDownloadPDF(inv._id, inv.invoiceNumber)}
-                          title="Download PDF Invoice"
-                          className="rounded-lg p-1.5 text-slate-600 hover:bg-slate-100 hover:text-[#0F2B48]"
+                          title="Download Official PDF Invoice"
+                          className="rounded-lg p-1.5 text-slate-700 bg-slate-100 hover:bg-[#0F2B48] hover:text-white transition shadow-2xs cursor-pointer"
                         >
                           <Download className="h-4 w-4" />
                         </button>
                         <button
-                          onClick={() => handleEmailInvoice(inv._id)}
-                          title="Email Invoice to Client"
-                          className="rounded-lg p-1.5 text-slate-600 hover:bg-slate-100 hover:text-[#0F2B48]"
-                        >
-                          <Mail className="h-4 w-4" />
-                        </button>
-                        <button
                           onClick={() => handleWhatsAppShare(inv._id)}
                           title="Share on WhatsApp"
-                          className="rounded-lg p-1.5 text-emerald-600 hover:bg-emerald-50"
+                          className="rounded-lg p-1.5 text-emerald-700 bg-emerald-50 hover:bg-emerald-600 hover:text-white transition shadow-2xs cursor-pointer"
                         >
                           <Share2 className="h-4 w-4" />
                         </button>
@@ -176,6 +172,7 @@ const BillingPage = () => {
         onClose={() => setIsModalOpen(false)}
         onRefresh={fetchBillingData}
         clients={clients}
+        employees={employees}
       />
     </div>
   );

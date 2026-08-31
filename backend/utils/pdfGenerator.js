@@ -1,156 +1,356 @@
 const PDFDocument = require('pdfkit');
 
 /**
- * Generate Invoice PDF Stream
+ * Convert number to Indian Rupee Words
+ */
+function numberToWordsINR(num) {
+  if (!num || num === 0) return 'Zero';
+  const a = ['', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten', 'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen', 'Seventeen', 'Eighteen', 'Nineteen'];
+  const b = ['', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'];
+
+  const inWords = (n) => {
+    let str = '';
+    if (n >= 10000000) {
+      str += inWords(Math.floor(n / 10000000)) + ' Crore ';
+      n %= 10000000;
+    }
+    if (n >= 100000) {
+      str += inWords(Math.floor(n / 100000)) + ' Lakh ';
+      n %= 100000;
+    }
+    if (n >= 1000) {
+      str += inWords(Math.floor(n / 1000)) + ' Thousand ';
+      n %= 1000;
+    }
+    if (n >= 100) {
+      str += inWords(Math.floor(n / 100)) + ' Hundred ';
+      n %= 100;
+    }
+    if (n > 0) {
+      if (n < 20) str += a[n] + ' ';
+      else str += b[Math.floor(n / 10)] + (n % 10 !== 0 ? ' ' + a[n % 10] : '') + ' ';
+    }
+    return str.trim();
+  };
+
+  return inWords(Math.round(num));
+}
+
+/**
+ * Format currency with Indian Comma System
+ */
+function formatINR(val) {
+  const n = Number(val) || 0;
+  return n.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+/**
+ * Generate Invoice PDF Stream matching the exact official template
  */
 exports.generateInvoicePDF = (invoice, client, res) => {
-  const doc = new PDFDocument({ margin: 50 });
+  const doc = new PDFDocument({ margin: 40, size: 'A4' });
 
   res.setHeader('Content-Type', 'application/pdf');
-  res.setHeader('Content-Disposition', `attachment; filename=Invoice-${invoice.invoiceNumber}.pdf`);
+  res.setHeader('Content-Disposition', `inline; filename=Invoice-${invoice.invoiceNumber}.pdf`);
 
   doc.pipe(res);
 
-  // Header Banner - Vignesh Associates Navy Blue
-  doc
-    .rect(0, 0, 612, 90)
-    .fill('#0F2B48');
+  const leftMargin = 45;
+  const rightEdge = 550;
+  const contentWidth = rightEdge - leftMargin;
 
+  // ==========================
+  // 1. HEADER SECTION (Logo & Title)
+  // ==========================
+  const logoTop = 40;
+
+  // Draw Stylized Vignesh Associates "VA" Ribbon Logo
+  doc.save();
+  // Navy Left Ribbon
+  doc
+    .polygon([leftMargin + 25, logoTop], [leftMargin + 40, logoTop], [leftMargin + 20, logoTop + 45], [leftMargin + 5, logoTop + 45])
+    .fill('#0F2B48');
+  // Green Right Ribbon
+  doc
+    .polygon([leftMargin + 45, logoTop], [leftMargin + 60, logoTop], [leftMargin + 40, logoTop + 45], [leftMargin + 25, logoTop + 45])
+    .fill('#52A636');
+  // Green Bottom Banner "Vignesh Associates"
+  doc
+    .roundedRect(leftMargin, logoTop + 50, 110, 20, 3)
+    .fill('#0F2B48');
+  doc
+    .roundedRect(leftMargin + 45, logoTop + 50, 65, 20, 3)
+    .fill('#52A636');
   doc
     .fillColor('#FFFFFF')
-    .fontSize(22)
+    .fontSize(8.5)
     .font('Helvetica-Bold')
-    .text('VIGNESH ASSOCIATES', 50, 25);
+    .text('Vignesh', leftMargin + 6, logoTop + 56)
+    .text('Associates', leftMargin + 48, logoTop + 56);
+  doc.restore();
+
+  // Invoice Title & Number (Top Right)
+  doc
+    .fillColor('#1E293B')
+    .fontSize(24)
+    .font('Helvetica-Bold')
+    .text('INVOICE', 320, logoTop, { align: 'right', width: 230 });
 
   doc
-    .fontSize(10)
+    .fillColor('#334155')
+    .fontSize(9.5)
+    .font('Helvetica-Bold')
+    .text(`Invoice Number : ${invoice.invoiceNumber}`, 300, logoTop + 30, { align: 'right', width: 250 });
+
+  // Company Address Details (Left below logo)
+  const compTop = logoTop + 85;
+  doc
+    .fillColor('#1E293B')
+    .fontSize(9.5)
+    .font('Helvetica-Bold')
+    .text('VIGNESH ASSOCIATES', leftMargin, compTop);
+
+  doc
+    .fillColor('#475569')
+    .fontSize(8.5)
     .font('Helvetica')
-    .text('CHARTERED ACCOUNTANTS & TAX CONSULTANTS', 50, 52)
-    .text('GST | INCOME TAX | AUDIT | BOOK KEEPING | REGISTRATION', 50, 65);
+    .text('No.523D, 2nd Floor, Mannaraja Koil Opposite,', leftMargin, compTop + 13)
+    .text('Udangudi Road, Tisaiyanvillai,', leftMargin, compTop + 24)
+    .text('Tirunelveli, Tamil Nadu - 627657', leftMargin, compTop + 35)
+    .text('Ph No : 9865571219 / 8098071219', leftMargin, compTop + 46);
 
-  // Invoice Title Right Aligned
+  // ==========================
+  // 2. BILL TO & DATES SECTION
+  // ==========================
+  const billTop = compTop + 72;
+
+  // Bill To (Left)
   doc
-    .fillColor('#52A636')
-    .fontSize(20)
-    .font('Helvetica-Bold')
-    .text('TAX INVOICE', 400, 30, { align: 'right' });
-
-  // Bill To & Invoice Info Box
-  doc.moveDown(3);
-  const startY = 110;
-
-  doc
-    .fillColor('#0F2B48')
-    .fontSize(12)
-    .font('Helvetica-Bold')
-    .text('Billed To:', 50, startY);
-
-  doc
-    .fillColor('#333333')
-    .fontSize(10)
+    .fillColor('#64748B')
+    .fontSize(8.5)
     .font('Helvetica')
-    .text(client.clientName || 'Valued Client', 50, startY + 18)
-    .text(client.tradeName ? `Trade: ${client.tradeName}` : '', 50, startY + 30)
-    .text(`GSTIN: ${client.gstin || 'N/A'}`, 50, startY + 42)
-    .text(`PAN: ${client.pan || 'N/A'}`, 50, startY + 54)
-    .text(`Phone: ${client.phone || 'N/A'}`, 50, startY + 66);
+    .text('Bill To', leftMargin, billTop);
 
-  // Invoice Details Side Table
   doc
-    .fillColor('#0F2B48')
-    .fontSize(10)
+    .fillColor('#0F172A')
+    .fontSize(9.5)
     .font('Helvetica-Bold')
-    .text(`Invoice No:`, 380, startY)
-    .font('Helvetica')
-    .text(`${invoice.invoiceNumber}`, 470, startY)
-    .font('Helvetica-Bold')
-    .text(`Date:`, 380, startY + 15)
-    .font('Helvetica')
-    .text(`${new Date(invoice.invoiceDate).toLocaleDateString('en-IN')}`, 470, startY + 15)
-    .font('Helvetica-Bold')
-    .text(`Service:`, 380, startY + 30)
-    .font('Helvetica')
-    .text(`${invoice.serviceType}`, 470, startY + 30)
-    .font('Helvetica-Bold')
-    .text(`Status:`, 380, startY + 45)
-    .fillColor(invoice.paymentStatus === 'Paid' ? '#52A636' : '#D97706')
-    .text(`${invoice.paymentStatus}`, 470, startY + 45);
+    .text((client.clientName || 'Valued Client').toUpperCase(), leftMargin, billTop + 12);
 
-  // Table Headers
-  const tableTop = 220;
+  const addressText = client.address
+    ? `${client.address}, ${client.city || ''} ${client.state || ''} ${client.pincode || ''}`
+    : 'Tamil Nadu, India';
+
   doc
-    .rect(50, tableTop, 512, 25)
-    .fill('#0F2B48');
+    .fillColor('#475569')
+    .fontSize(8.5)
+    .font('Helvetica')
+    .text(addressText, leftMargin, billTop + 24, { width: 260 })
+    .text(`Mobile No : ${client.phone || 'N/A'}`, leftMargin, billTop + 46);
 
+  if (client.gstin) {
+    doc.text(`GSTIN : ${client.gstin}`, leftMargin, billTop + 57);
+  }
+
+  // Invoice Dates & Terms (Right)
+  const metaLeft = 360;
+  const invDateStr = new Date(invoice.invoiceDate).toLocaleDateString('en-GB'); // DD/MM/YYYY
+  const dueDateStr = invoice.dueDate ? new Date(invoice.dueDate).toLocaleDateString('en-GB') : invDateStr;
+
+  doc
+    .fillColor('#475569')
+    .fontSize(8.5)
+    .font('Helvetica')
+    .text('Invoice Date :', metaLeft, billTop + 12)
+    .font('Helvetica-Bold')
+    .fillColor('#0F172A')
+    .text(invDateStr, metaLeft + 80, billTop + 12, { align: 'right', width: 110 });
+
+  doc
+    .font('Helvetica')
+    .fillColor('#475569')
+    .text('Terms :', metaLeft, billTop + 28)
+    .font('Helvetica-Bold')
+    .fillColor('#0F172A')
+    .text('Due on Receipt', metaLeft + 80, billTop + 28, { align: 'right', width: 110 });
+
+  doc
+    .font('Helvetica')
+    .fillColor('#475569')
+    .text('Due Date :', metaLeft, billTop + 44)
+    .font('Helvetica-Bold')
+    .fillColor('#0F172A')
+    .text(dueDateStr, metaLeft + 80, billTop + 44, { align: 'right', width: 110 });
+
+  // ==========================
+  // 3. LINE ITEMS TABLE
+  // ==========================
+  const tableTop = billTop + 85;
+
+  // Table Header Background (Dark Charcoal #333333)
+  doc
+    .rect(leftMargin, tableTop, contentWidth, 22)
+    .fill('#333333');
+
+  // Table Header Text
   doc
     .fillColor('#FFFFFF')
-    .fontSize(10)
+    .fontSize(8.5)
     .font('Helvetica-Bold')
-    .text('S.No', 60, tableTop + 7)
-    .text('Description of Service', 110, tableTop + 7)
-    .text('Amount (₹)', 460, tableTop + 7, { align: 'right' });
+    .text('#', leftMargin + 10, tableTop + 6)
+    .text('Item & Description', leftMargin + 35, tableTop + 6)
+    .text('Qty', 330, tableTop + 6, { align: 'right', width: 45 })
+    .text('Rate', 390, tableTop + 6, { align: 'right', width: 65 })
+    .text('Amount', 470, tableTop + 6, { align: 'right', width: 70 });
 
-  let yPos = tableTop + 35;
-  invoice.items.forEach((item, index) => {
+  // Table Rows
+  let curY = tableTop + 22;
+  const items = invoice.items && invoice.items.length > 0 ? invoice.items : [{ description: invoice.serviceType || 'Professional Services', amount: invoice.subTotal || invoice.total }];
+
+  items.forEach((item, index) => {
+    const itemAmount = Number(item.amount) || 0;
+
     doc
-      .fillColor('#333333')
-      .fontSize(10)
+      .fillColor('#1E293B')
+      .fontSize(8.5)
+      .font('Helvetica-Bold')
+      .text(`${index + 1}`, leftMargin + 10, curY + 8)
+      .text(item.description, leftMargin + 35, curY + 8, { width: 280 })
       .font('Helvetica')
-      .text(`${index + 1}`, 60, yPos)
-      .text(`${item.description}`, 110, yPos)
-      .text(`₹ ${item.amount.toLocaleString('en-IN')}`, 460, yPos, { align: 'right' });
+      .text('1.00', 330, curY + 8, { align: 'right', width: 45 })
+      .text(formatINR(itemAmount), 390, curY + 8, { align: 'right', width: 65 })
+      .text(formatINR(itemAmount), 470, curY + 8, { align: 'right', width: 70 });
 
-    yPos += 22;
+    curY += 26;
+
+    // Row divider line
+    doc
+      .moveTo(leftMargin, curY)
+      .lineTo(rightEdge, curY)
+      .strokeColor('#E2E8F0')
+      .lineWidth(0.5)
+      .stroke();
   });
 
-  // Divider Line
-  doc
-    .moveTo(50, yPos + 10)
-    .lineTo(562, yPos + 10)
-    .stroke('#E2E8F0');
+  // ==========================
+  // 4. SUMMARY TOTALS
+  // ==========================
+  const sumTop = curY + 15;
+  const labelX = 350;
+  const valX = 450;
+  const valW = 90;
 
-  // Summary Totals
-  const summaryTop = yPos + 25;
-
+  // Sub Total
   doc
-    .fillColor('#333333')
-    .fontSize(10)
-    .font('Helvetica')
-    .text('Subtotal:', 350, summaryTop)
-    .text(`₹ ${invoice.subTotal.toLocaleString('en-IN')}`, 460, summaryTop, { align: 'right' })
-    .text(`GST (${invoice.gstPercent}%):`, 350, summaryTop + 18)
-    .text(`₹ ${invoice.gstAmount.toLocaleString('en-IN')}`, 460, summaryTop + 18, { align: 'right' })
-    .text(`Discount:`, 350, summaryTop + 36)
-    .text(`- ₹ ${invoice.discount.toLocaleString('en-IN')}`, 460, summaryTop + 36, { align: 'right' });
-
-  doc
-    .rect(340, summaryTop + 55, 222, 30)
-    .fill('#52A636');
-
-  doc
-    .fillColor('#FFFFFF')
-    .fontSize(12)
+    .fillColor('#475569')
+    .fontSize(8.5)
     .font('Helvetica-Bold')
-    .text('Total Payable:', 350, summaryTop + 63)
-    .text(`₹ ${invoice.total.toLocaleString('en-IN')}`, 460, summaryTop + 63, { align: 'right' });
+    .text('Sub Total', labelX, sumTop)
+    .text(formatINR(invoice.subTotal || invoice.total), valX, sumTop, { align: 'right', width: valW });
 
-  // Bank & Footer Info
+  // Total
   doc
-    .fillColor('#0F2B48')
-    .fontSize(10)
+    .fillColor('#0F172A')
+    .fontSize(9.5)
     .font('Helvetica-Bold')
-    .text('Bank Transfer Details:', 50, summaryTop + 100)
-    .font('Helvetica')
-    .fillColor('#555555')
-    .text('Bank Name: HDFC Bank', 50, summaryTop + 115)
-    .text('Account Name: Vignesh Associates', 50, summaryTop + 128)
-    .text('Account Number: 50200088991122', 50, summaryTop + 141)
-    .text('IFSC Code: HDFC0001234', 50, summaryTop + 154);
+    .text('Total', labelX, sumTop + 18)
+    .text(`₹${formatINR(invoice.total)}`, valX, sumTop + 18, { align: 'right', width: valW });
+
+  // Payment Made
+  const paid = Number(invoice.paidAmount) || 0;
+  doc
+    .fillColor('#475569')
+    .fontSize(8.5)
+    .font('Helvetica-Bold')
+    .text('Payment Made', labelX, sumTop + 36)
+    .fillColor('#DC2626')
+    .text(`(-) ${formatINR(paid)}`, valX, sumTop + 36, { align: 'right', width: valW });
+
+  // Balance Due (Light Gray Bar Container)
+  const balanceDue = Math.max(0, (invoice.total || 0) - paid);
+  const balBarTop = sumTop + 54;
+  doc
+    .rect(260, balBarTop, 290, 24)
+    .fill('#F1F5F9');
 
   doc
-    .fillColor('#888888')
+    .fillColor('#0F172A')
     .fontSize(9)
-    .text('Thank you for choosing Vignesh Associates! This is a computer-generated tax invoice.', 50, 720, { align: 'center' });
+    .font('Helvetica-Bold')
+    .text('Balance Due', 350, balBarTop + 7)
+    .text(`₹${formatINR(balanceDue)}`, valX, balBarTop + 7, { align: 'right', width: valW });
+
+  // Total In Words
+  const wordsTop = balBarTop + 35;
+  const wordsStr = `Indian Rupee ${numberToWordsINR(invoice.total)} Only`;
+  doc
+    .fillColor('#475569')
+    .fontSize(8.5)
+    .font('Helvetica-Bold')
+    .text('Total In Words:', 310, wordsTop)
+    .font('Helvetica-BoldOblique')
+    .fillColor('#0F172A')
+    .text(wordsStr, 375, wordsTop, { width: 175, align: 'right' });
+
+  // ==========================
+  // 5. NOTES & SIGNATURE
+  // ==========================
+  const notesTop = balBarTop + 65;
+
+  doc
+    .fillColor('#1E293B')
+    .fontSize(9)
+    .font('Helvetica-Bold')
+    .text('Notes', leftMargin, notesTop);
+
+  doc
+    .fillColor('#475569')
+    .fontSize(8.5)
+    .font('Helvetica')
+    .text('Thanks for your business.', leftMargin, notesTop + 14);
+
+  // Authorized Signature (Left below notes)
+  const signTop = notesTop + 45;
+
+  // Draw signature vector stroke
+  doc.save();
+  doc
+    .strokeColor('#1E3A8A')
+    .lineWidth(1.2)
+    .moveTo(leftMargin + 10, signTop + 35)
+    .bezierCurveTo(leftMargin + 30, signTop + 5, leftMargin + 50, signTop + 10, leftMargin + 70, signTop + 30)
+    .bezierCurveTo(leftMargin + 85, signTop + 45, leftMargin + 100, signTop + 10, leftMargin + 120, signTop + 25)
+    .bezierCurveTo(leftMargin + 130, signTop + 35, leftMargin + 140, signTop + 15, leftMargin + 145, signTop + 40)
+    .stroke();
+  doc.restore();
+
+  doc
+    .fillColor('#1E293B')
+    .fontSize(9)
+    .font('Helvetica-Bold')
+    .text('SAINATH S', leftMargin, signTop + 55);
+
+  doc
+    .fillColor('#64748B')
+    .fontSize(8.5)
+    .font('Helvetica')
+    .text('Authorized Signature', leftMargin, signTop + 67);
+
+  // ==========================
+  // 6. FOOTER
+  // ==========================
+  doc
+    .moveTo(leftMargin, 790)
+    .lineTo(rightEdge, 790)
+    .strokeColor('#CBD5E1')
+    .lineWidth(0.5)
+    .stroke();
+
+  doc
+    .fillColor('#94A3B8')
+    .fontSize(8)
+    .font('Helvetica')
+    .text('1', rightEdge - 10, 795);
 
   doc.end();
 };

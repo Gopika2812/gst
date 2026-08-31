@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { X, Plus, Trash2, ArrowRight, ShieldCheck, CheckSquare } from 'lucide-react';
 import api from '../../services/api';
 
-const InvoiceModal = ({ isOpen, onClose, onRefresh, clients = [] }) => {
+const InvoiceModal = ({ isOpen, onClose, onRefresh, clients = [], employees = [] }) => {
   const [selectedClient, setSelectedClient] = useState('');
   const [serviceType, setServiceType] = useState('GST Filing GSTR-3B & GSTR-1');
   const [items, setItems] = useState([{ description: 'GST Monthly Filing Fee', amount: 5000 }]);
@@ -12,6 +12,16 @@ const InvoiceModal = ({ isOpen, onClose, onRefresh, clients = [] }) => {
   const [paymentMode, setPaymentMode] = useState('Bank Transfer');
   const [remarks, setRemarks] = useState('');
   const [moveToTaskAssignment, setMoveToTaskAssignment] = useState(true);
+
+  // Task Assignment to Group & Person
+  const [assignedGroup, setAssignedGroup] = useState('GST');
+  const [assignedEmployee, setAssignedEmployee] = useState('');
+  const [taskDueDate, setTaskDueDate] = useState(() => {
+    const d = new Date();
+    d.setDate(d.getDate() + 7);
+    return d.toISOString().split('T')[0];
+  });
+  const [taskPriority, setTaskPriority] = useState('High');
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -37,18 +47,36 @@ const InvoiceModal = ({ isOpen, onClose, onRefresh, clients = [] }) => {
   const handleClientChange = (clientId) => {
     setSelectedClient(clientId);
     const clientObj = clients.find((c) => c._id === clientId);
-    if (clientObj?.subscribedServices && clientObj.subscribedServices.length > 0) {
-      const primaryService = clientObj.subscribedServices[0].subServiceName || clientObj.subscribedServices[0].serviceName;
-      setServiceType(primaryService);
+    if (clientObj) {
+      if (clientObj.responsibleEmployee) {
+        setAssignedEmployee(clientObj.responsibleEmployee._id || clientObj.responsibleEmployee);
+      }
 
-      setItems(
-        clientObj.subscribedServices.map((s) => ({
-          description: `${s.subServiceName || s.serviceName} Fee`,
-          amount: 5000
-        }))
-      );
+      if (clientObj.subscribedServices && clientObj.subscribedServices.length > 0) {
+        const primaryService = clientObj.subscribedServices[0].subServiceName || clientObj.subscribedServices[0].serviceName;
+        setServiceType(primaryService);
+
+        const dept = clientObj.subscribedServices[0].department;
+        if (dept) setAssignedGroup(dept);
+
+        setItems(
+          clientObj.subscribedServices.map((s) => ({
+            description: `${s.subServiceName || s.serviceName} Fee`,
+            amount: 5000
+          }))
+        );
+      }
     }
   };
+
+  const filteredEmployees = employees.filter((emp) => {
+    if (!assignedGroup) return true;
+    return (
+      emp.department === assignedGroup ||
+      emp.role?.toLowerCase().includes(assignedGroup.toLowerCase()) ||
+      emp.role === 'Super Admin'
+    );
+  });
 
   const subTotal = items.reduce((sum, item) => sum + (Number(item.amount) || 0), 0);
   const gstAmount = Math.round((subTotal * gstPercent) / 100);
@@ -78,7 +106,11 @@ const InvoiceModal = ({ isOpen, onClose, onRefresh, clients = [] }) => {
         paidAmount,
         paymentMode,
         remarks,
-        moveToTaskAssignment
+        moveToTaskAssignment,
+        assignedGroup,
+        assignedEmployee,
+        taskDueDate,
+        taskPriority
       });
 
       onRefresh && onRefresh();
@@ -248,18 +280,85 @@ const InvoiceModal = ({ isOpen, onClose, onRefresh, clients = [] }) => {
             </div>
           </div>
 
-          {/* Feature Bridge Checkbox */}
-          <div className="flex items-center space-x-2 rounded-xl bg-emerald-50 p-3 border border-emerald-200 text-emerald-800">
-            <input
-              type="checkbox"
-              id="moveToTask"
-              checked={moveToTaskAssignment}
-              onChange={(e) => setMoveToTaskAssignment(e.target.checked)}
-              className="h-4 w-4 rounded accent-[#52A636]"
-            />
-            <label htmlFor="moveToTask" className="text-xs font-semibold cursor-pointer">
-              Move To Task Assignment (Automatically make client available in Task Assignment queue)
-            </label>
+          {/* Task Assignment Bridge Section */}
+          <div className="rounded-2xl border border-emerald-200 bg-emerald-50/70 p-3.5 space-y-3">
+            <div className="flex items-center space-x-2 text-emerald-900">
+              <input
+                type="checkbox"
+                id="moveToTask"
+                checked={moveToTaskAssignment}
+                onChange={(e) => setMoveToTaskAssignment(e.target.checked)}
+                className="h-4 w-4 rounded accent-[#52A636] cursor-pointer"
+              />
+              <label htmlFor="moveToTask" className="text-xs font-bold cursor-pointer">
+                Move To Task Assignment (Auto-assign task to Group & Staff)
+              </label>
+            </div>
+
+            {moveToTaskAssignment && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-emerald-200/60 text-xs">
+                <div>
+                  <label className="text-[11px] font-bold text-slate-700">Assign Group / Department *</label>
+                  <select
+                    value={assignedGroup}
+                    onChange={(e) => setAssignedGroup(e.target.value)}
+                    className="mt-1 w-full rounded-xl border border-slate-200 bg-white p-2 text-xs font-semibold text-slate-800 outline-none focus:border-[#52A636]"
+                  >
+                    <option value="GST">GST</option>
+                    <option value="Income Tax">Income Tax</option>
+                    <option value="Accounts">Accounts</option>
+                    <option value="Book Keeping">Book Keeping</option>
+                    <option value="Registration">Registration</option>
+                    <option value="Administration">Administration</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="text-[11px] font-bold text-slate-700">Assign Person / Executive *</label>
+                  <select
+                    value={assignedEmployee}
+                    onChange={(e) => setAssignedEmployee(e.target.value)}
+                    className="mt-1 w-full rounded-xl border border-slate-200 bg-white p-2 text-xs font-semibold text-slate-800 outline-none focus:border-[#52A636]"
+                  >
+                    <option value="">-- Choose Person / Executive --</option>
+                    {filteredEmployees.map((emp) => (
+                      <option key={emp._id} value={emp._id}>
+                        {emp.name} ({emp.designation || emp.role} - {emp.department})
+                      </option>
+                    ))}
+                    {filteredEmployees.length === 0 && employees.map((emp) => (
+                      <option key={emp._id} value={emp._id}>
+                        {emp.name} ({emp.designation || emp.role} - {emp.department})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="text-[11px] font-bold text-slate-700">Task Due Date *</label>
+                  <input
+                    type="date"
+                    value={taskDueDate}
+                    onChange={(e) => setTaskDueDate(e.target.value)}
+                    className="mt-1 w-full rounded-xl border border-slate-200 bg-white p-2 text-xs font-semibold text-slate-800 outline-none focus:border-[#52A636]"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-[11px] font-bold text-slate-700">Priority</label>
+                  <select
+                    value={taskPriority}
+                    onChange={(e) => setTaskPriority(e.target.value)}
+                    className="mt-1 w-full rounded-xl border border-slate-200 bg-white p-2 text-xs font-semibold text-slate-800 outline-none focus:border-[#52A636]"
+                  >
+                    <option value="High">High Priority</option>
+                    <option value="Critical">Critical</option>
+                    <option value="Medium">Medium</option>
+                    <option value="Low">Low</option>
+                  </select>
+                </div>
+              </div>
+            )}
           </div>
 
           <div className="flex items-center justify-end space-x-3 border-t border-slate-100 pt-3">

@@ -5,10 +5,12 @@ const Task = require('../models/Task');
 const { generateInvoicePDF } = require('../utils/pdfGenerator');
 const { logAudit } = require('../middleware/auditLogger');
 
-// Generate Invoice Number e.g. INV-2026-0001
+// Generate Invoice Number e.g. INV00126 (INV + 3-digit counter + 2-digit year)
 const generateInvoiceNumber = async () => {
   const count = await Invoice.countDocuments();
-  return `INV-${new Date().getFullYear()}-${String(count + 1).padStart(4, '0')}`;
+  const yearSuffix = String(new Date().getFullYear()).slice(-2);
+  const counterStr = String(count + 1).padStart(3, '0');
+  return `INV${counterStr}${yearSuffix}`;
 };
 
 // Create Invoice
@@ -26,7 +28,11 @@ exports.createInvoice = async (req, res) => {
       paidAmount,
       paymentMode,
       remarks,
-      moveToTaskAssignment
+      moveToTaskAssignment,
+      assignedGroup,
+      assignedEmployee,
+      taskDueDate,
+      taskPriority
     } = req.body;
 
     const clientDoc = await Client.findById(client);
@@ -98,21 +104,25 @@ exports.createInvoice = async (req, res) => {
 
     // 3. Optional: Move to Task Assignment Workflow
     if (moveToTaskAssignment) {
-      let department = 'GST';
-      if (serviceType.includes('Book Keeping') || serviceType.includes('Accounting')) department = 'Book Keeping';
-      else if (serviceType.includes('Income Tax') || serviceType.includes('IT')) department = 'IT Filing';
-      else if (serviceType.includes('Registration') || serviceType.includes('Certificate')) department = 'Registration';
+      let dept = assignedGroup || 'GST';
+      if (!assignedGroup) {
+        if (serviceType.includes('Book Keeping') || serviceType.includes('Accounting')) dept = 'Book Keeping';
+        else if (serviceType.includes('Income Tax') || serviceType.includes('IT')) dept = 'Income Tax';
+        else if (serviceType.includes('Registration') || serviceType.includes('Certificate')) dept = 'Registration';
+      }
 
       await Task.create({
         client,
-        department,
+        taskType: 'Client Task',
+        department: dept,
         taskName: serviceType,
-        priority: 'High',
-        assignedEmployee: clientDoc.responsibleEmployee || req.user._id,
-        dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // Default 7 days
+        priority: taskPriority || 'High',
+        assignedBy: req.user._id,
+        assignedEmployee: assignedEmployee || clientDoc.responsibleEmployee || req.user._id,
+        dueDate: taskDueDate ? new Date(taskDueDate) : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
         repeat: 'One Time',
-        status: 'Pending',
-        remarks: `Auto-assigned from Invoice ${invoiceNumber}`
+        status: 'Assigned',
+        remarks: remarks ? `${remarks} (Auto-assigned from Invoice ${invoiceNumber})` : `Auto-assigned from Invoice ${invoiceNumber}`
       });
 
       invoice.taskCreated = true;
