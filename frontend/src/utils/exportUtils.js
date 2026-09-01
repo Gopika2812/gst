@@ -187,3 +187,499 @@ export const printExecutiveReport = ({
   printWindow.document.write(html);
   printWindow.document.close();
 };
+
+/**
+ * Print Client Financial Ledger Statement with Official Logo, Company Details & Signatory
+ */
+export const printClientLedger = ({ ledgerData = {}, client = null, user = {} }) => {
+  const printWindow = window.open('', '_blank');
+  if (!printWindow) {
+    alert('Please allow popups in your browser to print the Client Ledger Statement.');
+    return;
+  }
+
+  const clientInfo = client || ledgerData.client || {};
+  const entries = ledgerData.entries || [];
+  const openingBal = Number(ledgerData.openingBalance) || 0;
+  const totalDebit = Number(ledgerData.totalDebit) || 0;
+  const totalCredit = Number(ledgerData.totalCredit) || 0;
+  const closingBal = Number(ledgerData.closingBalance) || 0;
+
+  const dateGenerated = new Date().toLocaleString('en-IN', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  });
+
+  const logoUrl = window.location.origin + '/logo_royal.jpeg';
+
+  const html = `
+    <!DOCTYPE html>
+    <html lang="en">
+      <head>
+        <meta charset="utf-8" />
+        <title>Ledger Statement - ${clientInfo.clientName || 'Client'}</title>
+        <style>
+          @page {
+            size: A4 portrait;
+            margin: 12mm 15mm 12mm 15mm;
+          }
+          * {
+            box-sizing: border-box;
+          }
+          body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            color: #0f172a;
+            margin: 0;
+            padding: 0;
+            font-size: 11px;
+            line-height: 1.4;
+            background: #ffffff;
+          }
+          .container {
+            width: 100%;
+            max-width: 800px;
+            margin: 0 auto;
+          }
+          
+          /* Header */
+          .header-table {
+            width: 100%;
+            border-bottom: 2.5px solid #0A1E3F;
+            padding-bottom: 12px;
+            margin-bottom: 14px;
+          }
+          .logo-cell {
+            width: 65px;
+            vertical-align: top;
+          }
+          .logo-img {
+            width: 58px;
+            height: 58px;
+            object-fit: cover;
+            border-radius: 50%;
+            border: 2px solid #C59B27;
+          }
+          .company-cell {
+            vertical-align: top;
+            padding-left: 12px;
+          }
+          .company-name {
+            font-size: 18px;
+            font-weight: 900;
+            color: #0A1E3F;
+            letter-spacing: 0.5px;
+            margin: 0;
+            text-transform: uppercase;
+          }
+          .company-tagline {
+            font-size: 10px;
+            font-weight: 700;
+            color: #C59B27;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            margin-top: 1px;
+          }
+          .company-details {
+            font-size: 9px;
+            color: #475569;
+            margin-top: 3px;
+          }
+          .doc-title-cell {
+            text-align: right;
+            vertical-align: top;
+          }
+          .doc-badge {
+            background: #0A1E3F;
+            color: #ffffff;
+            font-size: 12px;
+            font-weight: 800;
+            padding: 5px 12px;
+            border-radius: 6px;
+            display: inline-block;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+          }
+          .doc-meta {
+            font-size: 9px;
+            color: #64748b;
+            margin-top: 5px;
+          }
+
+          /* Client Information Box */
+          .client-box {
+            background: #f8fafc;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            padding: 10px 14px;
+            margin-bottom: 14px;
+          }
+          .client-grid {
+            display: table;
+            width: 100%;
+          }
+          .client-col {
+            display: table-cell;
+            width: 50%;
+            vertical-align: top;
+          }
+          .client-name {
+            font-size: 14px;
+            font-weight: 800;
+            color: #0A1E3F;
+            margin: 0 0 3px 0;
+          }
+          .info-row {
+            font-size: 9.5px;
+            color: #334155;
+            margin-bottom: 2px;
+          }
+          .info-label {
+            font-weight: 700;
+            color: #64748b;
+            display: inline-block;
+            width: 80px;
+          }
+
+          /* Summary Metric Cards */
+          .metrics-grid {
+            display: table;
+            width: 100%;
+            margin-bottom: 14px;
+            border-collapse: separate;
+            border-spacing: 8px 0;
+          }
+          .metric-card {
+            display: table-cell;
+            width: 25%;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            padding: 8px 10px;
+            text-align: center;
+          }
+          .metric-card.closing {
+            background: #0A1E3F;
+            border-color: #0A1E3F;
+          }
+          .metric-title {
+            font-size: 8.5px;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: #64748b;
+          }
+          .metric-card.closing .metric-title {
+            color: #C59B27;
+          }
+          .metric-value {
+            font-size: 13px;
+            font-weight: 800;
+            color: #0A1E3F;
+            margin-top: 3px;
+          }
+          .metric-card.closing .metric-value {
+            color: #ffffff;
+          }
+
+          /* Ledger Transactions Table */
+          .ledger-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 16px;
+            font-size: 9.5px;
+          }
+          .ledger-table th {
+            background: #0A1E3F;
+            color: #ffffff;
+            font-weight: 700;
+            text-transform: uppercase;
+            font-size: 8.5px;
+            padding: 7px 8px;
+            border: 1px solid #0A1E3F;
+          }
+          .ledger-table td {
+            padding: 6px 8px;
+            border: 1px solid #e2e8f0;
+            vertical-align: middle;
+          }
+          .ledger-table tr:nth-child(even) {
+            background: #f8fafc;
+          }
+          .text-right {
+            text-align: right;
+          }
+          .text-center {
+            text-align: center;
+          }
+          .debit-val {
+            color: #b91c1c;
+            font-weight: 700;
+          }
+          .credit-val {
+            color: #15803d;
+            font-weight: 700;
+          }
+          .balance-val {
+            color: #0A1E3F;
+            font-weight: 800;
+          }
+          .totals-row td {
+            background: #f1f5f9;
+            font-weight: 800;
+            border-top: 2px solid #0A1E3F;
+            border-bottom: 2px solid #0A1E3F;
+            font-size: 10px;
+          }
+          .badge-type {
+            display: inline-block;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 8.5px;
+            font-weight: 700;
+            background: #e2e8f0;
+            color: #334155;
+          }
+          .badge-invoice {
+            background: #eff6ff;
+            color: #1d4ed8;
+            border: 1px solid #bfdbfe;
+          }
+          .badge-payment {
+            background: #f0fdf4;
+            color: #15803d;
+            border: 1px solid #bbf7d0;
+          }
+          .badge-credit {
+            background: #fefce8;
+            color: #854d0e;
+            border: 1px solid #fef08a;
+          }
+
+          /* Signatory & Footer */
+          .sign-table {
+            width: 100%;
+            margin-top: 25px;
+            border-top: 1px dashed #cbd5e1;
+            padding-top: 15px;
+          }
+          .note-cell {
+            vertical-align: top;
+            width: 60%;
+            font-size: 8.5px;
+            color: #64748b;
+          }
+          .auth-cell {
+            vertical-align: top;
+            width: 40%;
+            text-align: right;
+          }
+          .sign-firm {
+            font-size: 10px;
+            font-weight: 800;
+            color: #0A1E3F;
+          }
+          .sign-space {
+            height: 45px;
+          }
+          .sign-line {
+            font-size: 9px;
+            font-weight: 700;
+            color: #475569;
+            border-top: 1px solid #94a3b8;
+            display: inline-block;
+            padding-top: 3px;
+            width: 160px;
+            text-align: center;
+          }
+          
+          .footer-bar {
+            margin-top: 20px;
+            border-top: 1px solid #e2e8f0;
+            padding-top: 8px;
+            display: flex;
+            justify-content: space-between;
+            font-size: 8px;
+            color: #94a3b8;
+          }
+
+          @media print {
+            body {
+              -webkit-print-color-adjust: exact;
+              print-color-adjust: exact;
+            }
+            .no-print {
+              display: none;
+            }
+          }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          
+          <!-- Header with Logo and Company Info -->
+          <table class="header-table" cellpadding="0" cellspacing="0">
+            <tr>
+              <td class="logo-cell">
+                <img src="${logoUrl}" alt="Royal Accounting Logo" class="logo-img" onerror="this.style.display='none'" />
+              </td>
+              <td class="company-cell">
+                <h1 class="company-name">ROYAL ACCOUNTING</h1>
+                <div class="company-tagline">GST & Auditor ERP • Tax Consultancy Services</div>
+                <div class="company-details">
+                  Ph / WhatsApp: <strong>+91 99943 60994</strong> • Email: <strong>royallogu2020@gmail.com</strong><br />
+                  Services: GST Filing • Income Tax • Company Incorporation • Auditing • Tamil Nadu
+                </div>
+              </td>
+              <td class="doc-title-cell">
+                <div class="doc-badge">Statement of Account</div>
+                <div class="doc-meta">
+                  Date: <strong>${dateGenerated}</strong><br />
+                  Generated By: <strong>${user?.name || 'Logunathan'}</strong>
+                </div>
+              </td>
+            </tr>
+          </table>
+
+          <!-- Client Profile Information Box -->
+          <div class="client-box">
+            <div class="client-grid">
+              <div class="client-col">
+                <h2 class="client-name">${clientInfo.clientName || 'Valued Client'}</h2>
+                <div class="info-row"><span class="info-label">Trade Name:</span> <strong>${clientInfo.tradeName || clientInfo.clientName || 'N/A'}</strong></div>
+                <div class="info-row"><span class="info-label">Client Code:</span> <strong>${clientInfo.clientCode || 'CLI-2026'}</strong></div>
+                <div class="info-row"><span class="info-label">Address:</span> ${clientInfo.address ? `${clientInfo.address}, ${clientInfo.city || ''}` : 'Chennai, Tamil Nadu'}</div>
+              </div>
+              <div class="client-col" style="padding-left: 20px;">
+                <div class="info-row"><span class="info-label">GSTIN:</span> <strong>${clientInfo.gstin || 'N/A'}</strong></div>
+                <div class="info-row"><span class="info-label">PAN:</span> <strong>${clientInfo.pan || 'N/A'}</strong></div>
+                <div class="info-row"><span class="info-label">Phone:</span> <strong>${clientInfo.phone || 'N/A'}</strong></div>
+                <div class="info-row"><span class="info-label">Email:</span> ${clientInfo.email || 'N/A'}</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Financial Highlight Metrics -->
+          <div class="metrics-grid">
+            <div class="metric-card">
+              <div class="metric-title">Opening Balance</div>
+              <div class="metric-value">₹${openingBal.toLocaleString('en-IN')}</div>
+            </div>
+            <div class="metric-card">
+              <div class="metric-title">Total Invoiced (Debit)</div>
+              <div class="metric-value debit-val">₹${totalDebit.toLocaleString('en-IN')}</div>
+            </div>
+            <div class="metric-card">
+              <div class="metric-title">Total Payments (Credit)</div>
+              <div class="metric-value credit-val">₹${totalCredit.toLocaleString('en-IN')}</div>
+            </div>
+            <div class="metric-card closing">
+              <div class="metric-title">Closing Outstanding</div>
+              <div class="metric-value">₹${closingBal.toLocaleString('en-IN')}</div>
+            </div>
+          </div>
+
+          <!-- Statement Ledger Table -->
+          <table class="ledger-table" cellpadding="0" cellspacing="0">
+            <thead>
+              <tr>
+                <th style="width: 75px;">Date</th>
+                <th style="width: 120px;">Type</th>
+                <th style="width: 100px;">Voucher / Ref #</th>
+                <th>Particulars / Description</th>
+                <th class="text-right" style="width: 90px;">Debit (₹)</th>
+                <th class="text-right" style="width: 90px;">Credit (₹)</th>
+                <th class="text-right" style="width: 105px;">Balance (₹)</th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- Opening Balance Row -->
+              <tr>
+                <td>-</td>
+                <td><span class="badge-type">Opening</span></td>
+                <td>-</td>
+                <td><strong>Opening Balance Brought Forward</strong></td>
+                <td class="text-right">-</td>
+                <td class="text-right">-</td>
+                <td class="text-right balance-val">₹${openingBal.toLocaleString('en-IN')}</td>
+              </tr>
+
+              ${
+                entries.length === 0
+                  ? '<tr><td colspan="7" class="text-center" style="padding: 20px; color: #94a3b8;">No ledger transactions recorded for this client.</td></tr>'
+                  : entries
+                      .map((e) => {
+                        const badgeClass =
+                          e.transactionType === 'Invoice'
+                            ? 'badge-invoice'
+                            : e.transactionType === 'Payment Received'
+                            ? 'badge-payment'
+                            : 'badge-credit';
+                        return `
+                        <tr>
+                          <td>${new Date(e.date).toLocaleDateString('en-IN')}</td>
+                          <td><span class="badge-type ${badgeClass}">${e.transactionType}</span></td>
+                          <td style="font-family: monospace; font-weight: 700;">${e.referenceNumber || '-'}</td>
+                          <td>${e.description || '-'}</td>
+                          <td class="text-right debit-val">${e.debit > 0 ? `₹${e.debit.toLocaleString('en-IN')}` : '-'}</td>
+                          <td class="text-right credit-val">${e.credit > 0 ? `₹${e.credit.toLocaleString('en-IN')}` : '-'}</td>
+                          <td class="text-right balance-val">₹${e.runningBalance.toLocaleString('en-IN')}</td>
+                        </tr>
+                      `;
+                      })
+                      .join('')
+              }
+
+              <!-- Totals Row -->
+              <tr class="totals-row">
+                <td colspan="4" class="text-right"><strong>GRAND TOTAL / CLOSING BALANCE:</strong></td>
+                <td class="text-right debit-val">₹${totalDebit.toLocaleString('en-IN')}</td>
+                <td class="text-right credit-val">₹${totalCredit.toLocaleString('en-IN')}</td>
+                <td class="text-right balance-val" style="font-size: 11px;">₹${closingBal.toLocaleString('en-IN')}</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <!-- Signatory & Remarks -->
+          <table class="sign-table" cellpadding="0" cellspacing="0">
+            <tr>
+              <td class="note-cell">
+                <strong>Terms & Conditions / Remarks:</strong>
+                <ul style="margin: 4px 0 0 15px; padding: 0;">
+                  <li>Please check this statement. Any discrepancy should be notified within 7 days.</li>
+                  <li>Payments can be made via UPI, Bank Transfer or Cheque favoring <strong>ROYAL ACCOUNTING</strong>.</li>
+                  <li>This is a computer generated Financial Statement of Account.</li>
+                </ul>
+              </td>
+              <td class="auth-cell">
+                <div class="sign-firm">For ROYAL ACCOUNTING</div>
+                <div class="sign-space"></div>
+                <div class="sign-line">Authorized Signatory</div>
+              </td>
+            </tr>
+          </table>
+
+          <div class="footer-bar">
+            <div>Royal Accounting & Tax ERP • Confidential Client Record • royallogu2020@gmail.com</div>
+            <div>Page 1 of 1</div>
+          </div>
+
+        </div>
+
+        <script>
+          window.onload = function() {
+            setTimeout(function() {
+              window.print();
+            }, 300);
+          }
+        </script>
+      </body>
+    </html>
+  `;
+
+  printWindow.document.open();
+  printWindow.document.write(html);
+  printWindow.document.close();
+};
+

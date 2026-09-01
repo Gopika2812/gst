@@ -3,9 +3,12 @@ import GlacierCard from '../components/common/GlacierCard';
 import StatCard from '../components/common/StatCard';
 import Badge from '../components/common/Badge';
 import api from '../services/api';
+import { useAuth } from '../context/AuthContext';
+import { printClientLedger } from '../utils/exportUtils';
 import { BookOpen, Plus, Printer, Download, CreditCard, ArrowDownRight, ArrowUpRight, Edit3, Trash2, X } from 'lucide-react';
 
 const LedgerPage = () => {
+  const { user } = useAuth();
   const [clients, setClients] = useState([]);
   const [selectedClientId, setSelectedClientId] = useState('');
   const [ledgerData, setLedgerData] = useState(null);
@@ -121,6 +124,18 @@ const LedgerPage = () => {
     }
   };
 
+  const handlePrintLedger = () => {
+    if (!ledgerData) {
+      alert('Ledger data is not ready to print.');
+      return;
+    }
+    printClientLedger({
+      ledgerData,
+      client: clientInfo,
+      user
+    });
+  };
+
   const clientInfo = ledgerData?.client;
   const entries = ledgerData?.entries || [];
 
@@ -185,11 +200,11 @@ const LedgerPage = () => {
         <div className="flex items-center justify-between border-b border-slate-100 p-4 bg-slate-50">
           <h3 className="font-bold text-slate-800 text-sm">Statement of Account: {clientInfo?.clientName}</h3>
           <button
-            onClick={() => window.print()}
-            className="flex items-center space-x-1 text-xs font-semibold text-[#0A1E3F] hover:underline cursor-pointer"
+            onClick={handlePrintLedger}
+            className="flex items-center space-x-1.5 rounded-lg bg-white border border-slate-200 px-3 py-1.5 text-xs font-bold text-[#0A1E3F] hover:bg-[#0A1E3F] hover:text-white transition shadow-2xs cursor-pointer"
           >
-            <Printer className="h-4 w-4" />
-            <span>Print Ledger</span>
+            <Printer className="h-4 w-4 text-[#C59B27]" />
+            <span>Print Official Ledger</span>
           </button>
         </div>
 
