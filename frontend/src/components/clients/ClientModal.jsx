@@ -3,7 +3,7 @@ import { X, Building, CreditCard, ShieldCheck, Search, CheckCircle2, AlertCircle
 import { useAuth } from '../../context/AuthContext';
 import api from '../../services/api';
 
-const ClientModal = ({ isOpen, onClose, onRefresh, employees = [] }) => {
+const ClientModal = ({ isOpen, onClose, onRefresh, employees = [], client = null }) => {
   const { user } = useAuth();
   const isSuperAdmin = user?.role === 'Super Admin';
 
@@ -50,9 +50,39 @@ const ClientModal = ({ isOpen, onClose, onRefresh, employees = [] }) => {
   useEffect(() => {
     if (isOpen) {
       api.get('/services').then((res) => setMasterServices(res.data)).catch(console.error);
-      resetModalState();
+      if (client) {
+        setExistingClientId(client._id);
+        setRegistrationCategory(client.registrationCategory || 'Registered Client');
+        setSearchPhone(client.phone || '');
+        setLookupStatus('success');
+        setLookupResultMsg(`Editing: ${client.clientName}`);
+        setFormData({
+          clientName: client.clientName || '',
+          phone: client.phone || '',
+          email: client.email || '',
+          clientType: client.clientType || 'Proprietorship',
+          tradeName: client.tradeName || '',
+          businessType: client.businessType || 'Services',
+          pan: client.pan || '',
+          tan: client.tan || '',
+          gstin: client.gstin || '',
+          state: client.state || 'Tamil Nadu',
+          address: client.address || '',
+          contactPerson: client.contactPerson || '',
+          city: client.city || 'Chennai',
+          pincode: client.pincode || '',
+          openingBalance: client.openingBalance || 0,
+          creditLimit: client.creditLimit || 50000,
+          remarks: client.remarks || ''
+        });
+        setSubscribedServices(client.subscribedServices || []);
+        setFiles({});
+        setError('');
+      } else {
+        resetModalState();
+      }
     }
-  }, [isOpen]);
+  }, [isOpen, client]);
 
   if (!isOpen) return null;
 

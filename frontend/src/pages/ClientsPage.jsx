@@ -16,6 +16,7 @@ const ClientsPage = () => {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedClientForEdit, setSelectedClientForEdit] = useState(null);
 
   const fetchClients = async () => {
     setLoading(true);
@@ -55,8 +56,11 @@ const ClientsPage = () => {
           <p className="text-xs text-slate-500">Manage client profiles, tax information, credit limits & document records</p>
         </div>
         <button
-          onClick={() => setIsModalOpen(true)}
-          className="flex items-center justify-center space-x-1.5 rounded-xl bg-[#C59B27] px-4 py-2.5 text-xs font-semibold text-white shadow-md transition hover:bg-[#A68018] w-full sm:w-auto"
+          onClick={() => {
+            setSelectedClientForEdit(null);
+            setIsModalOpen(true);
+          }}
+          className="flex items-center justify-center space-x-1.5 rounded-xl bg-[#C59B27] px-4 py-2.5 text-xs font-semibold text-white shadow-md transition hover:bg-[#A68018] w-full sm:w-auto cursor-pointer"
         >
           <Plus className="h-4 w-4" />
           <span>Register New Client</span>
@@ -82,7 +86,7 @@ const ClientsPage = () => {
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="w-full sm:w-auto rounded-xl border border-slate-200 bg-white p-2 text-xs font-medium text-slate-700 outline-none"
+              className="w-full sm:w-auto rounded-xl border border-slate-200 bg-white p-2 text-xs font-medium text-slate-700 outline-none cursor-pointer"
             >
               <option value="">All Statuses</option>
               <option value="Active">Active</option>
@@ -120,7 +124,7 @@ const ClientsPage = () => {
                 </tr>
               ) : (
                 clients.map((c) => (
-                  <tr key={c._id} className="hover:bg-slate-50">
+                  <tr key={c._id} className="hover:bg-slate-50 transition">
                     <td className="p-3.5">
                       <p className="font-bold text-slate-800">{c.clientName}</p>
                       <span className="text-[10px] font-semibold text-[#0A1E3F] bg-slate-100 px-1.5 py-0.5 rounded">
@@ -148,11 +152,21 @@ const ClientsPage = () => {
                       <Badge status={c.status} />
                     </td>
                     <td className="p-3.5 text-center">
-                      <div className="flex items-center justify-center space-x-1">
+                      <div className="flex items-center justify-center space-x-1.5">
+                        <button
+                          onClick={() => {
+                            setSelectedClientForEdit(c);
+                            setIsModalOpen(true);
+                          }}
+                          title="Edit Client Profile & Services"
+                          className="rounded-lg p-1.5 text-xs font-semibold text-slate-600 hover:bg-amber-50 hover:text-[#C59B27] transition cursor-pointer"
+                        >
+                          <Edit3 className="h-4 w-4" />
+                        </button>
                         <button
                           onClick={() => handleToggleStatus(c._id)}
                           title={c.status === 'Active' ? 'Deactivate Client (Halts future recurring tasks)' : 'Reactivate Client'}
-                          className={`rounded-lg p-1.5 text-xs font-semibold transition ${
+                          className={`rounded-lg p-1.5 text-xs font-semibold transition cursor-pointer ${
                             c.status === 'Active' ? 'text-rose-600 hover:bg-rose-50' : 'text-emerald-600 hover:bg-emerald-50'
                           }`}
                         >
@@ -170,9 +184,13 @@ const ClientsPage = () => {
 
       <ClientModal
         isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
+        onClose={() => {
+          setIsModalOpen(false);
+          setSelectedClientForEdit(null);
+        }}
         onRefresh={fetchClients}
         employees={employees}
+        client={selectedClientForEdit}
       />
     </div>
   );
