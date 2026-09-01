@@ -665,6 +665,11 @@ export const printClientLedger = ({ ledgerData = {}, client = null, user = {} })
             <div>Page 1 of 1</div>
           </div>
 
+          <div style="text-align: center; margin-top: 15px; padding-top: 10px; border-top: 1px dashed #e2e8f0;">
+            <img src="${window.location.origin}/hig_logo.jpeg" alt="Higai Automation" style="height: 24px; width: auto; display: block; margin: 0 auto 3px auto;" onerror="this.style.display='none'" />
+            <div style="font-size: 8px; font-weight: 700; color: #64748b; letter-spacing: 0.4px;">Developed by Higai Automation</div>
+          </div>
+
         </div>
 
         <script>
