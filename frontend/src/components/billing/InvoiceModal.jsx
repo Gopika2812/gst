@@ -6,7 +6,7 @@ const InvoiceModal = ({ isOpen, onClose, onRefresh, clients = [], employees = []
   const [selectedClient, setSelectedClient] = useState('');
   const [serviceType, setServiceType] = useState('GST Filing GSTR-3B & GSTR-1');
   const [items, setItems] = useState([{ description: 'GST Monthly Filing Fee', amount: 5000 }]);
-  const [gstPercent, setGstPercent] = useState(18);
+  const [gstPercent, setGstPercent] = useState(0);
   const [discount, setDiscount] = useState(0);
   const [paidAmount, setPaidAmount] = useState(0);
   const [paymentMode, setPaymentMode] = useState('Bank Transfer');
@@ -37,7 +37,7 @@ const InvoiceModal = ({ isOpen, onClose, onRefresh, clients = [], employees = []
         setSelectedClient(invoice.client?._id || invoice.client || '');
         setServiceType(invoice.serviceType || 'GST Filing GSTR-3B & GSTR-1');
         setItems(invoice.items?.length ? invoice.items : [{ description: invoice.serviceType || 'Service', amount: invoice.subTotal || 0 }]);
-        setGstPercent(invoice.gstPercent ?? 18);
+        setGstPercent(0);
         setDiscount(invoice.discount || 0);
         setPaidAmount(invoice.paidAmount || 0);
         setPaymentMode(invoice.paymentMode || 'Bank Transfer');
@@ -47,7 +47,7 @@ const InvoiceModal = ({ isOpen, onClose, onRefresh, clients = [], employees = []
         setSelectedClient('');
         setServiceType('GST Filing GSTR-3B & GSTR-1');
         setItems([{ description: 'GST Monthly Filing Fee', amount: 5000 }]);
-        setGstPercent(18);
+        setGstPercent(0);
         setDiscount(0);
         setPaidAmount(0);
         setPaymentMode('Bank Transfer');
@@ -113,8 +113,7 @@ const InvoiceModal = ({ isOpen, onClose, onRefresh, clients = [], employees = []
   });
 
   const subTotal = items.reduce((sum, item) => sum + (Number(item.amount) || 0), 0);
-  const gstAmount = Math.round((subTotal * gstPercent) / 100);
-  const total = Math.max(0, subTotal + gstAmount - Number(discount));
+  const total = Math.max(0, subTotal - Number(discount));
   const pendingAmount = Math.max(0, total - Number(paidAmount));
 
   const handleSubmit = async (e) => {
@@ -133,8 +132,8 @@ const InvoiceModal = ({ isOpen, onClose, onRefresh, clients = [], employees = []
           serviceType,
           items,
           subTotal,
-          gstPercent,
-          gstAmount,
+          gstPercent: 0,
+          gstAmount: 0,
           discount,
           total,
           paidAmount,
@@ -147,8 +146,8 @@ const InvoiceModal = ({ isOpen, onClose, onRefresh, clients = [], employees = []
           serviceType,
           items,
           subTotal,
-          gstPercent,
-          gstAmount,
+          gstPercent: 0,
+          gstAmount: 0,
           discount,
           total,
           paidAmount,
@@ -177,7 +176,7 @@ const InvoiceModal = ({ isOpen, onClose, onRefresh, clients = [], employees = []
         <div className="flex items-center justify-between border-b border-slate-100 pb-4">
           <div>
             <h3 className="text-lg font-bold text-[#0A1E3F]">{invoice ? `Edit Tax Invoice (${invoice.invoiceNumber})` : 'Generate Tax Invoice (Module 3)'}</h3>
-            <p className="text-xs text-slate-500">{invoice ? 'Update invoice amounts, items, taxes and payment status' : 'Auto-calculate taxes, ledgers, and push to task workflow'}</p>
+            <p className="text-xs text-slate-500">{invoice ? 'Update invoice amounts, items, and payment status' : 'Auto-calculate balances, ledgers, and push to task workflow'}</p>
           </div>
           <button onClick={onClose} className="rounded-xl p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600">
             <X className="h-5 w-5" />
@@ -200,7 +199,7 @@ const InvoiceModal = ({ isOpen, onClose, onRefresh, clients = [], employees = []
                 <option value="">-- Choose Client --</option>
                 {clients.map((c) => (
                   <option key={c._id} value={c._id}>
-                    {c.clientName} ({c.gstin || c.pan || 'No GST'})
+                    {c.clientName} ({c.gstin || c.pan || 'Active'})
                   </option>
                 ))}
               </select>
@@ -244,7 +243,7 @@ const InvoiceModal = ({ isOpen, onClose, onRefresh, clients = [], employees = []
               <button
                 type="button"
                 onClick={handleAddItem}
-                className="flex items-center space-x-1 text-xs font-semibold text-[#C59B27] hover:underline"
+                className="flex items-center space-x-1 text-xs font-semibold text-[#C59B27] hover:underline cursor-pointer"
               >
                 <Plus className="h-3.5 w-3.5" />
                 <span>Add Item</span>
@@ -271,7 +270,7 @@ const InvoiceModal = ({ isOpen, onClose, onRefresh, clients = [], employees = []
                     <button
                       type="button"
                       onClick={() => handleRemoveItem(index)}
-                      className="p-1 text-rose-500 hover:bg-rose-50 rounded-lg shrink-0"
+                      className="p-1 text-rose-500 hover:bg-rose-50 rounded-lg shrink-0 cursor-pointer"
                     >
                       <Trash2 className="h-4 w-4" />
                     </button>
@@ -281,30 +280,30 @@ const InvoiceModal = ({ isOpen, onClose, onRefresh, clients = [], employees = []
             ))}
           </div>
 
-          {/* Summary Box */}
+          {/* Summary & Payment Controls Box */}
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 bg-slate-100/70 p-4 rounded-xl">
-            <div>
-              <label className="text-[11px] font-semibold text-slate-600">GST %</label>
-              <select
-                value={gstPercent}
-                onChange={(e) => setGstPercent(Number(e.target.value))}
-                className="mt-1 w-full rounded-xl border border-slate-200 bg-white p-2 text-xs outline-none"
-              >
-                <option value={18}>18% (Standard GST)</option>
-                <option value={12}>12% GST</option>
-                <option value={5}>5% GST</option>
-                <option value={0}>0% (Exempted)</option>
-              </select>
-            </div>
             <div>
               <label className="text-[11px] font-semibold text-slate-600">Discount (₹)</label>
               <input
                 type="number"
                 value={discount}
                 onChange={(e) => setDiscount(Number(e.target.value))}
-                className="mt-1 w-full rounded-xl border border-slate-200 bg-white p-2 text-xs outline-none"
+                placeholder="0"
+                className="mt-1 w-full rounded-xl border border-slate-200 bg-white p-2 text-xs outline-none focus:border-[#C59B27]"
+              />
+            </div>
+            <div>
+              <label className="text-[11px] font-semibold text-slate-600">Payment Mode</label>
+              <select
+                value={paymentMode}
+                onChange={(e) => setPaymentMode(e.target.value)}
+                className="mt-1 w-full rounded-xl border border-slate-200 bg-white p-2 text-xs outline-none focus:border-[#C59B27] cursor-pointer"
               >
-              </input>
+                <option value="Bank Transfer">Bank Transfer / NEFT</option>
+                <option value="UPI">UPI Payment</option>
+                <option value="Cash">Cash</option>
+                <option value="Cheque">Cheque</option>
+              </select>
             </div>
             <div>
               <label className="text-[11px] font-semibold text-slate-600">Amount Paid (₹)</label>
@@ -312,7 +311,8 @@ const InvoiceModal = ({ isOpen, onClose, onRefresh, clients = [], employees = []
                 type="number"
                 value={paidAmount}
                 onChange={(e) => setPaidAmount(Number(e.target.value))}
-                className="mt-1 w-full rounded-xl border border-slate-200 bg-white p-2 text-xs outline-none"
+                placeholder="0"
+                className="mt-1 w-full rounded-xl border border-slate-200 bg-white p-2 text-xs outline-none focus:border-[#C59B27]"
               />
             </div>
           </div>
@@ -320,8 +320,11 @@ const InvoiceModal = ({ isOpen, onClose, onRefresh, clients = [], employees = []
           {/* Calculation Display */}
           <div className="rounded-xl bg-[#0A1E3F] p-4 text-white flex flex-col sm:flex-row justify-between sm:items-center gap-2 shadow-lg">
             <div>
-              <p className="text-xs text-slate-300">Subtotal: ₹{subTotal.toLocaleString('en-IN')} | GST: ₹{gstAmount.toLocaleString('en-IN')}</p>
-              <p className="text-xs text-amber-400 mt-0.5">Pending Balance: ₹{pendingAmount.toLocaleString('en-IN')}</p>
+              <p className="text-xs text-slate-300">
+                Subtotal: ₹{subTotal.toLocaleString('en-IN')}
+                {discount > 0 && <span className="text-amber-300 font-semibold"> | Discount: ₹{discount.toLocaleString('en-IN')}</span>}
+              </p>
+              <p className="text-xs text-amber-400 mt-0.5 font-bold">Pending Balance: ₹{pendingAmount.toLocaleString('en-IN')}</p>
             </div>
             <div className="text-right">
               <span className="text-[10px] text-slate-300 uppercase tracking-wider block">Total Payable</span>
