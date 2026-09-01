@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 import GlacierCard from '../components/common/GlacierCard';
 import StatCard from '../components/common/StatCard';
@@ -30,7 +30,10 @@ import {
   UserCheck,
   Building2,
   Sparkles,
-  ArrowRight
+  ArrowRight,
+  TrendingUp,
+  RefreshCw,
+  Eye
 } from 'lucide-react';
 
 const Dashboard = () => {
@@ -45,11 +48,12 @@ const Dashboard = () => {
   const [selectedDept, setSelectedDept] = useState('All');
   const [selectedEmployee, setSelectedEmployee] = useState('All');
 
-  // Modals
+  // Modals & Dropdowns
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
   const [isClientModalOpen, setIsClientModalOpen] = useState(false);
   const [cardModalData, setCardModalData] = useState(null);
   const [isExportMenuOpen, setIsExportMenuOpen] = useState(false);
+  const exportMenuRef = useRef(null);
 
   const [clients, setClients] = useState([]);
   const [employees, setEmployees] = useState([]);
@@ -58,6 +62,17 @@ const Dashboard = () => {
   const isSuperAdmin = user?.role === 'Super Admin';
   const isAdmin = user?.role && user.role.includes('Admin') && !isSuperAdmin;
   const isExecutive = !isSuperAdmin && !isAdmin;
+
+  // Click outside to close Export menu
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (exportMenuRef.current && !exportMenuRef.current.contains(event.target)) {
+        setIsExportMenuOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   const fetchDashboardData = async (isInitial = false) => {
     if (isInitial || !summary) setLoading(true);
@@ -169,7 +184,7 @@ const Dashboard = () => {
   return (
     <div className="space-y-6">
       {/* Top Banner: Profile Card & Quick Actions */}
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-[#0A1E3F] via-[#16385C] to-[#07152B] p-4 sm:p-6 text-white shadow-xl border border-slate-700/50">
+      <div className="relative z-20 overflow-visible rounded-3xl bg-gradient-to-r from-[#0A1E3F] via-[#16385C] to-[#07152B] p-4 sm:p-6 text-white shadow-xl border border-slate-700/50">
         <div className="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div className="flex items-center space-x-3 sm:space-x-4">
             <div className="flex h-12 w-12 sm:h-14 sm:w-14 shrink-0 items-center justify-center rounded-2xl bg-[#C59B27] text-lg sm:text-xl font-bold text-white shadow-md border border-white/20">
@@ -192,30 +207,33 @@ const Dashboard = () => {
           {/* Action Buttons & Professional Export */}
           <div className="flex flex-wrap items-center gap-2 sm:gap-3">
             {/* Professional Export Dropdown */}
-            <div className="relative">
+            <div ref={exportMenuRef} className="relative">
               <button
+                type="button"
                 onClick={() => setIsExportMenuOpen(!isExportMenuOpen)}
                 className="flex items-center space-x-1.5 rounded-xl bg-white/10 px-3.5 py-2.5 text-xs font-bold text-white backdrop-blur-md border border-white/20 transition hover:bg-white/20 cursor-pointer shadow-xs"
               >
                 <Download className="h-4 w-4 text-[#C59B27]" />
                 <span>Export Report</span>
-                <ChevronDown className="h-3.5 w-3.5 opacity-70" />
+                <ChevronDown className={`h-3.5 w-3.5 opacity-70 transition-transform duration-150 ${isExportMenuOpen ? 'rotate-180 text-[#C59B27]' : ''}`} />
               </button>
 
               {isExportMenuOpen && (
-                <div className="absolute right-0 mt-2 w-52 rounded-2xl bg-white p-1.5 text-slate-800 shadow-2xl border border-slate-100 z-30 animate-in fade-in zoom-in-95 duration-150">
+                <div className="absolute right-0 top-full mt-2 w-56 rounded-2xl bg-white p-2 text-slate-800 shadow-2xl border border-slate-200 z-50 animate-in fade-in zoom-in-95 duration-150 ring-1 ring-black/10">
                   <button
+                    type="button"
                     onClick={handleExportCSV}
-                    className="flex w-full items-center space-x-2 rounded-xl px-3 py-2 text-xs font-bold text-slate-700 hover:bg-emerald-50 hover:text-emerald-800 transition cursor-pointer"
+                    className="flex w-full items-center space-x-2.5 rounded-xl px-3 py-2.5 text-xs font-bold text-slate-700 hover:bg-emerald-50 hover:text-emerald-800 transition cursor-pointer"
                   >
-                    <Download className="h-4 w-4 text-[#C59B27]" />
+                    <Download className="h-4 w-4 text-[#C59B27] shrink-0" />
                     <span>Export to Excel / CSV</span>
                   </button>
                   <button
+                    type="button"
                     onClick={handlePrintReport}
-                    className="flex w-full items-center space-x-2 rounded-xl px-3 py-2 text-xs font-bold text-slate-700 hover:bg-blue-50 hover:text-[#0A1E3F] transition cursor-pointer"
+                    className="flex w-full items-center space-x-2.5 rounded-xl px-3 py-2.5 text-xs font-bold text-slate-700 hover:bg-blue-50 hover:text-[#0A1E3F] transition cursor-pointer mt-1"
                   >
-                    <Printer className="h-4 w-4 text-[#0A1E3F]" />
+                    <Printer className="h-4 w-4 text-[#0A1E3F] shrink-0" />
                     <span>Print Executive Summary</span>
                   </button>
                 </div>
