@@ -5,13 +5,15 @@ const {
   getInvoices,
   downloadInvoicePDF,
   emailInvoice,
-  getWhatsAppShareLink
+  getWhatsAppShareLink,
+  assignTaskFromInvoice
 } = require('../controllers/invoiceController');
 const { protect } = require('../middleware/authMiddleware');
 const { checkPermission } = require('../middleware/rbacMiddleware');
 
 router.post('/', protect, checkPermission('Billing', 'create'), createInvoice);
 router.get('/', protect, checkPermission('Billing', 'view'), getInvoices);
+router.post('/:id/assign-task', protect, checkPermission('Billing', 'edit'), assignTaskFromInvoice);
 router.get('/:id/pdf', protect, downloadInvoicePDF);
 router.post('/:id/email', protect, emailInvoice);
 router.get('/:id/whatsapp', protect, getWhatsAppShareLink);

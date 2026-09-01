@@ -155,6 +155,7 @@ exports.getInvoices = async (req, res) => {
 
     const invoices = await Invoice.find(filter)
       .populate('client', 'clientName tradeName gstin pan phone email')
+      .populate('assignedEmployee', 'name email designation department role')
       .sort({ createdAt: -1 });
 
     // Migrate any legacy invoice numbers (e.g. INV-2026-0001) to clean short format (INV00126)
@@ -171,6 +172,48 @@ exports.getInvoices = async (req, res) => {
     }
 
     res.json(invoices);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// Assign Task Directly to Executive & Department from Completed/Generated Invoice
+exports.assignTaskFromInvoice = async (req, res) => {
+  try {
+    const { department, assignedEmployee, taskName, dueDate, priority, remarks } = req.body;
+    const invoice = await Invoice.findById(req.params.id).populate('client');
+    if (!invoice) {
+      return res.status(404).json({ message: 'Invoice not found' });
+    }
+
+    const task = await Task.create({
+      client: invoice.client._id,
+      taskType: 'Client Task',
+      department: department || 'GST',
+      taskName: taskName || invoice.serviceType,
+      priority: priority || 'High',
+      assignedBy: req.user._id,
+      assignedEmployee: assignedEmployee || invoice.client.responsibleEmployee || req.user._id,
+      dueDate: dueDate ? new Date(dueDate) : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+      repeat: 'One Time',
+      status: 'Assigned',
+      remarks: remarks ? `${remarks} (Assigned from Invoice ${invoice.invoiceNumber})` : `Assigned from Invoice ${invoice.invoiceNumber}`
+    });
+
+    invoice.taskCreated = true;
+    invoice.assignedEmployee = assignedEmployee || invoice.client.responsibleEmployee || req.user._id;
+    invoice.assignedGroup = department || 'GST';
+    await invoice.save();
+
+    await logAudit(
+      req.user,
+      'Task Assigned from Billing',
+      'Billing',
+      `Assigned task ${task.taskName} to ${department} for invoice ${invoice.invoiceNumber}`,
+      req
+    );
+
+    res.json({ message: 'Task successfully assigned to department executive', task, invoice });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

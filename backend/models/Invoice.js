@@ -24,6 +24,8 @@ const invoiceSchema = new mongoose.Schema(
     remarks: { type: String },
     moveToTaskAssignment: { type: Boolean, default: false },
     taskCreated: { type: Boolean, default: false },
+    assignedGroup: { type: String },
+    assignedEmployee: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
     createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }
   },
   { timestamps: true }
