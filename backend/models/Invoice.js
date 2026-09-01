@@ -21,6 +21,7 @@ const invoiceSchema = new mongoose.Schema(
     pendingAmount: { type: Number, required: true },
     paymentStatus: { type: String, enum: ['Paid', 'Pending', 'Partial'], default: 'Pending' },
     paymentMode: { type: String, enum: ['UPI', 'Bank Transfer', 'Cheque', 'Cash', 'Credit'], default: 'Bank Transfer' },
+    billingCycle: { type: String, enum: ['Monthly', 'Yearly', 'Quarterly', 'One-Time'], default: 'Monthly' },
     remarks: { type: String },
     moveToTaskAssignment: { type: Boolean, default: false },
     taskCreated: { type: Boolean, default: false },

@@ -5,6 +5,7 @@ import api from '../../services/api';
 const InvoiceModal = ({ isOpen, onClose, onRefresh, clients = [], employees = [], invoice = null }) => {
   const [selectedClient, setSelectedClient] = useState('');
   const [serviceType, setServiceType] = useState('GST Filing GSTR-3B & GSTR-1');
+  const [billingCycle, setBillingCycle] = useState('Monthly');
   const [items, setItems] = useState([{ description: 'GST Monthly Filing Fee', amount: 5000 }]);
   const [gstPercent, setGstPercent] = useState(0);
   const [discount, setDiscount] = useState(0);
@@ -36,6 +37,7 @@ const InvoiceModal = ({ isOpen, onClose, onRefresh, clients = [], employees = []
       if (invoice) {
         setSelectedClient(invoice.client?._id || invoice.client || '');
         setServiceType(invoice.serviceType || 'GST Filing GSTR-3B & GSTR-1');
+        setBillingCycle(invoice.billingCycle || 'Monthly');
         setItems(invoice.items?.length ? invoice.items : [{ description: invoice.serviceType || 'Service', amount: invoice.subTotal || 0 }]);
         setGstPercent(0);
         setDiscount(invoice.discount || 0);
@@ -46,6 +48,7 @@ const InvoiceModal = ({ isOpen, onClose, onRefresh, clients = [], employees = []
       } else {
         setSelectedClient('');
         setServiceType('GST Filing GSTR-3B & GSTR-1');
+        setBillingCycle('Monthly');
         setItems([{ description: 'GST Monthly Filing Fee', amount: 5000 }]);
         setGstPercent(0);
         setDiscount(0);
@@ -61,6 +64,29 @@ const InvoiceModal = ({ isOpen, onClose, onRefresh, clients = [], employees = []
   const [error, setError] = useState('');
 
   if (!isOpen) return null;
+
+  const handleBillingCycleChange = (cycle) => {
+    setBillingCycle(cycle);
+    setItems((prevItems) =>
+      prevItems.map((it) => {
+        let desc = it.description;
+        if (cycle === 'Yearly') {
+          if (desc.toLowerCase().includes('monthly')) {
+            desc = desc.replace(/monthly/i, 'Yearly / Annual');
+          } else if (!desc.toLowerCase().includes('yearly') && !desc.toLowerCase().includes('annual')) {
+            desc = `${desc} (Annual / Yearly)`;
+          }
+        } else if (cycle === 'Monthly') {
+          if (desc.toLowerCase().includes('yearly / annual')) {
+            desc = desc.replace(/yearly \/ annual/i, 'Monthly');
+          } else if (desc.toLowerCase().includes('(annual / yearly)')) {
+            desc = desc.replace(/\(annual \/ yearly\)/i, '').trim();
+          }
+        }
+        return { ...it, description: desc };
+      })
+    );
+  };
 
   const handleAddItem = () => {
     setItems([...items, { description: '', amount: 0 }]);
@@ -93,9 +119,10 @@ const InvoiceModal = ({ isOpen, onClose, onRefresh, clients = [], employees = []
         const dept = clientObj.subscribedServices[0].department;
         if (dept) setAssignedGroup(dept);
 
+        const feeSuffix = billingCycle === 'Yearly' ? 'Annual Fee' : 'Monthly Fee';
         setItems(
           clientObj.subscribedServices.map((s) => ({
-            description: `${s.subServiceName || s.serviceName} Fee`,
+            description: `${s.subServiceName || s.serviceName} ${feeSuffix}`,
             amount: 5000
           }))
         );
@@ -130,6 +157,7 @@ const InvoiceModal = ({ isOpen, onClose, onRefresh, clients = [], employees = []
       if (invoice) {
         await api.put(`/invoices/${invoice._id}`, {
           serviceType,
+          billingCycle,
           items,
           subTotal,
           gstPercent: 0,
@@ -144,6 +172,7 @@ const InvoiceModal = ({ isOpen, onClose, onRefresh, clients = [], employees = []
         await api.post('/invoices', {
           client: selectedClient,
           serviceType,
+          billingCycle,
           items,
           subTotal,
           gstPercent: 0,
@@ -176,7 +205,7 @@ const InvoiceModal = ({ isOpen, onClose, onRefresh, clients = [], employees = []
         <div className="flex items-center justify-between border-b border-slate-100 pb-4">
           <div>
             <h3 className="text-lg font-bold text-[#0A1E3F]">{invoice ? `Edit Tax Invoice (${invoice.invoiceNumber})` : 'Generate Tax Invoice (Module 3)'}</h3>
-            <p className="text-xs text-slate-500">{invoice ? 'Update invoice amounts, items, and payment status' : 'Auto-calculate balances, ledgers, and push to task workflow'}</p>
+            <p className="text-xs text-slate-500">{invoice ? 'Update invoice amounts, payment plan, and status' : 'Auto-calculate balances, ledgers, and push to task workflow'}</p>
           </div>
           <button onClick={onClose} className="rounded-xl p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600">
             <X className="h-5 w-5" />
@@ -186,8 +215,8 @@ const InvoiceModal = ({ isOpen, onClose, onRefresh, clients = [], employees = []
         {error && <div className="mt-3 rounded-xl bg-rose-50 p-3 text-xs font-medium text-rose-600 border border-rose-200">{error}</div>}
 
         <form onSubmit={handleSubmit} className="mt-4 space-y-4">
-          {/* Client & Service Selection */}
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          {/* Client, Service & Payment Frequency Selection */}
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
             <div>
               <label className="text-[11px] font-semibold text-slate-600">Select Client *</label>
               <select
@@ -233,6 +262,44 @@ const InvoiceModal = ({ isOpen, onClose, onRefresh, clients = [], employees = []
                   <option>Annual Audit & Advisory</option>
                 </optgroup>
               </select>
+            </div>
+            <div>
+              <label className="text-[11px] font-semibold text-slate-600">Payment Plan / Cycle *</label>
+              <div className="mt-1 flex items-center rounded-xl border border-slate-200 bg-slate-100 p-1">
+                <button
+                  type="button"
+                  onClick={() => handleBillingCycleChange('Monthly')}
+                  className={`flex-1 rounded-lg py-1.5 text-xs font-bold transition cursor-pointer ${
+                    billingCycle === 'Monthly'
+                      ? 'bg-[#0A1E3F] text-white shadow-xs'
+                      : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  Monthly
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleBillingCycleChange('Yearly')}
+                  className={`flex-1 rounded-lg py-1.5 text-xs font-bold transition cursor-pointer ${
+                    billingCycle === 'Yearly'
+                      ? 'bg-[#0A1E3F] text-white shadow-xs'
+                      : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  Yearly
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleBillingCycleChange('One-Time')}
+                  className={`flex-1 rounded-lg py-1.5 text-xs font-bold transition cursor-pointer ${
+                    billingCycle === 'One-Time'
+                      ? 'bg-[#0A1E3F] text-white shadow-xs'
+                      : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  One-Time
+                </button>
+              </div>
             </div>
           </div>
 
@@ -320,6 +387,11 @@ const InvoiceModal = ({ isOpen, onClose, onRefresh, clients = [], employees = []
           {/* Calculation Display */}
           <div className="rounded-xl bg-[#0A1E3F] p-4 text-white flex flex-col sm:flex-row justify-between sm:items-center gap-2 shadow-lg">
             <div>
+              <div className="flex items-center space-x-2 mb-1">
+                <span className="rounded-full bg-[#C59B27]/20 border border-[#C59B27]/50 px-2.5 py-0.5 text-[10px] font-bold text-[#C59B27]">
+                  {billingCycle} Payment Plan
+                </span>
+              </div>
               <p className="text-xs text-slate-300">
                 Subtotal: ₹{subTotal.toLocaleString('en-IN')}
                 {discount > 0 && <span className="text-amber-300 font-semibold"> | Discount: ₹{discount.toLocaleString('en-IN')}</span>}

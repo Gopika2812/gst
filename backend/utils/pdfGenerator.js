@@ -194,13 +194,14 @@ exports.generateInvoicePDF = (invoice, client, res) => {
       { align: 'right', width: dateBoxW - 70 }
     );
 
+  const planText = invoice.billingCycle ? `${invoice.billingCycle} Plan` : 'Monthly Plan';
   doc
     .font('Helvetica')
     .fillColor('#475569')
-    .text('Terms :', dateBoxX, billTop + 14)
+    .text('Billing Plan :', dateBoxX, billTop + 14)
     .font('Helvetica-Bold')
     .fillColor('#0F172A')
-    .text('Due on Receipt', dateBoxX + 70, billTop + 14, { align: 'right', width: dateBoxW - 70 });
+    .text(planText, dateBoxX + 70, billTop + 14, { align: 'right', width: dateBoxW - 70 });
 
   doc
     .font('Helvetica')

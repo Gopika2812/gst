@@ -180,7 +180,18 @@ const BillingPage = () => {
                       <td className="p-3.5 font-semibold text-slate-800">
                         {inv.client?.clientName || 'Valued Client'}
                       </td>
-                      <td className="p-3.5 text-slate-600">{inv.serviceType}</td>
+                      <td className="p-3.5 text-slate-700">
+                        <div className="font-semibold text-slate-800">{inv.serviceType}</div>
+                        <span className={`inline-block mt-0.5 px-2 py-0.5 rounded text-[10px] font-bold ${
+                          inv.billingCycle === 'Yearly'
+                            ? 'bg-purple-100 text-purple-800 border border-purple-200'
+                            : inv.billingCycle === 'One-Time'
+                            ? 'bg-slate-100 text-slate-700 border border-slate-200'
+                            : 'bg-blue-50 text-blue-700 border border-blue-200'
+                        }`}>
+                          {inv.billingCycle || 'Monthly'} Plan
+                        </span>
+                      </td>
                       <td className="p-3.5 font-bold text-slate-800">₹{inv.total.toLocaleString('en-IN')}</td>
                       <td className="p-3.5 font-semibold text-emerald-600">₹{inv.paidAmount.toLocaleString('en-IN')}</td>
                       <td className="p-3.5 font-semibold text-rose-600">₹{inv.pendingAmount.toLocaleString('en-IN')}</td>

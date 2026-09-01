@@ -27,6 +27,7 @@ exports.createInvoice = async (req, res) => {
       total,
       paidAmount,
       paymentMode,
+      billingCycle,
       remarks,
       moveToTaskAssignment,
       assignedGroup,
@@ -75,6 +76,7 @@ exports.createInvoice = async (req, res) => {
       pendingAmount: pending,
       paymentStatus,
       paymentMode: paymentMode || 'Bank Transfer',
+      billingCycle: billingCycle || 'Monthly',
       remarks,
       moveToTaskAssignment: !!moveToTaskAssignment,
       createdBy: req.user._id
@@ -295,6 +297,7 @@ exports.updateInvoice = async (req, res) => {
       total,
       paidAmount,
       paymentMode,
+      billingCycle,
       remarks,
       paymentStatus: requestedStatus
     } = req.body;
@@ -324,6 +327,7 @@ exports.updateInvoice = async (req, res) => {
     invoice.pendingAmount = pending;
     invoice.paymentStatus = paymentStatus;
     if (paymentMode) invoice.paymentMode = paymentMode;
+    if (billingCycle) invoice.billingCycle = billingCycle;
     if (remarks !== undefined) invoice.remarks = remarks;
 
     await invoice.save();
