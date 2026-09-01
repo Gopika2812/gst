@@ -104,8 +104,11 @@ exports.getTasks = async (req, res) => {
         ];
       }
     } else {
-      // Junior Executive / Staff sees ONLY their assigned tasks
-      filter.assignedEmployee = req.user._id;
+      // Junior Executive / Staff sees their assigned tasks or tasks in their department
+      filter.$or = [
+        { assignedEmployee: req.user._id },
+        { department: req.user.department }
+      ];
     }
 
     if (department) filter.department = department;

@@ -2,29 +2,52 @@ import React, { useState, useEffect } from 'react';
 import GlacierCard from '../components/common/GlacierCard';
 import Badge from '../components/common/Badge';
 import api from '../services/api';
-import { FileCheck, Upload, Download, CheckCircle2, Plus } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
+import {
+  FileCheck,
+  Upload,
+  Download,
+  CheckCircle2,
+  Plus,
+  Clock,
+  AlertTriangle,
+  FileText,
+  User,
+  Search,
+  X,
+  Filter
+} from 'lucide-react';
 
 const GSTFilingPage = () => {
+  const { user } = useAuth();
+  const [tasks, setTasks] = useState([]);
   const [filings, setFilings] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [clients, setClients] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState('');
+  const [statusFilter, setStatusFilter] = useState('');
+
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedTaskForUpload, setSelectedTaskForUpload] = useState(null);
 
   const [formData, setFormData] = useState({
     client: '',
-    filingPeriod: 'July 2026',
+    filingPeriod: 'August 2026',
     acknowledgementNumber: '',
     remarks: ''
   });
   const [fileDoc, setFileDoc] = useState(null);
+  const [uploading, setUploading] = useState(false);
 
-  const fetchFilings = async () => {
+  const fetchGSTWorkspaceData = async () => {
     setLoading(true);
     try {
-      const [filRes, clientRes] = await Promise.all([
+      const [taskRes, filRes, clientRes] = await Promise.all([
+        api.get('/tasks', { params: { department: 'GST' } }),
         api.get('/filings', { params: { department: 'GST' } }),
         api.get('/clients')
       ]);
+      setTasks(taskRes.data);
       setFilings(filRes.data);
       setClients(clientRes.data);
     } catch (err) {
@@ -35,11 +58,49 @@ const GSTFilingPage = () => {
   };
 
   useEffect(() => {
-    fetchFilings();
+    fetchGSTWorkspaceData();
   }, []);
+
+  const handleStatusChange = async (taskId, newStatus) => {
+    // Optimistic UI update
+    setTasks((prev) =>
+      prev.map((t) => (t._id === taskId ? { ...t, status: newStatus } : t))
+    );
+
+    try {
+      await api.put(`/tasks/${taskId}/status`, { status: newStatus });
+      fetchGSTWorkspaceData();
+    } catch (err) {
+      alert('Failed to update task status');
+      fetchGSTWorkspaceData();
+    }
+  };
+
+  const handleOpenUploadModal = (clientObj = null, taskObj = null) => {
+    if (clientObj) {
+      setFormData({
+        client: clientObj._id || clientObj,
+        filingPeriod: 'August 2026',
+        acknowledgementNumber: '',
+        remarks: taskObj ? `Filed for Task: ${taskObj.taskName}` : ''
+      });
+      setSelectedTaskForUpload(taskObj);
+    } else {
+      setFormData({
+        client: '',
+        filingPeriod: 'August 2026',
+        acknowledgementNumber: '',
+        remarks: ''
+      });
+      setSelectedTaskForUpload(null);
+    }
+    setFileDoc(null);
+    setIsModalOpen(true);
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setUploading(true);
     try {
       const data = new FormData();
       data.append('client', formData.client);
@@ -52,30 +113,208 @@ const GSTFilingPage = () => {
       await api.post('/filings', data, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
+
+      // If uploaded from a specific task, mark the task completed
+      if (selectedTaskForUpload) {
+        await api.put(`/tasks/${selectedTaskForUpload._id}/status`, {
+          status: 'Completed',
+          remarks: `Return filed with ACK: ${formData.acknowledgementNumber}`
+        });
+      }
+
       setIsModalOpen(false);
-      fetchFilings();
+      fetchGSTWorkspaceData();
     } catch (err) {
       alert('Failed to upload GST filing record');
+    } finally {
+      setUploading(false);
     }
   };
 
+  const filteredTasks = tasks.filter((t) => {
+    const matchesSearch =
+      !search ||
+      t.taskName?.toLowerCase().includes(search.toLowerCase()) ||
+      t.client?.clientName?.toLowerCase().includes(search.toLowerCase()) ||
+      t.client?.gstin?.toLowerCase().includes(search.toLowerCase());
+
+    const matchesStatus = !statusFilter || t.status === statusFilter;
+    return matchesSearch && matchesStatus;
+  });
+
   return (
     <div className="space-y-6">
+      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
         <div>
           <h1 className="text-lg sm:text-xl font-bold text-[#0F2B48]">GST Filing Workspace</h1>
-          <p className="text-xs text-slate-500">Manage GSTR-3B, GSTR-1, CMP08, GSTR-9 returns & filing acknowledgements</p>
+          <p className="text-xs text-slate-500">
+            Assigned Client Queue • Status Updates (<span className="font-semibold text-blue-600">Assigned</span> ➔ <span className="font-semibold text-amber-600">In Progress</span> ➔ <span className="font-semibold text-emerald-600">Completed</span>) • Upload Filed Acknowledgements
+          </p>
         </div>
         <button
-          onClick={() => setIsModalOpen(true)}
-          className="flex items-center justify-center space-x-1.5 rounded-xl bg-[#52A636] px-4 py-2.5 text-xs font-semibold text-white shadow-md transition hover:bg-[#438A2B] w-full sm:w-auto"
+          onClick={() => handleOpenUploadModal()}
+          className="flex items-center justify-center space-x-1.5 rounded-xl bg-[#52A636] px-4 py-2.5 text-xs font-semibold text-white shadow-md transition hover:bg-[#438A2B] w-full sm:w-auto cursor-pointer"
         >
           <Plus className="h-4 w-4" />
           <span>Upload Filed Return</span>
         </button>
       </div>
 
-      <GlacierCard className="p-0 overflow-hidden">
+      {/* SECTION 1: ASSIGNED GST TASKS WORKSPACE */}
+      <GlacierCard className="p-4 space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-slate-100 pb-3">
+          <div className="flex items-center space-x-2">
+            <div className="rounded-xl bg-blue-50 p-2 text-blue-700">
+              <FileCheck className="h-5 w-5" />
+            </div>
+            <div>
+              <h3 className="text-sm font-bold text-[#0F2B48]">Active GST Filing Tasks Queue</h3>
+              <p className="text-[11px] text-slate-500">
+                Assigned client returns to process & complete ({filteredTasks.length} tasks)
+              </p>
+            </div>
+          </div>
+
+          {/* Search & Status Filter */}
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="flex items-center rounded-xl border border-slate-200 bg-white px-2.5 py-1.5 text-xs">
+              <Search className="mr-1.5 h-3.5 w-3.5 text-slate-400" />
+              <input
+                type="text"
+                placeholder="Search Client, Return, GSTIN..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="w-36 sm:w-48 bg-transparent text-xs outline-none"
+              />
+            </div>
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="rounded-xl border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-semibold text-slate-700 outline-none focus:border-[#52A636]"
+            >
+              <option value="">All Statuses</option>
+              <option value="Assigned">Assigned (New)</option>
+              <option value="In Progress">In Progress</option>
+              <option value="Completed">Completed</option>
+              <option value="Can't Complete">Can't Complete</option>
+            </select>
+          </div>
+        </div>
+
+        {/* Tasks Table */}
+        <div className="overflow-x-auto rounded-xl border border-slate-100">
+          <table className="w-full text-left text-xs min-w-[800px]">
+            <thead className="bg-[#0F2B48] text-white">
+              <tr>
+                <th className="p-3 font-semibold">Client Name</th>
+                <th className="p-3 font-semibold">GSTIN</th>
+                <th className="p-3 font-semibold">Return / Service</th>
+                <th className="p-3 font-semibold">Assigned Executive</th>
+                <th className="p-3 font-semibold">Due Date</th>
+                <th className="p-3 font-semibold">Priority</th>
+                <th className="p-3 font-semibold">Process Status</th>
+                <th className="p-3 text-center font-semibold">Action</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100 bg-white">
+              {loading ? (
+                <tr>
+                  <td colSpan={8} className="p-8 text-center text-slate-400">Loading assigned tasks...</td>
+                </tr>
+              ) : filteredTasks.length === 0 ? (
+                <tr>
+                  <td colSpan={8} className="p-8 text-center text-slate-400">
+                    No active GST filing tasks assigned yet. Tasks assigned from Billing or Client Master will appear here.
+                  </td>
+                </tr>
+              ) : (
+                filteredTasks.map((t) => {
+                  const isOverdue = new Date(t.dueDate) < new Date() && t.status !== 'Completed' && t.status !== "Can't Complete";
+                  return (
+                    <tr key={t._id} className={`hover:bg-slate-50 transition ${isOverdue ? 'bg-rose-50/30' : ''}`}>
+                      <td className="p-3 font-bold text-slate-800">
+                        {t.client?.clientName || 'General GST Task'}
+                        {t.client?.tradeName && (
+                          <span className="block text-[10px] font-normal text-slate-400">{t.client.tradeName}</span>
+                        )}
+                      </td>
+                      <td className="p-3 font-mono text-[11px] text-slate-700">
+                        {t.client?.gstin ? (
+                          <span className="px-1.5 py-0.5 rounded bg-slate-100 font-bold text-slate-700">{t.client.gstin}</span>
+                        ) : (
+                          'N/A'
+                        )}
+                      </td>
+                      <td className="p-3 font-semibold text-[#0F2B48]">{t.taskName}</td>
+                      <td className="p-3 text-slate-700 font-medium">
+                        {t.assignedEmployee?.name || 'Assigned Staff'}
+                      </td>
+                      <td className="p-3">
+                        <div className="flex items-center space-x-1">
+                          <span className="font-semibold text-slate-700">
+                            {new Date(t.dueDate).toLocaleDateString('en-IN')}
+                          </span>
+                          {isOverdue && (
+                            <span className="inline-flex items-center text-[9px] font-extrabold text-rose-600 bg-rose-100 px-1.5 py-0.5 rounded">
+                              <AlertTriangle className="mr-0.5 h-3 w-3" /> OVERDUE
+                            </span>
+                          )}
+                        </div>
+                      </td>
+                      <td className="p-3">
+                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                          t.priority === 'Critical' ? 'bg-rose-100 text-rose-800' :
+                          t.priority === 'High' ? 'bg-amber-100 text-amber-800' :
+                          t.priority === 'Medium' ? 'bg-blue-100 text-blue-800' : 'bg-slate-100 text-slate-700'
+                        }`}>
+                          {t.priority}
+                        </span>
+                      </td>
+                      <td className="p-3">
+                        <select
+                          value={t.status}
+                          onChange={(e) => handleStatusChange(t._id, e.target.value)}
+                          className={`rounded-xl border px-2.5 py-1 text-xs font-bold outline-none cursor-pointer transition ${
+                            t.status === 'Completed' ? 'border-emerald-300 bg-emerald-50 text-emerald-800' :
+                            t.status === 'In Progress' ? 'border-blue-300 bg-blue-50 text-blue-800' :
+                            t.status === "Can't Complete" ? 'border-rose-300 bg-rose-50 text-rose-800' :
+                            'border-amber-300 bg-amber-50 text-amber-800'
+                          }`}
+                        >
+                          <option value="Assigned">Assigned (New)</option>
+                          <option value="In Progress">In Progress</option>
+                          <option value="Completed">Completed</option>
+                          <option value="Can't Complete">Can't Complete</option>
+                        </select>
+                      </td>
+                      <td className="p-3 text-center">
+                        {t.status !== 'Completed' ? (
+                          <button
+                            onClick={() => handleOpenUploadModal(t.client, t)}
+                            title="Upload Filing Proof & Mark Completed"
+                            className="inline-flex items-center space-x-1 rounded-lg bg-[#52A636] px-2.5 py-1 text-[11px] font-bold text-white shadow-2xs hover:bg-[#438A2B] transition cursor-pointer"
+                          >
+                            <Upload className="h-3.5 w-3.5" />
+                            <span>Upload Return</span>
+                          </button>
+                        ) : (
+                          <span className="inline-flex items-center text-[10px] font-bold text-emerald-600">
+                            <CheckCircle2 className="mr-1 h-3.5 w-3.5" /> Completed
+                          </span>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
+            </tbody>
+          </table>
+        </div>
+      </GlacierCard>
+
+      {/* SECTION 2: FILED GST RETURNS HISTORY */}
+      <GlacierCard title="Filed GST Returns History" subtitle="Submitted returns, ACK numbers & download proofs" className="p-0 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs min-w-[750px]">
             <thead className="bg-[#0F2B48] text-white">
@@ -97,7 +336,7 @@ const GSTFilingPage = () => {
                 </tr>
               ) : filings.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="p-8 text-center text-slate-400">No GST filing records submitted</td>
+                  <td colSpan={8} className="p-8 text-center text-slate-400">No GST filing records submitted yet</td>
                 </tr>
               ) : (
                 filings.map((f) => (
@@ -138,70 +377,93 @@ const GSTFilingPage = () => {
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-sm">
           <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl">
-            <h3 className="text-base font-bold text-[#0F2B48]">Upload GST Filing Acknowledgement</h3>
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <h3 className="text-base font-bold text-[#0F2B48]">Upload GST Filing Acknowledgement</h3>
+              <button
+                onClick={() => setIsModalOpen(false)}
+                className="rounded-full p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
             <form onSubmit={handleSubmit} className="mt-4 space-y-3 text-xs">
               <div>
-                <label className="font-semibold text-slate-600">Select Client *</label>
+                <label className="font-bold text-slate-700">Select Client *</label>
                 <select
                   required
                   value={formData.client}
                   onChange={(e) => setFormData({ ...formData, client: e.target.value })}
-                  className="mt-1 w-full rounded-xl border border-slate-200 p-2 outline-none"
+                  className="mt-1 w-full rounded-xl border border-slate-200 p-2.5 outline-none font-semibold text-slate-800 focus:border-[#52A636]"
                 >
-                  <option value="">-- Choose Client --</option>
+                  <option value="">-- Select Client --</option>
                   {clients.map((c) => (
                     <option key={c._id} value={c._id}>
-                      {c.clientName} ({c.gstin || 'No GST'})
+                      {c.clientName} ({c.gstin || 'No GSTIN'})
                     </option>
                   ))}
                 </select>
               </div>
 
               <div>
-                <label className="font-semibold text-slate-600">Filing Period *</label>
+                <label className="font-bold text-slate-700">Filing Period *</label>
                 <input
                   type="text"
                   required
+                  placeholder="e.g. August 2026, Q2 2026-27"
                   value={formData.filingPeriod}
                   onChange={(e) => setFormData({ ...formData, filingPeriod: e.target.value })}
-                  placeholder="e.g. July 2026 / Q1 2026"
-                  className="mt-1 w-full rounded-xl border border-slate-200 p-2 outline-none"
+                  className="mt-1 w-full rounded-xl border border-slate-200 p-2.5 outline-none font-semibold text-slate-800 focus:border-[#52A636]"
                 />
               </div>
 
               <div>
-                <label className="font-semibold text-slate-600">GST ACK Number</label>
+                <label className="font-bold text-slate-700">Acknowledgement Number *</label>
                 <input
                   type="text"
+                  required
+                  placeholder="e.g. AA3308260001234"
                   value={formData.acknowledgementNumber}
                   onChange={(e) => setFormData({ ...formData, acknowledgementNumber: e.target.value })}
-                  placeholder="e.g. AA3307261234567"
-                  className="mt-1 w-full rounded-xl border border-slate-200 p-2 outline-none"
+                  className="mt-1 w-full rounded-xl border border-slate-200 p-2.5 outline-none font-semibold text-slate-800 focus:border-[#52A636]"
                 />
               </div>
 
               <div>
-                <label className="font-semibold text-slate-600">Upload Filed Acknowledgement PDF</label>
+                <label className="font-bold text-slate-700">Upload Filing Proof (PDF / Image)</label>
                 <input
                   type="file"
+                  accept=".pdf,image/*"
                   onChange={(e) => setFileDoc(e.target.files[0])}
-                  className="mt-1 w-full text-slate-500"
+                  className="mt-1 w-full rounded-xl border border-slate-200 p-2 text-slate-600"
                 />
               </div>
 
-              <div className="flex items-center justify-end space-x-2 pt-3">
+              <div>
+                <label className="font-bold text-slate-700">Remarks</label>
+                <textarea
+                  rows={2}
+                  placeholder="Optional notes or remarks"
+                  value={formData.remarks}
+                  onChange={(e) => setFormData({ ...formData, remarks: e.target.value })}
+                  className="mt-1 w-full rounded-xl border border-slate-200 p-2.5 outline-none text-slate-800 focus:border-[#52A636] resize-none"
+                />
+              </div>
+
+              <div className="flex items-center justify-end space-x-2 border-t border-slate-100 pt-3">
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="rounded-xl border border-slate-200 px-4 py-2 font-medium text-slate-600"
+                  className="rounded-xl border border-slate-200 px-4 py-2 text-slate-600 hover:bg-slate-50 font-semibold"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="rounded-xl bg-[#52A636] px-4 py-2 font-semibold text-white hover:bg-[#438A2B]"
+                  disabled={uploading}
+                  className="rounded-xl bg-[#52A636] px-5 py-2 font-bold text-white shadow-md hover:bg-[#438A2B] disabled:opacity-50"
                 >
-                  Submit Filing Proof
+                  {uploading ? 'Uploading...' : 'Submit & Complete'}
                 </button>
               </div>
             </form>
