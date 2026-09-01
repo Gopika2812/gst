@@ -45,7 +45,7 @@ const ReportsPage = () => {
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.setAttribute('href', url);
-    a.setAttribute('download', `Vignesh_Associates_Employee_Performance_Report.csv`);
+    a.setAttribute('download', `Royal_Accounting_Employee_Performance_Report.csv`);
     a.click();
   };
 
@@ -54,20 +54,20 @@ const ReportsPage = () => {
       {/* Header & Export Controls */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
         <div>
-          <h1 className="text-lg sm:text-xl font-bold text-[#0F2B48]">Reports & Business Intelligence</h1>
+          <h1 className="text-lg sm:text-xl font-bold text-[#0A1E3F]">Reports & Business Intelligence</h1>
           <p className="text-xs text-slate-500">Client reports, GST filing metrics, revenue performance & staff matrix</p>
         </div>
         <div className="flex items-center space-x-2 w-full sm:w-auto">
           <button
             onClick={handleExportCSV}
-            className="flex-1 sm:flex-none justify-center flex items-center space-x-1.5 rounded-xl bg-[#0F2B48] px-3.5 py-2 text-xs font-semibold text-white shadow-md hover:bg-[#1A3A5E]"
+            className="flex-1 sm:flex-none justify-center flex items-center space-x-1.5 rounded-xl bg-[#0A1E3F] px-3.5 py-2 text-xs font-semibold text-white shadow-md hover:bg-[#1A3A5E]"
           >
             <Download className="h-4 w-4" />
             <span>Export CSV</span>
           </button>
           <button
             onClick={() => window.print()}
-            className="flex-1 sm:flex-none justify-center flex items-center space-x-1.5 rounded-xl bg-[#52A636] px-3.5 py-2 text-xs font-semibold text-white shadow-md hover:bg-[#438A2B]"
+            className="flex-1 sm:flex-none justify-center flex items-center space-x-1.5 rounded-xl bg-[#C59B27] px-3.5 py-2 text-xs font-semibold text-white shadow-md hover:bg-[#A68018]"
           >
             <Printer className="h-4 w-4" />
             <span>Print Report</span>
@@ -87,7 +87,7 @@ const ReportsPage = () => {
             onClick={() => setActiveTab(tab.id)}
             className={`whitespace-nowrap rounded-xl px-3 sm:px-4 py-2 text-xs font-bold transition ${
               activeTab === tab.id
-                ? 'bg-white text-[#0F2B48] shadow-xs'
+                ? 'bg-white text-[#0A1E3F] shadow-xs'
                 : 'text-slate-600 hover:text-slate-900'
             }`}
           >
@@ -103,7 +103,7 @@ const ReportsPage = () => {
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs min-w-[700px]">
-            <thead className="bg-[#0F2B48] text-white">
+            <thead className="bg-[#0A1E3F] text-white">
               <tr>
                 <th className="p-3.5 font-semibold">Employee Name</th>
                 <th className="p-3.5 font-semibold">Role & Department</th>
@@ -134,11 +134,11 @@ const ReportsPage = () => {
                       <div className="flex items-center justify-center space-x-2">
                         <div className="w-16 bg-slate-200 rounded-full h-2 overflow-hidden">
                           <div
-                            className="bg-[#52A636] h-full"
+                            className="bg-[#C59B27] h-full"
                             style={{ width: `${p.completionRate}%` }}
                           />
                         </div>
-                        <span className="font-extrabold text-[#52A636] text-xs">{p.completionRate}%</span>
+                        <span className="font-extrabold text-[#C59B27] text-xs">{p.completionRate}%</span>
                       </div>
                     </td>
                   </tr>

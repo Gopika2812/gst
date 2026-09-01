@@ -256,7 +256,7 @@ exports.getWhatsAppShareLink = async (req, res) => {
       return res.status(404).json({ message: 'Invoice not found' });
     }
 
-    const message = `Hello ${invoice.client.clientName},\n\nYour Tax Invoice *${invoice.invoiceNumber}* from *Vignesh Associates* for *${invoice.serviceType}* is ready.\n\nTotal Amount: ₹${invoice.total.toLocaleString('en-IN')}\nStatus: ${invoice.paymentStatus}\nPending: ₹${invoice.pendingAmount.toLocaleString('en-IN')}\n\nThank you for choosing Vignesh Associates!`;
+    const message = `Hello ${invoice.client.clientName},\n\nYour Tax Invoice *${invoice.invoiceNumber}* from *Royal Accounting* for *${invoice.serviceType}* is ready.\n\nTotal Amount: ₹${invoice.total.toLocaleString('en-IN')}\nStatus: ${invoice.paymentStatus}\nPending: ₹${invoice.pendingAmount.toLocaleString('en-IN')}\n\nThank you for choosing Royal Accounting!`;
 
     const encodedMessage = encodeURIComponent(message);
     const phone = invoice.client.phone ? invoice.client.phone.replace(/[^0-9]/g, '') : '';

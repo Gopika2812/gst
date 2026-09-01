@@ -133,21 +133,21 @@ const UserManagementPage = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
         <div>
-          <h1 className="text-lg sm:text-xl font-bold text-[#0F2B48]">User Management & Approval System</h1>
+          <h1 className="text-lg sm:text-xl font-bold text-[#0A1E3F]">User Management & Approval System</h1>
           <p className="text-xs text-slate-500">Super Admin assigns tasks to Admins • Admins assign tasks to Staffs (GST, IT, Accounts)</p>
         </div>
         <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
           <button
             onClick={() => setIsOrgChartOpen(true)}
-            className="flex items-center justify-center space-x-1.5 rounded-xl bg-[#0F2B48] px-3.5 py-2.5 text-xs font-semibold text-white shadow-md transition hover:bg-[#1A3A5E]"
+            className="flex items-center justify-center space-x-1.5 rounded-xl bg-[#0A1E3F] px-3.5 py-2.5 text-xs font-semibold text-white shadow-md transition hover:bg-[#1A3A5E]"
           >
-            <Network className="h-4 w-4 text-[#52A636]" />
+            <Network className="h-4 w-4 text-[#C59B27]" />
             <span>Org Chart & Hierarchy</span>
           </button>
 
           <button
             onClick={handleCreateUser}
-            className="flex items-center justify-center space-x-1.5 rounded-xl bg-[#52A636] px-4 py-2.5 text-xs font-semibold text-white shadow-md transition hover:bg-[#438A2B]"
+            className="flex items-center justify-center space-x-1.5 rounded-xl bg-[#C59B27] px-4 py-2.5 text-xs font-semibold text-white shadow-md transition hover:bg-[#A68018]"
           >
             <UserPlus className="h-4 w-4" />
             <span>Add New User</span>
@@ -199,7 +199,7 @@ const UserManagementPage = () => {
       <GlacierCard className="p-0 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs min-w-[750px]">
-            <thead className="bg-[#0F2B48] text-white">
+            <thead className="bg-[#0A1E3F] text-white">
               <tr>
                 <th className="p-3.5 font-semibold">User Name & Email</th>
                 <th className="p-3.5 font-semibold">Role</th>
@@ -226,7 +226,7 @@ const UserManagementPage = () => {
                       <button
                         onClick={() => handleEditUser(u)}
                         title="Click to edit Role & Department"
-                        className="rounded bg-[#0F2B48]/10 px-2 py-0.5 font-bold text-[#0F2B48] text-[10px] hover:bg-[#0F2B48]/20 transition text-left cursor-pointer"
+                        className="rounded bg-[#0A1E3F]/10 px-2 py-0.5 font-bold text-[#0A1E3F] text-[10px] hover:bg-[#0A1E3F]/20 transition text-left cursor-pointer"
                       >
                         {u.role}
                       </button>
@@ -263,7 +263,7 @@ const UserManagementPage = () => {
                               onClick={() => handleOpenApproveModal(u)}
                               disabled={actionLoadingId === u._id}
                               title="Approve & Assign Department/Role"
-                              className="flex items-center space-x-1 rounded-lg bg-[#52A636] px-2.5 py-1 text-white font-semibold text-[10px] hover:bg-[#438A2B] transition shadow-xs disabled:opacity-50"
+                              className="flex items-center space-x-1 rounded-lg bg-[#C59B27] px-2.5 py-1 text-white font-semibold text-[10px] hover:bg-[#A68018] transition shadow-xs disabled:opacity-50"
                             >
                               {actionLoadingId === u._id ? (
                                 <Loader2 className="h-3 w-3 animate-spin" />
@@ -295,7 +295,7 @@ const UserManagementPage = () => {
                           </button>
                         )}
 
-                        {isSuperAdmin && u.email !== 'superadmin@vigneshassociates.com' && (
+                        {isSuperAdmin && u.email !== 'superadmin@royalaccounting.co.in' && (
                           <button
                             onClick={() => handleDeleteUser(u._id, u.name)}
                             disabled={actionLoadingId === u._id}

@@ -50,7 +50,7 @@ const DelegateModal = ({ isOpen, onClose, task, employees = [], onDelegated, cur
               <UserPlus className="h-5 w-5" />
             </div>
             <div>
-              <h3 className="text-base font-extrabold text-[#0F2B48]">Delegate Task to Staff</h3>
+              <h3 className="text-base font-extrabold text-[#0A1E3F]">Delegate Task to Staff</h3>
               <p className="text-xs text-slate-500">Assign task to a Junior Executive</p>
             </div>
           </div>
@@ -68,22 +68,22 @@ const DelegateModal = ({ isOpen, onClose, task, employees = [], onDelegated, cur
         <form onSubmit={handleSubmit} className="mt-4 space-y-4">
           {/* Task Info Summary */}
           <div className="rounded-2xl bg-slate-50 p-3 border border-slate-200/80">
-            <h4 className="text-xs font-extrabold text-[#0F2B48]">{task.taskName}</h4>
+            <h4 className="text-xs font-extrabold text-[#0A1E3F]">{task.taskName}</h4>
             <p className="text-[11px] text-slate-500 mt-0.5">
-              Dept: <strong className="text-slate-700">{task.department}</strong> • Currently Assigned To: <strong className="text-[#52A636]">{task.assignedEmployee?.name || 'Unassigned'}</strong>
+              Dept: <strong className="text-slate-700">{task.department}</strong> • Currently Assigned To: <strong className="text-[#C59B27]">{task.assignedEmployee?.name || 'Unassigned'}</strong>
             </p>
           </div>
 
           {/* Select Junior Executive */}
           <div>
             <label className="text-xs font-bold text-slate-700 block mb-1">Select Junior Executive / Staff *</label>
-            <div className="flex items-center rounded-xl border border-slate-200 bg-white px-3 py-2 focus-within:border-[#52A636]">
+            <div className="flex items-center rounded-xl border border-slate-200 bg-white px-3 py-2 focus-within:border-[#C59B27]">
               <User className="mr-2 h-4 w-4 text-slate-400 shrink-0" />
               <select
                 required
                 value={assignedEmployee}
                 onChange={(e) => setAssignedEmployee(e.target.value)}
-                className="w-full bg-transparent text-xs font-extrabold text-[#0F2B48] outline-none cursor-pointer"
+                className="w-full bg-transparent text-xs font-extrabold text-[#0A1E3F] outline-none cursor-pointer"
               >
                 <option value="">-- Choose Junior Executive --</option>
                 <optgroup label={`${task.department} Department Executives`}>
@@ -114,7 +114,7 @@ const DelegateModal = ({ isOpen, onClose, task, employees = [], onDelegated, cur
               value={remarks}
               onChange={(e) => setRemarks(e.target.value)}
               placeholder="e.g. Please verify customer documents before filing GSTR1..."
-              className="mt-1 w-full rounded-xl border border-slate-200 p-2 text-xs outline-none focus:border-[#52A636]"
+              className="mt-1 w-full rounded-xl border border-slate-200 p-2 text-xs outline-none focus:border-[#C59B27]"
             />
           </div>
 
@@ -130,7 +130,7 @@ const DelegateModal = ({ isOpen, onClose, task, employees = [], onDelegated, cur
             <button
               type="submit"
               disabled={loading}
-              className="flex items-center space-x-1.5 rounded-xl bg-[#52A636] px-5 py-2 text-xs font-extrabold text-white shadow-md hover:bg-[#438A2B] transition"
+              className="flex items-center space-x-1.5 rounded-xl bg-[#C59B27] px-5 py-2 text-xs font-extrabold text-white shadow-md hover:bg-[#A68018] transition"
             >
               <UserPlus className="h-4 w-4" />
               <span>{loading ? 'Delegating...' : 'Delegate Task'}</span>

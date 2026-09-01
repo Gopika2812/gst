@@ -29,7 +29,7 @@ const TaskTable = ({ tasks = [], onStatusChange, onDeleteTask, onDelegateTask, c
     <div className="glacier-card p-0 overflow-hidden rounded-2xl border border-slate-200 shadow-sm">
       <div className="overflow-x-auto">
         <table className="w-full text-left text-xs min-w-[950px]">
-          <thead className="bg-[#0F2B48] text-white">
+          <thead className="bg-[#0A1E3F] text-white">
             <tr>
               <th className="p-3.5 font-semibold">Task Title & Details</th>
               <th className="p-3.5 font-semibold">Type & Department</th>
@@ -76,7 +76,7 @@ const TaskTable = ({ tasks = [], onStatusChange, onDeleteTask, onDelegateTask, c
                         }`}>
                           {task.taskType || (task.client ? 'Client Task' : 'Common Task')}
                         </span>
-                        <p className="font-bold text-[#0F2B48] text-xs">{task.department}</p>
+                        <p className="font-bold text-[#0A1E3F] text-xs">{task.department}</p>
                       </div>
                     </td>
 
@@ -99,7 +99,7 @@ const TaskTable = ({ tasks = [], onStatusChange, onDeleteTask, onDelegateTask, c
                       <div className="flex items-center space-x-1 text-[11px]">
                         <span className="font-semibold text-slate-700">{task.assignedBy?.name || 'Super Admin'}</span>
                         <ArrowRight className="h-3 w-3 text-slate-400 shrink-0" />
-                        <span className="font-extrabold text-[#52A636]">{task.assignedEmployee?.name || 'Staff'}</span>
+                        <span className="font-extrabold text-[#C59B27]">{task.assignedEmployee?.name || 'Staff'}</span>
                       </div>
                       <span className="text-[10px] text-slate-400 block mt-0.5">
                         ({task.assignedEmployee?.designation || task.assignedEmployee?.role || 'Executive'})

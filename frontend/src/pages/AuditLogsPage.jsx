@@ -29,7 +29,7 @@ const AuditLogsPage = () => {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-lg sm:text-xl font-bold text-[#0F2B48]">System Audit Trail Logs</h1>
+        <h1 className="text-lg sm:text-xl font-bold text-[#0A1E3F]">System Audit Trail Logs</h1>
         <p className="text-xs text-slate-500">Comprehensive security audit logger tracking all mutations, logins, permissions & task actions</p>
       </div>
 
@@ -71,7 +71,7 @@ const AuditLogsPage = () => {
       <GlacierCard className="p-0 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs min-w-[700px]">
-            <thead className="bg-[#0F2B48] text-white">
+            <thead className="bg-[#0A1E3F] text-white">
               <tr>
                 <th className="p-3.5 font-semibold">Timestamp</th>
                 <th className="p-3.5 font-semibold">User Name & Role</th>
@@ -100,7 +100,7 @@ const AuditLogsPage = () => {
                       <p className="font-bold text-slate-800">{log.userName}</p>
                       <span className="text-[10px] text-slate-500 font-medium">{log.userRole}</span>
                     </td>
-                    <td className="p-3.5 font-semibold text-[#0F2B48]">{log.action}</td>
+                    <td className="p-3.5 font-semibold text-[#0A1E3F]">{log.action}</td>
                     <td className="p-3.5">
                       <span className="rounded bg-slate-100 px-2 py-0.5 font-semibold text-slate-700 text-[10px]">
                         {log.module}

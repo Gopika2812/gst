@@ -108,7 +108,7 @@ const ApproveModal = ({ isOpen, onClose, user, onApproved, allUsers = [] }) => {
               <CheckCircle2 className="h-6 w-6" />
             </div>
             <div>
-              <h3 className="text-base font-extrabold text-[#0F2B48]">Approve Account & Assign Role</h3>
+              <h3 className="text-base font-extrabold text-[#0A1E3F]">Approve Account & Assign Role</h3>
               <p className="text-xs text-slate-500">Review & set department, role and manager for {user.name}</p>
             </div>
           </div>
@@ -142,12 +142,12 @@ const ApproveModal = ({ isOpen, onClose, user, onApproved, allUsers = [] }) => {
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <div>
               <label className="text-xs font-semibold text-slate-700">Department *</label>
-              <div className="mt-1 flex items-center rounded-xl border border-slate-200 bg-white px-3 py-2 focus-within:border-[#52A636]">
+              <div className="mt-1 flex items-center rounded-xl border border-slate-200 bg-white px-3 py-2 focus-within:border-[#C59B27]">
                 <Building2 className="mr-2 h-4 w-4 text-slate-400 shrink-0" />
                 <select
                   value={department}
                   onChange={(e) => handleDeptChange(e.target.value)}
-                  className="w-full bg-transparent text-xs font-bold text-[#0F2B48] outline-none cursor-pointer"
+                  className="w-full bg-transparent text-xs font-bold text-[#0A1E3F] outline-none cursor-pointer"
                 >
                   <option value="GST">GST</option>
                   <option value="Income Tax">Income Tax</option>
@@ -161,12 +161,12 @@ const ApproveModal = ({ isOpen, onClose, user, onApproved, allUsers = [] }) => {
 
             <div>
               <label className="text-xs font-semibold text-slate-700">Role / Access Level *</label>
-              <div className="mt-1 flex items-center rounded-xl border border-slate-200 bg-white px-3 py-2 focus-within:border-[#52A636]">
+              <div className="mt-1 flex items-center rounded-xl border border-slate-200 bg-white px-3 py-2 focus-within:border-[#C59B27]">
                 <Shield className="mr-2 h-4 w-4 text-slate-400 shrink-0" />
                 <select
                   value={role}
                   onChange={(e) => setRole(e.target.value)}
-                  className="w-full bg-transparent text-xs font-bold text-[#0F2B48] outline-none cursor-pointer"
+                  className="w-full bg-transparent text-xs font-bold text-[#0A1E3F] outline-none cursor-pointer"
                 >
                   {getRoleOptionsForDept(department).map((opt) => (
                     <option key={opt.value} value={opt.value}>
@@ -182,7 +182,7 @@ const ApproveModal = ({ isOpen, onClose, user, onApproved, allUsers = [] }) => {
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <div>
               <label className="text-xs font-semibold text-slate-700">Designation / Official Title</label>
-              <div className="mt-1 flex items-center rounded-xl border border-slate-200 bg-white px-3 py-2 focus-within:border-[#52A636]">
+              <div className="mt-1 flex items-center rounded-xl border border-slate-200 bg-white px-3 py-2 focus-within:border-[#C59B27]">
                 <User className="mr-2 h-4 w-4 text-slate-400 shrink-0" />
                 <input
                   type="text"
@@ -196,7 +196,7 @@ const ApproveModal = ({ isOpen, onClose, user, onApproved, allUsers = [] }) => {
 
             <div>
               <label className="text-xs font-semibold text-slate-700">Reporting Admin Manager</label>
-              <div className="mt-1 flex items-center rounded-xl border border-slate-200 bg-white px-3 py-2 focus-within:border-[#52A636]">
+              <div className="mt-1 flex items-center rounded-xl border border-slate-200 bg-white px-3 py-2 focus-within:border-[#C59B27]">
                 <UserCheck className="mr-2 h-4 w-4 text-slate-400 shrink-0" />
                 <select
                   value={reportsTo}
@@ -226,7 +226,7 @@ const ApproveModal = ({ isOpen, onClose, user, onApproved, allUsers = [] }) => {
             <button
               type="submit"
               disabled={loading}
-              className="w-full sm:w-auto flex items-center justify-center space-x-1.5 rounded-xl bg-[#52A636] px-5 py-2.5 text-xs font-extrabold text-white shadow-md hover:bg-[#438A2B] transition"
+              className="w-full sm:w-auto flex items-center justify-center space-x-1.5 rounded-xl bg-[#C59B27] px-5 py-2.5 text-xs font-extrabold text-white shadow-md hover:bg-[#A68018] transition"
             >
               <CheckCircle2 className="h-4 w-4" />
               <span>{loading ? 'Approving...' : 'Approve & Save Access'}</span>

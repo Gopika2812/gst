@@ -36,14 +36,14 @@ const FilePreviewModal = ({
         {/* Modal Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-5 py-4 border-b border-slate-100 bg-slate-50/70">
           <div className="flex items-center space-x-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-emerald-100 text-[#52A636] shrink-0 shadow-xs">
+            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-emerald-100 text-[#C59B27] shrink-0 shadow-xs">
               {isImage ? <ImageIcon className="h-5 w-5" /> : <FileText className="h-5 w-5" />}
             </div>
             <div>
               <div className="flex items-center space-x-2">
-                <h3 className="text-sm sm:text-base font-bold text-[#0F2B48]">{title}</h3>
+                <h3 className="text-sm sm:text-base font-bold text-[#0A1E3F]">{title}</h3>
                 {certNumber && (
-                  <span className="hidden sm:inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-[#0F2B48]/10 text-[#0F2B48]">
+                  <span className="hidden sm:inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-[#0A1E3F]/10 text-[#0A1E3F]">
                     {certNumber}
                   </span>
                 )}
@@ -112,7 +112,7 @@ const FilePreviewModal = ({
             <a
               href={resolvedUrl}
               download={fileName || 'certificate'}
-              className="flex items-center space-x-1 px-3 py-1.5 rounded-xl bg-[#52A636] text-xs font-semibold text-white hover:bg-[#438A2B] shadow-2xs transition"
+              className="flex items-center space-x-1 px-3 py-1.5 rounded-xl bg-[#C59B27] text-xs font-semibold text-white hover:bg-[#A68018] shadow-2xs transition"
               title="Download File"
             >
               <Download className="h-3.5 w-3.5" />
@@ -162,7 +162,7 @@ const FilePreviewModal = ({
                 href={resolvedUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center space-x-1.5 px-4 py-2 rounded-xl bg-[#0F2B48] text-xs font-bold text-white hover:bg-[#16385C] transition shadow-xs"
+                className="inline-flex items-center space-x-1.5 px-4 py-2 rounded-xl bg-[#0A1E3F] text-xs font-bold text-white hover:bg-[#16385C] transition shadow-xs"
               >
                 <ExternalLink className="h-4 w-4" />
                 <span>Open File in Browser</span>

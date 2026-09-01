@@ -63,7 +63,7 @@ const MainLayout = () => {
   };
 
   return (
-    <div className="flex min-h-screen bg-[#0A1E36] bg-[url('/login_bg.jpg')] bg-cover bg-center bg-fixed relative">
+    <div className="flex min-h-screen bg-[#07152B] bg-[url('/login_bg.jpg')] bg-cover bg-center bg-fixed relative">
       {/* Semi-transparent dark/light glassmorphic backdrop layer */}
       <div className="absolute inset-0 bg-slate-100/90 backdrop-blur-md pointer-events-none"></div>
 

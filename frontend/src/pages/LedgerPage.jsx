@@ -75,14 +75,14 @@ const LedgerPage = () => {
       {/* Header & Client Selector */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
         <div>
-          <h1 className="text-lg sm:text-xl font-bold text-[#0F2B48]">Client Ledger & Financial Statement (Module 4)</h1>
+          <h1 className="text-lg sm:text-xl font-bold text-[#0A1E3F]">Client Ledger & Financial Statement (Module 4)</h1>
           <p className="text-xs text-slate-500">Track running balances, payments received, credit & debit notes</p>
         </div>
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
           <select
             value={selectedClientId}
             onChange={(e) => setSelectedClientId(e.target.value)}
-            className="w-full sm:w-auto rounded-xl border border-slate-200 bg-white p-2 text-xs font-bold text-[#0F2B48] shadow-xs outline-none focus:border-[#52A636]"
+            className="w-full sm:w-auto rounded-xl border border-slate-200 bg-white p-2 text-xs font-bold text-[#0A1E3F] shadow-xs outline-none focus:border-[#C59B27]"
           >
             {clients.map((c) => (
               <option key={c._id} value={c._id}>
@@ -92,7 +92,7 @@ const LedgerPage = () => {
           </select>
           <button
             onClick={() => setIsTransactionModalOpen(true)}
-            className="flex items-center justify-center space-x-1.5 rounded-xl bg-[#52A636] px-4 py-2 text-xs font-semibold text-white shadow-md transition hover:bg-[#438A2B] w-full sm:w-auto shrink-0"
+            className="flex items-center justify-center space-x-1.5 rounded-xl bg-[#C59B27] px-4 py-2 text-xs font-semibold text-white shadow-md transition hover:bg-[#A68018] w-full sm:w-auto shrink-0"
           >
             <Plus className="h-4 w-4" />
             <span>Record Payment</span>
@@ -132,7 +132,7 @@ const LedgerPage = () => {
           <h3 className="font-bold text-slate-800 text-sm">Statement of Account: {clientInfo?.clientName}</h3>
           <button
             onClick={() => window.print()}
-            className="flex items-center space-x-1 text-xs font-semibold text-[#0F2B48] hover:underline"
+            className="flex items-center space-x-1 text-xs font-semibold text-[#0A1E3F] hover:underline"
           >
             <Printer className="h-4 w-4" />
             <span>Print Ledger</span>
@@ -141,7 +141,7 @@ const LedgerPage = () => {
 
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs min-w-[750px]">
-            <thead className="bg-[#0F2B48] text-white">
+            <thead className="bg-[#0A1E3F] text-white">
               <tr>
                 <th className="p-3.5 font-semibold">Date</th>
                 <th className="p-3.5 font-semibold">Transaction Type</th>
@@ -178,7 +178,7 @@ const LedgerPage = () => {
                     <td className="p-3.5 text-right font-semibold text-emerald-600">
                       {e.credit > 0 ? `₹${e.credit.toLocaleString('en-IN')}` : '-'}
                     </td>
-                    <td className="p-3.5 text-right font-bold text-[#0F2B48]">
+                    <td className="p-3.5 text-right font-bold text-[#0A1E3F]">
                       ₹{e.runningBalance.toLocaleString('en-IN')}
                     </td>
                   </tr>
@@ -193,7 +193,7 @@ const LedgerPage = () => {
       {isTransactionModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-sm">
           <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl">
-            <h3 className="text-base font-bold text-[#0F2B48]">Record Payment / Ledger Entry</h3>
+            <h3 className="text-base font-bold text-[#0A1E3F]">Record Payment / Ledger Entry</h3>
             <p className="text-xs text-slate-500 mt-0.5">Client: {clientInfo?.clientName}</p>
 
             <form onSubmit={handleTransactionSubmit} className="mt-4 space-y-3 text-xs">
@@ -252,7 +252,7 @@ const LedgerPage = () => {
                 </button>
                 <button
                   type="submit"
-                  className="rounded-xl bg-[#52A636] px-4 py-2 font-semibold text-white hover:bg-[#438A2B]"
+                  className="rounded-xl bg-[#C59B27] px-4 py-2 font-semibold text-white hover:bg-[#A68018]"
                 >
                   Save Transaction
                 </button>

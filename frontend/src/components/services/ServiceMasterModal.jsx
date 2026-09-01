@@ -129,10 +129,10 @@ const ServiceMasterModal = ({ isOpen, onClose }) => {
         <div className="flex items-center justify-between border-b border-slate-100 pb-4">
           <div>
             <div className="flex items-center space-x-2">
-              <span className="rounded bg-[#52A636] px-2 py-0.5 text-[10px] font-extrabold text-white uppercase tracking-wider">
+              <span className="rounded bg-[#C59B27] px-2 py-0.5 text-[10px] font-extrabold text-white uppercase tracking-wider">
                 System Master Settings
               </span>
-              <h3 className="text-lg font-bold text-[#0F2B48]">Services & Sub-Services Master</h3>
+              <h3 className="text-lg font-bold text-[#0A1E3F]">Services & Sub-Services Master</h3>
             </div>
             <p className="text-xs text-slate-500 mt-0.5">
               Configure Department Services, Sub-Services, Start Days, Due Days, and Reminder Windows
@@ -154,7 +154,7 @@ const ServiceMasterModal = ({ isOpen, onClose }) => {
               }}
               className={`rounded-xl px-4 py-2 text-xs font-bold transition whitespace-nowrap ${
                 selectedDept === dept
-                  ? 'bg-[#0F2B48] text-white shadow-sm'
+                  ? 'bg-[#0A1E3F] text-white shadow-sm'
                   : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
               }`}
             >
@@ -166,7 +166,7 @@ const ServiceMasterModal = ({ isOpen, onClose }) => {
         {/* Form to Add or Edit Sub-Service */}
         <form onSubmit={handleFormSubmit} className="mt-4 rounded-2xl bg-slate-50 p-4 border border-slate-200/80 space-y-3">
           <div className="flex items-center justify-between">
-            <h4 className="text-xs font-bold text-[#0F2B48] flex items-center space-x-1.5">
+            <h4 className="text-xs font-bold text-[#0A1E3F] flex items-center space-x-1.5">
               {editingId ? (
                 <>
                   <Pencil className="h-4 w-4 text-blue-600" />
@@ -174,7 +174,7 @@ const ServiceMasterModal = ({ isOpen, onClose }) => {
                 </>
               ) : (
                 <>
-                  <Plus className="h-4 w-4 text-[#52A636]" />
+                  <Plus className="h-4 w-4 text-[#C59B27]" />
                   <span>Add New Sub-Service under {selectedDept}</span>
                 </>
               )}
@@ -202,7 +202,7 @@ const ServiceMasterModal = ({ isOpen, onClose }) => {
                 value={serviceName}
                 onChange={(e) => setServiceName(e.target.value)}
                 placeholder="e.g. GST Returns"
-                className="mt-1 w-full rounded-xl border border-slate-200 bg-white p-2 text-xs outline-none focus:border-[#52A636]"
+                className="mt-1 w-full rounded-xl border border-slate-200 bg-white p-2 text-xs outline-none focus:border-[#C59B27]"
               />
             </div>
             <div>
@@ -213,7 +213,7 @@ const ServiceMasterModal = ({ isOpen, onClose }) => {
                 value={subServiceName}
                 onChange={(e) => setSubServiceName(e.target.value)}
                 placeholder="e.g. GSTR-1 (Outward)"
-                className="mt-1 w-full rounded-xl border border-slate-200 bg-white p-2 text-xs outline-none focus:border-[#52A636]"
+                className="mt-1 w-full rounded-xl border border-slate-200 bg-white p-2 text-xs outline-none focus:border-[#C59B27]"
               />
             </div>
             <div>
@@ -221,7 +221,7 @@ const ServiceMasterModal = ({ isOpen, onClose }) => {
               <select
                 value={periodicity}
                 onChange={(e) => setPeriodicity(e.target.value)}
-                className="mt-1 w-full rounded-xl border border-slate-200 bg-white p-2 text-xs outline-none focus:border-[#52A636]"
+                className="mt-1 w-full rounded-xl border border-slate-200 bg-white p-2 text-xs outline-none focus:border-[#C59B27]"
               >
                 <option value="Monthly">Monthly</option>
                 <option value="Quarterly">Quarterly</option>
@@ -242,7 +242,7 @@ const ServiceMasterModal = ({ isOpen, onClose }) => {
                 value={startDayOfMonth}
                 onChange={(e) => setStartDayOfMonth(e.target.value)}
                 placeholder="1 (e.g. 1st of month)"
-                className="mt-1 w-full rounded-xl border border-slate-200 bg-white p-2 text-xs outline-none focus:border-[#52A636]"
+                className="mt-1 w-full rounded-xl border border-slate-200 bg-white p-2 text-xs outline-none focus:border-[#C59B27]"
               />
             </div>
             <div>
@@ -255,7 +255,7 @@ const ServiceMasterModal = ({ isOpen, onClose }) => {
                 value={dueDayOfMonth}
                 onChange={(e) => setDueDayOfMonth(e.target.value)}
                 placeholder="11 (e.g. 11th of month)"
-                className="mt-1 w-full rounded-xl border border-slate-200 bg-white p-2 text-xs outline-none focus:border-[#52A636]"
+                className="mt-1 w-full rounded-xl border border-slate-200 bg-white p-2 text-xs outline-none focus:border-[#C59B27]"
               />
             </div>
             <div>
@@ -265,7 +265,7 @@ const ServiceMasterModal = ({ isOpen, onClose }) => {
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 placeholder="Brief filing instructions..."
-                className="mt-1 w-full rounded-xl border border-slate-200 bg-white p-2 text-xs outline-none focus:border-[#52A636]"
+                className="mt-1 w-full rounded-xl border border-slate-200 bg-white p-2 text-xs outline-none focus:border-[#C59B27]"
               />
             </div>
           </div>
@@ -284,7 +284,7 @@ const ServiceMasterModal = ({ isOpen, onClose }) => {
               type="submit"
               disabled={submitting}
               className={`rounded-xl px-4 py-2 text-xs font-bold text-white shadow-md transition ${
-                editingId ? 'bg-blue-600 hover:bg-blue-700' : 'bg-[#52A636] hover:bg-[#438A2B]'
+                editingId ? 'bg-blue-600 hover:bg-blue-700' : 'bg-[#C59B27] hover:bg-[#A68018]'
               }`}
             >
               {submitting ? (editingId ? 'Updating...' : 'Adding...') : editingId ? 'Update Sub-Service' : '+ Add Sub-Service'}
@@ -294,7 +294,7 @@ const ServiceMasterModal = ({ isOpen, onClose }) => {
 
         {/* Table of Configured Master Services */}
         <div className="mt-5 space-y-2">
-          <h4 className="text-xs font-extrabold text-[#0F2B48]">
+          <h4 className="text-xs font-extrabold text-[#0A1E3F]">
             Configured Master Services ({selectedDept})
           </h4>
 
@@ -325,7 +325,7 @@ const ServiceMasterModal = ({ isOpen, onClose }) => {
                         editingId === s._id ? 'bg-blue-50/60' : ''
                       }`}
                     >
-                      <td className="p-3 font-semibold text-[#0F2B48]">{s.serviceName}</td>
+                      <td className="p-3 font-semibold text-[#0A1E3F]">{s.serviceName}</td>
                       <td className="p-3 font-extrabold text-slate-900">{s.subServiceName}</td>
                       <td className="p-3">
                         <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-bold text-slate-600">

@@ -66,7 +66,7 @@ const KanbanBoard = ({ tasks = [], onStatusChange }) => {
                   >
                     {/* Header: Dept & Priority */}
                     <div className="flex items-center justify-between mb-2">
-                      <span className="rounded-md bg-[#0F2B48] px-2 py-0.5 text-[10px] font-semibold text-white">
+                      <span className="rounded-md bg-[#0A1E3F] px-2 py-0.5 text-[10px] font-semibold text-white">
                         {task.department}
                       </span>
                       <Badge status={task.priority} />
@@ -85,7 +85,7 @@ const KanbanBoard = ({ tasks = [], onStatusChange }) => {
                         <span>{new Date(task.dueDate).toLocaleDateString('en-IN', { month: 'short', day: 'numeric' })}</span>
                       </div>
                       <div className="flex items-center space-x-1">
-                        <User className="h-3 w-3 text-[#52A636]" />
+                        <User className="h-3 w-3 text-[#C59B27]" />
                         <span className="truncate max-w-[80px]">{task.assignedEmployee?.name || 'Staff'}</span>
                       </div>
                     </div>
@@ -100,7 +100,7 @@ const KanbanBoard = ({ tasks = [], onStatusChange }) => {
                             onClick={() => onStatusChange(task._id, c.id)}
                             title={`Move to ${c.name}`}
                             className={`px-2 py-0.5 rounded text-[9px] font-bold transition ${
-                              task.status === c.id ? 'bg-[#52A636] text-white shadow-xs' : 'bg-slate-200/80 text-slate-700 hover:bg-slate-300'
+                              task.status === c.id ? 'bg-[#C59B27] text-white shadow-xs' : 'bg-slate-200/80 text-slate-700 hover:bg-slate-300'
                             }`}
                           >
                             {c.name[0]}

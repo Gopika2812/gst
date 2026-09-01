@@ -10,13 +10,13 @@
   }
 }
 
-/* Custom Glacier Glassmorphism Utility Classes */
+/* Custom Royal Glassmorphism Utility Classes */
 @layer utilities {
   .glacier-card {
     background-color: rgba(255, 255, 255, 0.95);
     backdrop-filter: blur(12px);
     border: 1px solid rgba(226, 232, 240, 0.8);
-    box-shadow: 0 4px 20px -2px rgba(15, 43, 72, 0.05);
+    box-shadow: 0 4px 20px -2px rgba(10, 30, 63, 0.06);
   }
 }
 
@@ -26,23 +26,43 @@
 
 .glacier-card-hover:hover {
   transform: translateY(-2px);
-  box-shadow: 0 10px 25px -4px rgba(15, 43, 72, 0.1);
+  box-shadow: 0 10px 25px -4px rgba(10, 30, 63, 0.12);
 }
 
 .glacier-sidebar {
-  background: linear-gradient(180deg, #0A1E36 0%, #0F2B48 60%, #15395F 100%);
+  background: linear-gradient(180deg, #07152B 0%, #0A1E3F 55%, #0E2A59 100%);
 }
 
-.glacier-badge-green {
-  background: rgba(82, 166, 54, 0.12);
-  color: #3B7E25;
-  border: 1px solid rgba(82, 166, 54, 0.25);
+.glacier-badge-gold {
+  background: rgba(197, 155, 39, 0.14);
+  color: #996515;
+  border: 1px solid rgba(197, 155, 39, 0.35);
 }
 
 .glacier-badge-navy {
-  background: rgba(15, 43, 72, 0.08);
-  color: #0F2B48;
-  border: 1px solid rgba(15, 43, 72, 0.2);
+  background: rgba(10, 30, 63, 0.08);
+  color: #0A1E3F;
+  border: 1px solid rgba(10, 30, 63, 0.2);
+}
+
+.glacier-badge-peacock {
+  background: rgba(0, 119, 145, 0.12);
+  color: #007791;
+  border: 1px solid rgba(0, 119, 145, 0.25);
+}
+
+.glacier-badge-green {
+  background: rgba(16, 185, 129, 0.12);
+  color: #059669;
+  border: 1px solid rgba(16, 185, 129, 0.25);
+}
+
+.gold-glow {
+  box-shadow: 0 0 18px rgba(197, 155, 39, 0.3);
+}
+
+.navy-glow {
+  box-shadow: 0 0 18px rgba(10, 30, 63, 0.2);
 }
 
 /* Custom Scrollbar */

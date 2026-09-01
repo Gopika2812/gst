@@ -55,7 +55,7 @@ const PermissionMatrixModal = ({ isOpen, onClose }) => {
       <div className="relative w-full max-w-4xl rounded-2xl bg-white p-6 shadow-2xl max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between border-b border-slate-100 pb-4">
           <div>
-            <h3 className="text-lg font-bold text-[#0F2B48]">Page Permission Management (Super Admin)</h3>
+            <h3 className="text-lg font-bold text-[#0A1E3F]">Page Permission Management (Super Admin)</h3>
             <p className="text-xs text-slate-500">Configure page-wise View, Create, Edit, Delete, Approve, Export access per role</p>
           </div>
           <button onClick={onClose} className="rounded-xl p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600">
@@ -71,7 +71,7 @@ const PermissionMatrixModal = ({ isOpen, onClose }) => {
           <select
             value={selectedRole}
             onChange={(e) => setSelectedRole(e.target.value)}
-            className="rounded-xl border border-slate-200 bg-slate-50 p-2 text-xs font-semibold text-[#0F2B48] outline-none"
+            className="rounded-xl border border-slate-200 bg-slate-50 p-2 text-xs font-semibold text-[#0A1E3F] outline-none"
           >
             <option>Admin</option>
             <option>Registration Team</option>
@@ -84,7 +84,7 @@ const PermissionMatrixModal = ({ isOpen, onClose }) => {
         {/* Permission Grid Table */}
         <div className="mt-4 overflow-x-auto rounded-xl border border-slate-200">
           <table className="w-full text-left text-xs">
-            <thead className="bg-[#0F2B48] text-white">
+            <thead className="bg-[#0A1E3F] text-white">
               <tr>
                 <th className="p-3 font-semibold">Page / Module</th>
                 <th className="p-3 text-center font-semibold">View</th>
@@ -105,7 +105,7 @@ const PermissionMatrixModal = ({ isOpen, onClose }) => {
                         type="checkbox"
                         checked={modulesState[mod][act]}
                         onChange={() => handleToggle(mod, act)}
-                        className="h-4 w-4 rounded accent-[#52A636] cursor-pointer"
+                        className="h-4 w-4 rounded accent-[#C59B27] cursor-pointer"
                       />
                     </td>
                   ))}
@@ -127,7 +127,7 @@ const PermissionMatrixModal = ({ isOpen, onClose }) => {
             type="button"
             onClick={handleSave}
             disabled={loading}
-            className="flex items-center space-x-1.5 rounded-xl bg-[#52A636] px-5 py-2 text-xs font-semibold text-white shadow-md transition hover:bg-[#438A2B]"
+            className="flex items-center space-x-1.5 rounded-xl bg-[#C59B27] px-5 py-2 text-xs font-semibold text-white shadow-md transition hover:bg-[#A68018]"
           >
             <Save className="h-4 w-4" />
             <span>{loading ? 'Saving...' : 'Save Permission Grid'}</span>

@@ -46,14 +46,14 @@ const RegistrationPage = () => {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-lg sm:text-xl font-bold text-[#0F2B48]">Registration & Licensing Workspace</h1>
+        <h1 className="text-lg sm:text-xl font-bold text-[#0A1E3F]">Registration & Licensing Workspace</h1>
         <p className="text-xs text-slate-500">Udyam MSME, LLP, Private Limited, FSSAI License, ESI/EPF, Trade License & Certifications</p>
       </div>
 
       <GlacierCard className="p-0 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs min-w-[700px]">
-            <thead className="bg-[#0F2B48] text-white">
+            <thead className="bg-[#0A1E3F] text-white">
               <tr>
                 <th className="p-3.5 font-semibold">Client Name</th>
                 <th className="p-3.5 font-semibold">Registration Type</th>
@@ -77,7 +77,7 @@ const RegistrationPage = () => {
                 filings.map((f) => (
                   <tr key={f._id} className="hover:bg-slate-50">
                     <td className="p-3.5 font-bold text-slate-800">{f.client?.clientName}</td>
-                    <td className="p-3.5 font-semibold text-[#0F2B48]">{f.filingPeriod}</td>
+                    <td className="p-3.5 font-semibold text-[#0A1E3F]">{f.filingPeriod}</td>
                     <td className="p-3.5 font-mono text-[11px] text-slate-700">{f.acknowledgementNumber || 'REG-SUBMITTED'}</td>
                     <td className="p-3.5 text-slate-600">{new Date(f.filingDate).toLocaleDateString('en-IN')}</td>
                     <td className="p-3.5 font-medium text-slate-800">{f.filedBy?.name || 'Registration Team'}</td>
@@ -89,7 +89,7 @@ const RegistrationPage = () => {
                         <button
                           type="button"
                           onClick={() => handlePreviewDoc(f)}
-                          className="inline-flex items-center space-x-1 px-2.5 py-1 rounded-lg bg-emerald-50 text-[#52A636] hover:bg-emerald-100 border border-emerald-200 text-[11px] font-bold transition shadow-2xs cursor-pointer"
+                          className="inline-flex items-center space-x-1 px-2.5 py-1 rounded-lg bg-emerald-50 text-[#C59B27] hover:bg-emerald-100 border border-emerald-200 text-[11px] font-bold transition shadow-2xs cursor-pointer"
                         >
                           <Eye className="h-3.5 w-3.5" />
                           <span>Preview Doc</span>

@@ -54,7 +54,7 @@ app.use('/api/services', serviceRoutes);
 // Root Endpoint
 app.get('/', (req, res) => {
   res.json({
-    system: 'Vignesh Associates - Auditor ERP System API',
+    system: 'Royal Accounting - Auditor ERP System API',
     status: 'Active',
     version: '1.0.0'
   });

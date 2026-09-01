@@ -139,14 +139,14 @@ const ITFilingPage = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
         <div>
-          <h1 className="text-lg sm:text-xl font-bold text-[#0F2B48]">Income Tax Filing Workspace</h1>
+          <h1 className="text-lg sm:text-xl font-bold text-[#0A1E3F]">Income Tax Filing Workspace</h1>
           <p className="text-xs text-slate-500">
             Assigned Client Queue • Status Updates (<span className="font-semibold text-blue-600">Assigned</span> ➔ <span className="font-semibold text-amber-600">In Progress</span> ➔ <span className="font-semibold text-emerald-600">Completed</span>) • Upload ITR-V Proofs
           </p>
         </div>
         <button
           onClick={() => handleOpenUploadModal()}
-          className="flex items-center justify-center space-x-1.5 rounded-xl bg-[#52A636] px-4 py-2.5 text-xs font-semibold text-white shadow-md transition hover:bg-[#438A2B] w-full sm:w-auto cursor-pointer"
+          className="flex items-center justify-center space-x-1.5 rounded-xl bg-[#C59B27] px-4 py-2.5 text-xs font-semibold text-white shadow-md transition hover:bg-[#A68018] w-full sm:w-auto cursor-pointer"
         >
           <Plus className="h-4 w-4" />
           <span>Upload Filed ITR</span>
@@ -161,7 +161,7 @@ const ITFilingPage = () => {
               <FileSpreadsheet className="h-5 w-5" />
             </div>
             <div>
-              <h3 className="text-sm font-bold text-[#0F2B48]">Active Income Tax Tasks Queue</h3>
+              <h3 className="text-sm font-bold text-[#0A1E3F]">Active Income Tax Tasks Queue</h3>
               <p className="text-[11px] text-slate-500">
                 Assigned ITR returns & audits to process & complete ({filteredTasks.length} tasks)
               </p>
@@ -182,7 +182,7 @@ const ITFilingPage = () => {
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="rounded-xl border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-semibold text-slate-700 outline-none focus:border-[#52A636]"
+              className="rounded-xl border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-semibold text-slate-700 outline-none focus:border-[#C59B27]"
             >
               <option value="">All Statuses</option>
               <option value="Assigned">Assigned (New)</option>
@@ -195,7 +195,7 @@ const ITFilingPage = () => {
 
         <div className="overflow-x-auto rounded-xl border border-slate-100">
           <table className="w-full text-left text-xs min-w-[800px]">
-            <thead className="bg-[#0F2B48] text-white">
+            <thead className="bg-[#0A1E3F] text-white">
               <tr>
                 <th className="p-3 font-semibold">Client Name</th>
                 <th className="p-3 font-semibold">PAN</th>
@@ -233,7 +233,7 @@ const ITFilingPage = () => {
                           'N/A'
                         )}
                       </td>
-                      <td className="p-3 font-semibold text-[#0F2B48]">{t.taskName}</td>
+                      <td className="p-3 font-semibold text-[#0A1E3F]">{t.taskName}</td>
                       <td className="p-3 text-slate-700 font-medium">
                         {t.assignedEmployee?.name || 'Assigned Staff'}
                       </td>
@@ -280,7 +280,7 @@ const ITFilingPage = () => {
                           <button
                             onClick={() => handleOpenUploadModal(t.client, t)}
                             title="Upload ITR Proof & Mark Completed"
-                            className="inline-flex items-center space-x-1 rounded-lg bg-[#52A636] px-2.5 py-1 text-[11px] font-bold text-white shadow-2xs hover:bg-[#438A2B] transition cursor-pointer"
+                            className="inline-flex items-center space-x-1 rounded-lg bg-[#C59B27] px-2.5 py-1 text-[11px] font-bold text-white shadow-2xs hover:bg-[#A68018] transition cursor-pointer"
                           >
                             <Upload className="h-3.5 w-3.5" />
                             <span>Upload ITR</span>
@@ -304,7 +304,7 @@ const ITFilingPage = () => {
       <GlacierCard title="Filed ITR Records History" subtitle="Submitted ITRs, ACK numbers & verification proofs" className="p-0 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs min-w-[700px]">
-            <thead className="bg-[#0F2B48] text-white">
+            <thead className="bg-[#0A1E3F] text-white">
               <tr>
                 <th className="p-3.5 font-semibold">Client Name</th>
                 <th className="p-3.5 font-semibold">PAN Number</th>
@@ -329,7 +329,7 @@ const ITFilingPage = () => {
                   <tr key={f._id} className="hover:bg-slate-50">
                     <td className="p-3.5 font-bold text-slate-800">{f.client?.clientName}</td>
                     <td className="p-3.5 font-mono text-[11px] text-slate-700">{f.client?.pan || 'N/A'}</td>
-                    <td className="p-3.5 font-semibold text-[#0F2B48]">{f.filingPeriod}</td>
+                    <td className="p-3.5 font-semibold text-[#0A1E3F]">{f.filingPeriod}</td>
                     <td className="p-3.5 font-mono text-[11px] text-emerald-700">{f.acknowledgementNumber || 'ITR-SUBMITTED'}</td>
                     <td className="p-3.5 text-slate-600">{new Date(f.filingDate).toLocaleDateString('en-IN')}</td>
                     <td className="p-3.5">
@@ -341,7 +341,7 @@ const ITFilingPage = () => {
                           href={f.filedDocumentUrl}
                           target="_blank"
                           rel="noreferrer"
-                          className="inline-flex items-center space-x-1 text-[11px] font-semibold text-[#52A636] hover:underline"
+                          className="inline-flex items-center space-x-1 text-[11px] font-semibold text-[#C59B27] hover:underline"
                         >
                           <Download className="h-3.5 w-3.5" />
                           <span>View ITR-V</span>
@@ -363,7 +363,7 @@ const ITFilingPage = () => {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-sm">
           <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <h3 className="text-base font-bold text-[#0F2B48]">Upload Income Tax Filing Proof</h3>
+              <h3 className="text-base font-bold text-[#0A1E3F]">Upload Income Tax Filing Proof</h3>
               <button
                 onClick={() => setIsModalOpen(false)}
                 className="rounded-full p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition"
@@ -379,7 +379,7 @@ const ITFilingPage = () => {
                   required
                   value={formData.client}
                   onChange={(e) => setFormData({ ...formData, client: e.target.value })}
-                  className="mt-1 w-full rounded-xl border border-slate-200 p-2.5 outline-none font-semibold text-slate-800 focus:border-[#52A636]"
+                  className="mt-1 w-full rounded-xl border border-slate-200 p-2.5 outline-none font-semibold text-slate-800 focus:border-[#C59B27]"
                 >
                   <option value="">-- Select Client --</option>
                   {clients.map((c) => (
@@ -398,7 +398,7 @@ const ITFilingPage = () => {
                   placeholder="e.g. AY 2026-27"
                   value={formData.filingPeriod}
                   onChange={(e) => setFormData({ ...formData, filingPeriod: e.target.value })}
-                  className="mt-1 w-full rounded-xl border border-slate-200 p-2.5 outline-none font-semibold text-slate-800 focus:border-[#52A636]"
+                  className="mt-1 w-full rounded-xl border border-slate-200 p-2.5 outline-none font-semibold text-slate-800 focus:border-[#C59B27]"
                 />
               </div>
 
@@ -410,7 +410,7 @@ const ITFilingPage = () => {
                   placeholder="e.g. ITR12345678901234"
                   value={formData.acknowledgementNumber}
                   onChange={(e) => setFormData({ ...formData, acknowledgementNumber: e.target.value })}
-                  className="mt-1 w-full rounded-xl border border-slate-200 p-2.5 outline-none font-semibold text-slate-800 focus:border-[#52A636]"
+                  className="mt-1 w-full rounded-xl border border-slate-200 p-2.5 outline-none font-semibold text-slate-800 focus:border-[#C59B27]"
                 />
               </div>
 
@@ -431,7 +431,7 @@ const ITFilingPage = () => {
                   placeholder="Optional notes"
                   value={formData.remarks}
                   onChange={(e) => setFormData({ ...formData, remarks: e.target.value })}
-                  className="mt-1 w-full rounded-xl border border-slate-200 p-2.5 outline-none text-slate-800 focus:border-[#52A636] resize-none"
+                  className="mt-1 w-full rounded-xl border border-slate-200 p-2.5 outline-none text-slate-800 focus:border-[#C59B27] resize-none"
                 />
               </div>
 
@@ -446,7 +446,7 @@ const ITFilingPage = () => {
                 <button
                   type="submit"
                   disabled={uploading}
-                  className="rounded-xl bg-[#52A636] px-5 py-2 font-bold text-white shadow-md hover:bg-[#438A2B] disabled:opacity-50"
+                  className="rounded-xl bg-[#C59B27] px-5 py-2 font-bold text-white shadow-md hover:bg-[#A68018] disabled:opacity-50"
                 >
                   {uploading ? 'Uploading...' : 'Submit & Complete'}
                 </button>

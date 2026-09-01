@@ -78,7 +78,7 @@ const UserModal = ({ isOpen, onClose, user, onSave, allUsers = [] }) => {
       <div className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-2xl border border-slate-100 max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between border-b border-slate-100 pb-4">
           <div>
-            <h2 className="text-lg font-bold text-[#0F2B48]">
+            <h2 className="text-lg font-bold text-[#0A1E3F]">
               {isEdit ? 'Edit User Profile & Settings' : 'Create New Staff Account'}
             </h2>
             <p className="text-xs text-slate-500">
@@ -100,7 +100,7 @@ const UserModal = ({ isOpen, onClose, user, onSave, allUsers = [] }) => {
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div>
               <label className="text-xs font-semibold text-slate-700">Full Name *</label>
-              <div className="mt-1 flex items-center rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 focus-within:bg-white focus-within:border-[#52A636]">
+              <div className="mt-1 flex items-center rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 focus-within:bg-white focus-within:border-[#C59B27]">
                 <User className="mr-2 h-4 w-4 text-slate-400" />
                 <input
                   type="text"
@@ -108,14 +108,14 @@ const UserModal = ({ isOpen, onClose, user, onSave, allUsers = [] }) => {
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   className="w-full bg-transparent text-xs text-slate-800 outline-none"
-                  placeholder="Vigneshwaran CA"
+                  placeholder="Logunathan"
                 />
               </div>
             </div>
 
             <div>
               <label className="text-xs font-semibold text-slate-700">Email Address *</label>
-              <div className="mt-1 flex items-center rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 focus-within:bg-white focus-within:border-[#52A636]">
+              <div className="mt-1 flex items-center rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 focus-within:bg-white focus-within:border-[#C59B27]">
                 <Mail className="mr-2 h-4 w-4 text-slate-400" />
                 <input
                   type="email"
@@ -123,14 +123,14 @@ const UserModal = ({ isOpen, onClose, user, onSave, allUsers = [] }) => {
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                   className="w-full bg-transparent text-xs text-slate-800 outline-none"
-                  placeholder="user@vigneshassociates.com"
+                  placeholder="user@royalaccounting.co.in"
                 />
               </div>
             </div>
 
             <div>
               <label className="text-xs font-semibold text-slate-700">Phone Number</label>
-              <div className="mt-1 flex items-center rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 focus-within:bg-white focus-within:border-[#52A636]">
+              <div className="mt-1 flex items-center rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 focus-within:bg-white focus-within:border-[#C59B27]">
                 <Phone className="mr-2 h-4 w-4 text-slate-400" />
                 <input
                   type="text"
@@ -146,7 +146,7 @@ const UserModal = ({ isOpen, onClose, user, onSave, allUsers = [] }) => {
               <label className="text-xs font-semibold text-slate-700">
                 {isEdit ? 'Reset Password (Optional)' : 'Password *'}
               </label>
-              <div className="mt-1 flex items-center rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 focus-within:bg-white focus-within:border-[#52A636]">
+              <div className="mt-1 flex items-center rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 focus-within:bg-white focus-within:border-[#C59B27]">
                 <Lock className="mr-2 h-4 w-4 text-slate-400 shrink-0" />
                 <input
                   type={showPassword ? 'text' : 'password'}
@@ -173,7 +173,7 @@ const UserModal = ({ isOpen, onClose, user, onSave, allUsers = [] }) => {
 
             <div>
               <label className="text-xs font-semibold text-slate-700">Role *</label>
-              <div className="mt-1 flex items-center rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 focus-within:bg-white focus-within:border-[#52A636]">
+              <div className="mt-1 flex items-center rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 focus-within:bg-white focus-within:border-[#C59B27]">
                 <Shield className="mr-2 h-4 w-4 text-slate-400" />
                 <select
                   value={formData.role}
@@ -199,7 +199,7 @@ const UserModal = ({ isOpen, onClose, user, onSave, allUsers = [] }) => {
 
             <div>
               <label className="text-xs font-semibold text-slate-700">Department *</label>
-              <div className="mt-1 flex items-center rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 focus-within:bg-white focus-within:border-[#52A636]">
+              <div className="mt-1 flex items-center rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 focus-within:bg-white focus-within:border-[#C59B27]">
                 <Building2 className="mr-2 h-4 w-4 text-slate-400" />
                 <select
                   value={formData.department}
@@ -217,7 +217,7 @@ const UserModal = ({ isOpen, onClose, user, onSave, allUsers = [] }) => {
 
             <div>
               <label className="text-xs font-semibold text-slate-700">Designation / Title</label>
-              <div className="mt-1 flex items-center rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 focus-within:bg-white focus-within:border-[#52A636]">
+              <div className="mt-1 flex items-center rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 focus-within:bg-white focus-within:border-[#C59B27]">
                 <User className="mr-2 h-4 w-4 text-slate-400" />
                 <input
                   type="text"
@@ -231,7 +231,7 @@ const UserModal = ({ isOpen, onClose, user, onSave, allUsers = [] }) => {
 
             <div>
               <label className="text-xs font-semibold text-slate-700">Reports To (Admin Lead)</label>
-              <div className="mt-1 flex items-center rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 focus-within:bg-white focus-within:border-[#52A636]">
+              <div className="mt-1 flex items-center rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 focus-within:bg-white focus-within:border-[#C59B27]">
                 <User className="mr-2 h-4 w-4 text-slate-400" />
                 <select
                   value={formData.reportsTo}
@@ -251,7 +251,7 @@ const UserModal = ({ isOpen, onClose, user, onSave, allUsers = [] }) => {
 
           <div>
             <label className="text-xs font-semibold text-slate-700">Account Status *</label>
-            <div className="mt-1 flex items-center rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 focus-within:bg-white focus-within:border-[#52A636]">
+            <div className="mt-1 flex items-center rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 focus-within:bg-white focus-within:border-[#C59B27]">
               <CheckCircle className="mr-2 h-4 w-4 text-slate-400" />
               <select
                 value={formData.status}
@@ -277,7 +277,7 @@ const UserModal = ({ isOpen, onClose, user, onSave, allUsers = [] }) => {
             <button
               type="submit"
               disabled={loading}
-              className="rounded-xl bg-[#52A636] px-5 py-2 text-xs font-semibold text-white shadow-md hover:bg-[#438A2B] transition"
+              className="rounded-xl bg-[#C59B27] px-5 py-2 text-xs font-semibold text-white shadow-md hover:bg-[#A68018] transition"
             >
               {loading ? 'Saving...' : isEdit ? 'Update User' : 'Create User'}
             </button>

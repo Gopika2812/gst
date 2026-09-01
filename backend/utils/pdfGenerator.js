@@ -45,7 +45,7 @@ function formatINR(val) {
 }
 
 /**
- * Generate Invoice PDF Stream matching the exact official template
+ * Generate Invoice PDF Stream matching Royal Accounting Official branding
  */
 exports.generateInvoicePDF = (invoice, client, res) => {
   const doc = new PDFDocument({ margin: 40, size: 'A4' });
@@ -64,34 +64,34 @@ exports.generateInvoicePDF = (invoice, client, res) => {
   // ==========================
   const logoTop = 40;
 
-  // Draw Stylized Vignesh Associates "VA" Ribbon Logo
+  // Draw Royal Accounting Navy & Gold Brand Badge
   doc.save();
-  // Navy Left Ribbon
+  // Navy Ribbon Banner
   doc
-    .polygon([leftMargin + 25, logoTop], [leftMargin + 40, logoTop], [leftMargin + 20, logoTop + 45], [leftMargin + 5, logoTop + 45])
-    .fill('#0F2B48');
-  // Green Right Ribbon
+    .roundedRect(leftMargin, logoTop, 180, 42, 6)
+    .fill('#0A1E3F');
+  
+  // Gold Accent Strip
   doc
-    .polygon([leftMargin + 45, logoTop], [leftMargin + 60, logoTop], [leftMargin + 40, logoTop + 45], [leftMargin + 25, logoTop + 45])
-    .fill('#52A636');
-  // Green Bottom Banner "Vignesh Associates"
-  doc
-    .roundedRect(leftMargin, logoTop + 50, 110, 20, 3)
-    .fill('#0F2B48');
-  doc
-    .roundedRect(leftMargin + 45, logoTop + 50, 65, 20, 3)
-    .fill('#52A636');
+    .roundedRect(leftMargin, logoTop + 38, 180, 4, 2)
+    .fill('#C59B27');
+
   doc
     .fillColor('#FFFFFF')
-    .fontSize(8.5)
+    .fontSize(12)
     .font('Helvetica-Bold')
-    .text('Vignesh', leftMargin + 6, logoTop + 56)
-    .text('Associates', leftMargin + 48, logoTop + 56);
+    .text('ROYAL ACCOUNTING', leftMargin + 10, logoTop + 10);
+
+  doc
+    .fillColor('#DFB135')
+    .fontSize(8)
+    .font('Helvetica-Bold')
+    .text('GST & TAX CONSULTANCY SERVICES', leftMargin + 10, logoTop + 25);
   doc.restore();
 
   // Invoice Title & Number (Top Right)
   doc
-    .fillColor('#1E293B')
+    .fillColor('#0A1E3F')
     .fontSize(24)
     .font('Helvetica-Bold')
     .text('INVOICE', 320, logoTop, { align: 'right', width: 230 });
@@ -103,21 +103,21 @@ exports.generateInvoicePDF = (invoice, client, res) => {
     .text(`Invoice Number : ${invoice.invoiceNumber}`, 300, logoTop + 30, { align: 'right', width: 250 });
 
   // Company Address Details (Left below logo)
-  const compTop = logoTop + 85;
+  const compTop = logoTop + 65;
   doc
-    .fillColor('#1E293B')
+    .fillColor('#0A1E3F')
     .fontSize(9.5)
     .font('Helvetica-Bold')
-    .text('VIGNESH ASSOCIATES', leftMargin, compTop);
+    .text('ROYAL ACCOUNTING', leftMargin, compTop);
 
   doc
     .fillColor('#475569')
     .fontSize(8.5)
     .font('Helvetica')
-    .text('No.523D, 2nd Floor, Mannaraja Koil Opposite,', leftMargin, compTop + 13)
-    .text('Udangudi Road, Tisaiyanvillai,', leftMargin, compTop + 24)
-    .text('Tirunelveli, Tamil Nadu - 627657', leftMargin, compTop + 35)
-    .text('Ph No : 9865571219 / 8098071219', leftMargin, compTop + 46);
+    .text('Your Trusted Partner in Tax & Business Solutions', leftMargin, compTop + 13)
+    .text('Ph No / WhatsApp : +91 99943 60994', leftMargin, compTop + 25)
+    .text('Email : royallogu2020@gmail.com', leftMargin, compTop + 36)
+    .text('Website : royalaccounting.co.in', leftMargin, compTop + 47);
 
   // ==========================
   // 2. BILL TO & DATES SECTION
@@ -149,104 +149,164 @@ exports.generateInvoicePDF = (invoice, client, res) => {
     .text(`Mobile No : ${client.phone || 'N/A'}`, leftMargin, billTop + 46);
 
   if (client.gstin) {
-    doc.text(`GSTIN : ${client.gstin}`, leftMargin, billTop + 57);
+    doc.text(`GSTIN : ${client.gstin}`, leftMargin, billTop + 58);
   }
 
-  // Invoice Dates & Terms (Right)
-  const metaLeft = 360;
-  const invDateStr = new Date(invoice.invoiceDate).toLocaleDateString('en-GB'); // DD/MM/YYYY
-  const dueDateStr = invoice.dueDate ? new Date(invoice.dueDate).toLocaleDateString('en-GB') : invDateStr;
+  // Invoice Meta Dates (Right Box)
+  const dateBoxX = 350;
+  const dateBoxW = 200;
 
   doc
     .fillColor('#475569')
     .fontSize(8.5)
     .font('Helvetica')
-    .text('Invoice Date :', metaLeft, billTop + 12)
+    .text('Invoice Date :', dateBoxX, billTop)
     .font('Helvetica-Bold')
     .fillColor('#0F172A')
-    .text(invDateStr, metaLeft + 80, billTop + 12, { align: 'right', width: 110 });
+    .text(
+      invoice.invoiceDate ? new Date(invoice.invoiceDate).toLocaleDateString('en-GB') : new Date().toLocaleDateString('en-GB'),
+      dateBoxX + 80,
+      billTop,
+      { align: 'right', width: dateBoxW - 80 }
+    );
 
   doc
     .font('Helvetica')
     .fillColor('#475569')
-    .text('Terms :', metaLeft, billTop + 28)
+    .text('Terms :', dateBoxX, billTop + 16)
     .font('Helvetica-Bold')
     .fillColor('#0F172A')
-    .text('Due on Receipt', metaLeft + 80, billTop + 28, { align: 'right', width: 110 });
+    .text('Due on Receipt', dateBoxX + 80, billTop + 16, { align: 'right', width: dateBoxW - 80 });
 
   doc
     .font('Helvetica')
     .fillColor('#475569')
-    .text('Due Date :', metaLeft, billTop + 44)
+    .text('Due Date :', dateBoxX, billTop + 32)
     .font('Helvetica-Bold')
     .fillColor('#0F172A')
-    .text(dueDateStr, metaLeft + 80, billTop + 44, { align: 'right', width: 110 });
+    .text(
+      invoice.dueDate ? new Date(invoice.dueDate).toLocaleDateString('en-GB') : new Date().toLocaleDateString('en-GB'),
+      dateBoxX + 80,
+      billTop + 32,
+      { align: 'right', width: dateBoxW - 80 }
+    );
 
-  // ==========================
-  // 3. LINE ITEMS TABLE
-  // ==========================
-  const tableTop = billTop + 85;
+  // Status Badge
+  const statusColor =
+    invoice.status === 'Paid'
+      ? '#C59B27'
+      : invoice.status === 'Partially Paid'
+      ? '#D97706'
+      : invoice.status === 'Overdue'
+      ? '#DC2626'
+      : '#0A1E3F';
 
-  // Table Header Background (Dark Charcoal #333333)
   doc
-    .rect(leftMargin, tableTop, contentWidth, 22)
-    .fill('#333333');
+    .roundedRect(rightEdge - 85, billTop + 52, 85, 20, 4)
+    .fill(statusColor);
 
-  // Table Header Text
   doc
     .fillColor('#FFFFFF')
     .fontSize(8.5)
     .font('Helvetica-Bold')
-    .text('#', leftMargin + 10, tableTop + 6)
-    .text('Item & Description', leftMargin + 35, tableTop + 6)
-    .text('Qty', 330, tableTop + 6, { align: 'right', width: 45 })
-    .text('Rate', 390, tableTop + 6, { align: 'right', width: 65 })
-    .text('Amount', 470, tableTop + 6, { align: 'right', width: 70 });
+    .text(invoice.status ? invoice.status.toUpperCase() : 'PENDING', rightEdge - 85, billTop + 58, {
+      width: 85,
+      align: 'center'
+    });
 
-  // Table Rows
-  let curY = tableTop + 22;
-  const items = invoice.items && invoice.items.length > 0 ? invoice.items : [{ description: invoice.serviceType || 'Professional Services', amount: invoice.subTotal || invoice.total }];
+  // ==========================
+  // 3. ITEMS TABLE
+  // ==========================
+  const tableTop = billTop + 90;
+  const colX = {
+    sno: leftMargin + 8,
+    desc: leftMargin + 35,
+    hsn: 280,
+    rate: 345,
+    qty: 420,
+    amount: 475
+  };
+
+  // Table Header Container
+  doc
+    .rect(leftMargin, tableTop, contentWidth, 24)
+    .fill('#0A1E3F');
+
+  // Header Texts
+  doc
+    .fillColor('#FFFFFF')
+    .fontSize(8.5)
+    .font('Helvetica-Bold')
+    .text('#', colX.sno, tableTop + 7)
+    .text('Item & Description', colX.desc, tableTop + 7)
+    .text('HSN/SAC', colX.hsn, tableTop + 7)
+    .text('Rate (₹)', colX.rate, tableTop + 7, { width: 65, align: 'right' })
+    .text('Qty', colX.qty, tableTop + 7, { width: 40, align: 'right' })
+    .text('Amount (₹)', colX.amount, tableTop + 7, { width: 70, align: 'right' });
+
+  // Rows
+  let curY = tableTop + 24;
+  const items = invoice.items && invoice.items.length > 0 ? invoice.items : [{ description: 'Professional Accounting & Filing Services', hsnSac: '998231', quantity: 1, rate: invoice.subtotal || invoice.total, amount: invoice.total }];
 
   items.forEach((item, index) => {
-    const itemAmount = Number(item.amount) || 0;
+    const isEven = index % 2 === 0;
+    const rowH = 26;
+
+    if (isEven) {
+      doc
+        .rect(leftMargin, curY, contentWidth, rowH)
+        .fill('#F8FAFC');
+    }
 
     doc
-      .fillColor('#1E293B')
+      .fillColor('#334155')
       .fontSize(8.5)
-      .font('Helvetica-Bold')
-      .text(`${index + 1}`, leftMargin + 10, curY + 8)
-      .text(item.description, leftMargin + 35, curY + 8, { width: 280 })
       .font('Helvetica')
-      .text('1.00', 330, curY + 8, { align: 'right', width: 45 })
-      .text(formatINR(itemAmount), 390, curY + 8, { align: 'right', width: 65 })
-      .text(formatINR(itemAmount), 470, curY + 8, { align: 'right', width: 70 });
+      .text(String(index + 1), colX.sno, curY + 8)
+      .font('Helvetica-Bold')
+      .text(item.description || item.serviceName || 'Professional Service', colX.desc, curY + 8, { width: 230 })
+      .font('Helvetica')
+      .text(item.hsnSac || '9982', colX.hsn, curY + 8)
+      .text(formatINR(item.rate || item.unitPrice || 0), colX.rate, curY + 8, { width: 65, align: 'right' })
+      .text(String(item.quantity || 1), colX.qty, curY + 8, { width: 40, align: 'right' })
+      .font('Helvetica-Bold')
+      .text(formatINR(item.amount || item.total || (item.quantity * item.rate) || 0), colX.amount, curY + 8, { width: 70, align: 'right' });
 
-    curY += 26;
-
-    // Row divider line
+    // Row Bottom Border
     doc
-      .moveTo(leftMargin, curY)
-      .lineTo(rightEdge, curY)
+      .moveTo(leftMargin, curY + rowH)
+      .lineTo(rightEdge, curY + rowH)
       .strokeColor('#E2E8F0')
       .lineWidth(0.5)
       .stroke();
+
+    curY += rowH;
   });
 
+  // Table Outer Frame Box
+  doc
+    .rect(leftMargin, tableTop, contentWidth, curY - tableTop)
+    .strokeColor('#CBD5E1')
+    .lineWidth(0.8)
+    .stroke();
+
   // ==========================
-  // 4. SUMMARY TOTALS
+  // 4. SUMMARY & TOTALS SECTION
   // ==========================
   const sumTop = curY + 15;
-  const labelX = 350;
-  const valX = 450;
-  const valW = 90;
+  const labelX = 310;
+  const valX = 430;
+  const valW = 115;
 
   // Sub Total
   doc
     .fillColor('#475569')
     .fontSize(8.5)
-    .font('Helvetica-Bold')
+    .font('Helvetica')
     .text('Sub Total', labelX, sumTop)
-    .text(formatINR(invoice.subTotal || invoice.total), valX, sumTop, { align: 'right', width: valW });
+    .font('Helvetica-Bold')
+    .fillColor('#0F172A')
+    .text(`₹${formatINR(invoice.subtotal || invoice.total)}`, valX, sumTop, { align: 'right', width: valW });
 
   // Total
   doc
@@ -266,15 +326,15 @@ exports.generateInvoicePDF = (invoice, client, res) => {
     .fillColor('#DC2626')
     .text(`(-) ${formatINR(paid)}`, valX, sumTop + 36, { align: 'right', width: valW });
 
-  // Balance Due (Light Gray Bar Container)
+  // Balance Due Container
   const balanceDue = Math.max(0, (invoice.total || 0) - paid);
   const balBarTop = sumTop + 54;
   doc
     .rect(260, balBarTop, 290, 24)
-    .fill('#F1F5F9');
+    .fill('#F8FAFC');
 
   doc
-    .fillColor('#0F172A')
+    .fillColor('#0A1E3F')
     .fontSize(9)
     .font('Helvetica-Bold')
     .text('Balance Due', 350, balBarTop + 7)
@@ -298,7 +358,7 @@ exports.generateInvoicePDF = (invoice, client, res) => {
   const notesTop = balBarTop + 65;
 
   doc
-    .fillColor('#1E293B')
+    .fillColor('#0A1E3F')
     .fontSize(9)
     .font('Helvetica-Bold')
     .text('Notes', leftMargin, notesTop);
@@ -307,23 +367,22 @@ exports.generateInvoicePDF = (invoice, client, res) => {
     .fillColor('#475569')
     .fontSize(8.5)
     .font('Helvetica')
-    .text('Thanks for your business.', leftMargin, notesTop + 14);
+    .text('Thank you for trusting Royal Accounting for your business needs.', leftMargin, notesTop + 14);
 
-  // Official Signature Box (Right Aligned for physical / official signing)
+  // Official Signature Box
   const signTop = notesTop + 20;
 
   doc
-    .fillColor('#1E293B')
+    .fillColor('#0A1E3F')
     .fontSize(9)
     .font('Helvetica-Bold')
-    .text('For VIGNESH ASSOCIATES', rightEdge - 160, signTop, { width: 160, align: 'center' });
+    .text('For ROYAL ACCOUNTING', rightEdge - 160, signTop, { width: 160, align: 'center' });
 
-  // Official Signature Line for physical signing
   doc
     .moveTo(rightEdge - 160, signTop + 55)
     .lineTo(rightEdge, signTop + 55)
-    .strokeColor('#94A3B8')
-    .lineWidth(0.8)
+    .strokeColor('#C59B27')
+    .lineWidth(1)
     .stroke();
 
   doc
@@ -338,9 +397,15 @@ exports.generateInvoicePDF = (invoice, client, res) => {
   doc
     .moveTo(leftMargin, 790)
     .lineTo(rightEdge, 790)
-    .strokeColor('#CBD5E1')
-    .lineWidth(0.5)
+    .strokeColor('#C59B27')
+    .lineWidth(1)
     .stroke();
+
+  doc
+    .fillColor('#0A1E3F')
+    .fontSize(8)
+    .font('Helvetica-Bold')
+    .text('ROYAL ACCOUNTING — Your Trusted Partner in Tax & Business Solutions', leftMargin, 795);
 
   doc
     .fillColor('#94A3B8')

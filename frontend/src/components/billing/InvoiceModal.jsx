@@ -137,7 +137,7 @@ const InvoiceModal = ({ isOpen, onClose, onRefresh, clients = [], employees = []
       <div className="relative w-full max-w-3xl rounded-2xl bg-white p-6 shadow-2xl max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between border-b border-slate-100 pb-4">
           <div>
-            <h3 className="text-lg font-bold text-[#0F2B48]">Generate Tax Invoice (Module 3)</h3>
+            <h3 className="text-lg font-bold text-[#0A1E3F]">Generate Tax Invoice (Module 3)</h3>
             <p className="text-xs text-slate-500">Auto-calculate taxes, ledgers, and push to task workflow</p>
           </div>
           <button onClick={onClose} className="rounded-xl p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600">
@@ -156,7 +156,7 @@ const InvoiceModal = ({ isOpen, onClose, onRefresh, clients = [], employees = []
                 required
                 value={selectedClient}
                 onChange={(e) => handleClientChange(e.target.value)}
-                className="mt-1 w-full rounded-xl border border-slate-200 p-2 text-xs outline-none focus:border-[#52A636]"
+                className="mt-1 w-full rounded-xl border border-slate-200 p-2 text-xs outline-none focus:border-[#C59B27]"
               >
                 <option value="">-- Choose Client --</option>
                 {clients.map((c) => (
@@ -171,7 +171,7 @@ const InvoiceModal = ({ isOpen, onClose, onRefresh, clients = [], employees = []
               <select
                 value={serviceType}
                 onChange={(e) => setServiceType(e.target.value)}
-                className="mt-1 w-full rounded-xl border border-slate-200 p-2 text-xs outline-none focus:border-[#52A636]"
+                className="mt-1 w-full rounded-xl border border-slate-200 p-2 text-xs outline-none focus:border-[#C59B27]"
               >
                 {currentClient?.subscribedServices && currentClient.subscribedServices.length > 0 && (
                   <optgroup label="Client Subscribed Services (From Registration)">
@@ -201,11 +201,11 @@ const InvoiceModal = ({ isOpen, onClose, onRefresh, clients = [], employees = []
           {/* Line Items */}
           <div className="rounded-xl border border-slate-200/80 p-3 bg-slate-50/50">
             <div className="flex items-center justify-between mb-2">
-              <h4 className="text-xs font-bold text-[#0F2B48] uppercase tracking-wider">Line Items</h4>
+              <h4 className="text-xs font-bold text-[#0A1E3F] uppercase tracking-wider">Line Items</h4>
               <button
                 type="button"
                 onClick={handleAddItem}
-                className="flex items-center space-x-1 text-xs font-semibold text-[#52A636] hover:underline"
+                className="flex items-center space-x-1 text-xs font-semibold text-[#C59B27] hover:underline"
               >
                 <Plus className="h-3.5 w-3.5" />
                 <span>Add Item</span>
@@ -218,7 +218,7 @@ const InvoiceModal = ({ isOpen, onClose, onRefresh, clients = [], employees = []
                   placeholder="Item description"
                   value={item.description}
                   onChange={(e) => handleItemChange(index, 'description', e.target.value)}
-                  className="flex-1 rounded-xl border border-slate-200 bg-white p-2 text-xs outline-none focus:border-[#52A636]"
+                  className="flex-1 rounded-xl border border-slate-200 bg-white p-2 text-xs outline-none focus:border-[#C59B27]"
                 />
                 <div className="flex items-center space-x-2">
                   <input
@@ -226,7 +226,7 @@ const InvoiceModal = ({ isOpen, onClose, onRefresh, clients = [], employees = []
                     placeholder="Amount (₹)"
                     value={item.amount}
                     onChange={(e) => handleItemChange(index, 'amount', e.target.value)}
-                    className="flex-1 sm:w-32 rounded-xl border border-slate-200 bg-white p-2 text-xs outline-none focus:border-[#52A636]"
+                    className="flex-1 sm:w-32 rounded-xl border border-slate-200 bg-white p-2 text-xs outline-none focus:border-[#C59B27]"
                   />
                   {items.length > 1 && (
                     <button
@@ -279,14 +279,14 @@ const InvoiceModal = ({ isOpen, onClose, onRefresh, clients = [], employees = []
           </div>
 
           {/* Calculation Display */}
-          <div className="rounded-xl bg-[#0F2B48] p-4 text-white flex flex-col sm:flex-row justify-between sm:items-center gap-2 shadow-lg">
+          <div className="rounded-xl bg-[#0A1E3F] p-4 text-white flex flex-col sm:flex-row justify-between sm:items-center gap-2 shadow-lg">
             <div>
               <p className="text-xs text-slate-300">Subtotal: ₹{subTotal.toLocaleString('en-IN')} | GST: ₹{gstAmount.toLocaleString('en-IN')}</p>
               <p className="text-xs text-amber-400 mt-0.5">Pending Balance: ₹{pendingAmount.toLocaleString('en-IN')}</p>
             </div>
             <div className="text-right">
               <span className="text-[10px] text-slate-300 uppercase tracking-wider block">Total Payable</span>
-              <span className="text-2xl font-extrabold text-[#52A636]">₹{total.toLocaleString('en-IN')}</span>
+              <span className="text-2xl font-extrabold text-[#C59B27]">₹{total.toLocaleString('en-IN')}</span>
             </div>
           </div>
 
@@ -298,7 +298,7 @@ const InvoiceModal = ({ isOpen, onClose, onRefresh, clients = [], employees = []
                 id="moveToTask"
                 checked={moveToTaskAssignment}
                 onChange={(e) => setMoveToTaskAssignment(e.target.checked)}
-                className="h-4 w-4 rounded accent-[#52A636] cursor-pointer"
+                className="h-4 w-4 rounded accent-[#C59B27] cursor-pointer"
               />
               <label htmlFor="moveToTask" className="text-xs font-bold cursor-pointer">
                 Move To Task Assignment (Auto-assign task to Group & Staff)
@@ -312,7 +312,7 @@ const InvoiceModal = ({ isOpen, onClose, onRefresh, clients = [], employees = []
                   <select
                     value={assignedGroup}
                     onChange={(e) => setAssignedGroup(e.target.value)}
-                    className="mt-1 w-full rounded-xl border border-slate-200 bg-white p-2 text-xs font-semibold text-slate-800 outline-none focus:border-[#52A636]"
+                    className="mt-1 w-full rounded-xl border border-slate-200 bg-white p-2 text-xs font-semibold text-slate-800 outline-none focus:border-[#C59B27]"
                   >
                     <option value="GST">GST</option>
                     <option value="Income Tax">Income Tax</option>
@@ -328,7 +328,7 @@ const InvoiceModal = ({ isOpen, onClose, onRefresh, clients = [], employees = []
                   <select
                     value={assignedEmployee}
                     onChange={(e) => setAssignedEmployee(e.target.value)}
-                    className="mt-1 w-full rounded-xl border border-slate-200 bg-white p-2 text-xs font-semibold text-slate-800 outline-none focus:border-[#52A636]"
+                    className="mt-1 w-full rounded-xl border border-slate-200 bg-white p-2 text-xs font-semibold text-slate-800 outline-none focus:border-[#C59B27]"
                   >
                     <option value="">-- Choose Person / Executive --</option>
                     {filteredEmployees.map((emp) => (
@@ -350,7 +350,7 @@ const InvoiceModal = ({ isOpen, onClose, onRefresh, clients = [], employees = []
                     type="date"
                     value={taskDueDate}
                     onChange={(e) => setTaskDueDate(e.target.value)}
-                    className="mt-1 w-full rounded-xl border border-slate-200 bg-white p-2 text-xs font-semibold text-slate-800 outline-none focus:border-[#52A636]"
+                    className="mt-1 w-full rounded-xl border border-slate-200 bg-white p-2 text-xs font-semibold text-slate-800 outline-none focus:border-[#C59B27]"
                   />
                 </div>
 
@@ -359,7 +359,7 @@ const InvoiceModal = ({ isOpen, onClose, onRefresh, clients = [], employees = []
                   <select
                     value={taskPriority}
                     onChange={(e) => setTaskPriority(e.target.value)}
-                    className="mt-1 w-full rounded-xl border border-slate-200 bg-white p-2 text-xs font-semibold text-slate-800 outline-none focus:border-[#52A636]"
+                    className="mt-1 w-full rounded-xl border border-slate-200 bg-white p-2 text-xs font-semibold text-slate-800 outline-none focus:border-[#C59B27]"
                   >
                     <option value="High">High Priority</option>
                     <option value="Critical">Critical</option>
@@ -382,7 +382,7 @@ const InvoiceModal = ({ isOpen, onClose, onRefresh, clients = [], employees = []
             <button
               type="submit"
               disabled={loading}
-              className="rounded-xl bg-[#52A636] px-5 py-2 text-xs font-semibold text-white shadow-md transition hover:bg-[#438A2B]"
+              className="rounded-xl bg-[#C59B27] px-5 py-2 text-xs font-semibold text-white shadow-md transition hover:bg-[#A68018]"
             >
               {loading ? 'Generating...' : 'Generate Tax Invoice'}
             </button>

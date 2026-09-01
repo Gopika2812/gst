@@ -1,7 +1,7 @@
 {
   "name": "auditor-erp-backend",
   "version": "1.0.0",
-  "description": "Auditor ERP System Backend for Vignesh Associates",
+  "description": "Auditor ERP System Backend for Royal Accounting",
   "main": "server.js",
   "type": "commonjs",
   "scripts": {

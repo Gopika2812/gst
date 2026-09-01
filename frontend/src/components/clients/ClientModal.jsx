@@ -263,7 +263,7 @@ const ClientModal = ({ isOpen, onClose, onRefresh, employees = [] }) => {
         {/* Header */}
         <div className="flex items-center justify-between border-b border-slate-100 pb-3">
           <div>
-            <h3 className="text-base font-bold text-[#0F2B48]">Client Registration</h3>
+            <h3 className="text-base font-bold text-[#0A1E3F]">Client Registration</h3>
             <p className="text-xs text-slate-500">Add or update client service subscriptions</p>
           </div>
           <button onClick={onClose} className="rounded-xl p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition">
@@ -280,7 +280,7 @@ const ClientModal = ({ isOpen, onClose, onRefresh, employees = [] }) => {
             onClick={() => handleCategorySwitch('New Client')}
             className={`flex-1 rounded-lg py-2 text-xs font-bold transition ${
               registrationCategory === 'New Client'
-                ? 'bg-white text-[#0F2B48] shadow-xs'
+                ? 'bg-white text-[#0A1E3F] shadow-xs'
                 : 'text-slate-500 hover:text-slate-700'
             }`}
           >
@@ -291,7 +291,7 @@ const ClientModal = ({ isOpen, onClose, onRefresh, employees = [] }) => {
             onClick={() => handleCategorySwitch('Registered Client')}
             className={`flex-1 rounded-lg py-2 text-xs font-bold transition ${
               registrationCategory === 'Registered Client'
-                ? 'bg-[#52A636] text-white shadow-xs'
+                ? 'bg-[#C59B27] text-white shadow-xs'
                 : 'text-slate-500 hover:text-slate-700'
             }`}
           >
@@ -308,13 +308,13 @@ const ClientModal = ({ isOpen, onClose, onRefresh, employees = [] }) => {
                 value={searchPhone}
                 onChange={(e) => setSearchPhone(e.target.value)}
                 placeholder="Enter Phone Number (e.g. 9840011223)..."
-                className="flex-1 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs outline-none focus:border-[#52A636]"
+                className="flex-1 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs outline-none focus:border-[#C59B27]"
               />
               <button
                 type="button"
                 onClick={handlePhoneLookup}
                 disabled={lookupLoading}
-                className="rounded-xl bg-[#0F2B48] px-4 py-2 text-xs font-bold text-white hover:bg-[#16385C] transition shrink-0 flex items-center space-x-1"
+                className="rounded-xl bg-[#0A1E3F] px-4 py-2 text-xs font-bold text-white hover:bg-[#16385C] transition shrink-0 flex items-center space-x-1"
               >
                 <Search className="h-3.5 w-3.5" />
                 <span>{lookupLoading ? 'Searching...' : 'Search'}</span>
@@ -332,8 +332,8 @@ const ClientModal = ({ isOpen, onClose, onRefresh, employees = [] }) => {
         <form onSubmit={handleSubmit} className="mt-4 space-y-5">
           {/* STEP 1: Basic Information */}
           <div className="space-y-2">
-            <h4 className="text-xs font-extrabold text-[#0F2B48] flex items-center space-x-1.5">
-              <Building className="h-4 w-4 text-[#52A636]" />
+            <h4 className="text-xs font-extrabold text-[#0A1E3F] flex items-center space-x-1.5">
+              <Building className="h-4 w-4 text-[#C59B27]" />
               <span>Step 1: Basic Details</span>
             </h4>
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
@@ -346,7 +346,7 @@ const ClientModal = ({ isOpen, onClose, onRefresh, employees = [] }) => {
                   value={formData.clientName}
                   onChange={handleChange}
                   placeholder="e.g. Apex Logistics"
-                  className="mt-1 w-full rounded-xl border border-slate-200 p-2 text-xs outline-none focus:border-[#52A636]"
+                  className="mt-1 w-full rounded-xl border border-slate-200 p-2 text-xs outline-none focus:border-[#C59B27]"
                 />
               </div>
               <div>
@@ -358,7 +358,7 @@ const ClientModal = ({ isOpen, onClose, onRefresh, employees = [] }) => {
                   value={formData.phone}
                   onChange={handleChange}
                   placeholder="+91 98400 11223"
-                  className="mt-1 w-full rounded-xl border border-slate-200 p-2 text-xs outline-none focus:border-[#52A636]"
+                  className="mt-1 w-full rounded-xl border border-slate-200 p-2 text-xs outline-none focus:border-[#C59B27]"
                 />
               </div>
               <div>
@@ -369,7 +369,7 @@ const ClientModal = ({ isOpen, onClose, onRefresh, employees = [] }) => {
                   value={formData.email}
                   onChange={handleChange}
                   placeholder="client@company.com"
-                  className="mt-1 w-full rounded-xl border border-slate-200 p-2 text-xs outline-none focus:border-[#52A636]"
+                  className="mt-1 w-full rounded-xl border border-slate-200 p-2 text-xs outline-none focus:border-[#C59B27]"
                 />
               </div>
             </div>
@@ -378,8 +378,8 @@ const ClientModal = ({ isOpen, onClose, onRefresh, employees = [] }) => {
           {/* STEP 2: Service Subscriptions with Search & Multi-Select */}
           <div className="space-y-3 pt-2 border-t border-slate-100">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-              <h4 className="text-xs font-extrabold text-[#0F2B48] flex items-center space-x-1.5">
-                <Layers className="h-4 w-4 text-[#52A636]" />
+              <h4 className="text-xs font-extrabold text-[#0A1E3F] flex items-center space-x-1.5">
+                <Layers className="h-4 w-4 text-[#C59B27]" />
                 <span>Step 2: Subscribed Services ({subscribedServices.length} Selected)</span>
               </h4>
 
@@ -388,7 +388,7 @@ const ClientModal = ({ isOpen, onClose, onRefresh, employees = [] }) => {
                 <button
                   type="button"
                   onClick={handleSelectAllFiltered}
-                  className="text-[10px] font-bold text-[#52A636] hover:underline"
+                  className="text-[10px] font-bold text-[#C59B27] hover:underline"
                 >
                   Select All
                 </button>
@@ -412,7 +412,7 @@ const ClientModal = ({ isOpen, onClose, onRefresh, employees = [] }) => {
                   value={serviceSearchQuery}
                   onChange={(e) => setServiceSearchQuery(e.target.value)}
                   placeholder="Search service e.g. GSTR-1, ITR, Bookkeeping..."
-                  className="w-full rounded-xl border border-slate-200 pl-8 pr-3 py-1.5 text-xs outline-none focus:border-[#52A636]"
+                  className="w-full rounded-xl border border-slate-200 pl-8 pr-3 py-1.5 text-xs outline-none focus:border-[#C59B27]"
                 />
               </div>
 
@@ -424,7 +424,7 @@ const ClientModal = ({ isOpen, onClose, onRefresh, employees = [] }) => {
                     onClick={() => setServiceDeptTab(dept)}
                     className={`rounded-lg px-2.5 py-1 text-[11px] font-bold transition whitespace-nowrap ${
                       serviceDeptTab === dept
-                        ? 'bg-[#0F2B48] text-white'
+                        ? 'bg-[#0A1E3F] text-white'
                         : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                     }`}
                   >
@@ -449,7 +449,7 @@ const ClientModal = ({ isOpen, onClose, onRefresh, employees = [] }) => {
                     <div
                       key={ms._id}
                       className={`rounded-xl p-2.5 border transition ${
-                        isSelected ? 'border-[#52A636] bg-emerald-50/60 shadow-xs' : 'border-slate-200 bg-white hover:bg-slate-50'
+                        isSelected ? 'border-[#C59B27] bg-emerald-50/60 shadow-xs' : 'border-slate-200 bg-white hover:bg-slate-50'
                       }`}
                     >
                       <div className="flex items-center justify-between">
@@ -458,7 +458,7 @@ const ClientModal = ({ isOpen, onClose, onRefresh, employees = [] }) => {
                             type="checkbox"
                             checked={isSelected}
                             onChange={() => handleToggleSubService(ms)}
-                            className="h-4 w-4 rounded accent-[#52A636] cursor-pointer"
+                            className="h-4 w-4 rounded accent-[#C59B27] cursor-pointer"
                           />
                           <span className="text-xs font-bold text-slate-800">{ms.subServiceName}</span>
                         </label>
@@ -474,7 +474,7 @@ const ClientModal = ({ isOpen, onClose, onRefresh, employees = [] }) => {
                           <select
                             value={selectedSub?.assignedStaff || ''}
                             onChange={(e) => handleSubServiceStaffChange(ms.subServiceName, e.target.value)}
-                            className="w-full rounded-lg border border-slate-200 bg-white px-2 py-1 text-[11px] font-medium text-slate-700 outline-none focus:border-[#52A636]"
+                            className="w-full rounded-lg border border-slate-200 bg-white px-2 py-1 text-[11px] font-medium text-slate-700 outline-none focus:border-[#C59B27]"
                           >
                             <option value="">-- Assign Executive --</option>
                             {employees
@@ -503,8 +503,8 @@ const ClientModal = ({ isOpen, onClose, onRefresh, employees = [] }) => {
 
           {/* STEP 3: Business & Tax Details */}
           <div className="space-y-2 pt-2 border-t border-slate-100">
-            <h4 className="text-xs font-extrabold text-[#0F2B48] flex items-center space-x-1.5">
-              <CreditCard className="h-4 w-4 text-[#52A636]" />
+            <h4 className="text-xs font-extrabold text-[#0A1E3F] flex items-center space-x-1.5">
+              <CreditCard className="h-4 w-4 text-[#C59B27]" />
               <span>Step 3: Tax & Business Details</span>
             </h4>
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-4">
@@ -516,7 +516,7 @@ const ClientModal = ({ isOpen, onClose, onRefresh, employees = [] }) => {
                   value={formData.tradeName}
                   onChange={handleChange}
                   placeholder="Trade Name"
-                  className="mt-1 w-full rounded-xl border border-slate-200 p-2 text-xs outline-none focus:border-[#52A636]"
+                  className="mt-1 w-full rounded-xl border border-slate-200 p-2 text-xs outline-none focus:border-[#C59B27]"
                 />
               </div>
               <div>
@@ -527,7 +527,7 @@ const ClientModal = ({ isOpen, onClose, onRefresh, employees = [] }) => {
                   value={formData.pan}
                   onChange={handleChange}
                   placeholder="AAACA1234F"
-                  className="mt-1 w-full rounded-xl border border-slate-200 p-2 text-xs uppercase outline-none focus:border-[#52A636]"
+                  className="mt-1 w-full rounded-xl border border-slate-200 p-2 text-xs uppercase outline-none focus:border-[#C59B27]"
                 />
               </div>
               <div>
@@ -538,7 +538,7 @@ const ClientModal = ({ isOpen, onClose, onRefresh, employees = [] }) => {
                   value={formData.gstin}
                   onChange={handleChange}
                   placeholder="33AAACA1234F1Z5"
-                  className="mt-1 w-full rounded-xl border border-slate-200 p-2 text-xs uppercase outline-none focus:border-[#52A636]"
+                  className="mt-1 w-full rounded-xl border border-slate-200 p-2 text-xs uppercase outline-none focus:border-[#C59B27]"
                 />
               </div>
               <div>
@@ -548,7 +548,7 @@ const ClientModal = ({ isOpen, onClose, onRefresh, employees = [] }) => {
                   name="state"
                   value={formData.state}
                   onChange={handleChange}
-                  className="mt-1 w-full rounded-xl border border-slate-200 p-2 text-xs outline-none focus:border-[#52A636]"
+                  className="mt-1 w-full rounded-xl border border-slate-200 p-2 text-xs outline-none focus:border-[#C59B27]"
                 />
               </div>
             </div>
@@ -556,8 +556,8 @@ const ClientModal = ({ isOpen, onClose, onRefresh, employees = [] }) => {
 
           {/* STEP 4: Financials & Location */}
           <div className="space-y-2 pt-2 border-t border-slate-100">
-            <h4 className="text-xs font-extrabold text-[#0F2B48] flex items-center space-x-1.5">
-              <ShieldCheck className="h-4 w-4 text-[#52A636]" />
+            <h4 className="text-xs font-extrabold text-[#0A1E3F] flex items-center space-x-1.5">
+              <ShieldCheck className="h-4 w-4 text-[#C59B27]" />
               <span>Step 4: Financial Setup</span>
             </h4>
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
@@ -568,7 +568,7 @@ const ClientModal = ({ isOpen, onClose, onRefresh, employees = [] }) => {
                   name="openingBalance"
                   value={formData.openingBalance}
                   onChange={handleChange}
-                  className="mt-1 w-full rounded-xl border border-slate-200 p-2 text-xs outline-none focus:border-[#52A636]"
+                  className="mt-1 w-full rounded-xl border border-slate-200 p-2 text-xs outline-none focus:border-[#C59B27]"
                 />
               </div>
               <div>
@@ -580,7 +580,7 @@ const ClientModal = ({ isOpen, onClose, onRefresh, employees = [] }) => {
                   value={formData.creditLimit}
                   onChange={handleChange}
                   className={`mt-1 w-full rounded-xl border p-2 text-xs outline-none ${
-                    isSuperAdmin ? 'border-slate-200 focus:border-[#52A636]' : 'bg-slate-100 border-slate-200 text-slate-500 cursor-not-allowed'
+                    isSuperAdmin ? 'border-slate-200 focus:border-[#C59B27]' : 'bg-slate-100 border-slate-200 text-slate-500 cursor-not-allowed'
                   }`}
                 />
               </div>
@@ -591,7 +591,7 @@ const ClientModal = ({ isOpen, onClose, onRefresh, employees = [] }) => {
                   name="city"
                   value={formData.city}
                   onChange={handleChange}
-                  className="mt-1 w-full rounded-xl border border-slate-200 p-2 text-xs outline-none focus:border-[#52A636]"
+                  className="mt-1 w-full rounded-xl border border-slate-200 p-2 text-xs outline-none focus:border-[#C59B27]"
                 />
               </div>
             </div>
@@ -599,7 +599,7 @@ const ClientModal = ({ isOpen, onClose, onRefresh, employees = [] }) => {
 
           {/* STEP 5: Document Uploads */}
           <div className="space-y-2 pt-2 border-t border-slate-100">
-            <h4 className="text-xs font-extrabold text-[#0F2B48]">Step 5: Document Uploads</h4>
+            <h4 className="text-xs font-extrabold text-[#0A1E3F]">Step 5: Document Uploads</h4>
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 text-xs">
               <div>
                 <label className="text-[10px] font-semibold text-slate-600">PAN Image</label>
@@ -632,7 +632,7 @@ const ClientModal = ({ isOpen, onClose, onRefresh, employees = [] }) => {
             <button
               type="submit"
               disabled={loading}
-              className="rounded-xl bg-[#52A636] px-5 py-2 text-xs font-bold text-white shadow-md hover:bg-[#438A2B] transition"
+              className="rounded-xl bg-[#C59B27] px-5 py-2 text-xs font-bold text-white shadow-md hover:bg-[#A68018] transition"
             >
               {loading ? 'Saving...' : existingClientId ? 'Update Client' : 'Register Client'}
             </button>

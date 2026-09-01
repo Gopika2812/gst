@@ -60,7 +60,7 @@ const Sidebar = ({ isOpen, onClose, isCollapsed, onToggleCollapse }) => {
 
       {/* Sidebar Container */}
       <aside
-        className={`glacier-sidebar fixed top-0 left-0 z-50 flex h-screen flex-col border-r border-slate-800 text-slate-300 shadow-2xl transition-all duration-300 ease-in-out ${
+        className={`glacier-sidebar fixed top-0 left-0 z-50 flex h-screen flex-col border-r border-slate-800/80 text-slate-300 shadow-2xl transition-all duration-300 ease-in-out ${
           isCollapsed ? 'w-64 lg:w-20' : 'w-64'
         } ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}
       >
@@ -68,15 +68,15 @@ const Sidebar = ({ isOpen, onClose, isCollapsed, onToggleCollapse }) => {
         <div className={`flex h-20 items-center border-b border-slate-700/60 px-4 ${isCollapsed ? 'justify-center lg:justify-center' : 'justify-between'}`}>
           <div className="flex items-center space-x-3 overflow-hidden">
             {/* Logo Graphic */}
-            <div className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white p-0.5 shadow-md overflow-hidden border border-slate-700/50">
-              <img src="/logo.jpg" alt="Vignesh Associates Logo" className="h-full w-full object-cover rounded-lg" />
+            <div className="relative flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white p-0.5 shadow-md overflow-hidden border border-[#C59B27]/50">
+              <img src="/logo_royal.jpeg" alt="Royal Accounting Logo" className="h-full w-full object-contain rounded-lg" />
             </div>
             <div className={`transition-opacity duration-200 ${isCollapsed ? 'lg:hidden' : 'block'}`}>
               <div className="flex items-center space-x-1">
-                <span className="rounded bg-[#0F2B48] px-1.5 py-0.5 font-bold text-xs text-white border border-slate-600">Vignesh</span>
-                <span className="rounded bg-[#52A636] px-1.5 py-0.5 font-bold text-xs text-white">Associates</span>
+                <span className="rounded bg-[#07152B] px-1.5 py-0.5 font-extrabold text-xs text-white border border-slate-700">Royal</span>
+                <span className="rounded bg-[#C59B27] px-1.5 py-0.5 font-extrabold text-xs text-[#07152B]">Accounting</span>
               </div>
-              <p className="mt-0.5 text-[10px] tracking-wider text-slate-400 font-medium uppercase whitespace-nowrap">Auditor ERP System</p>
+              <p className="mt-0.5 text-[10px] tracking-wider text-[#DFB135] font-semibold uppercase whitespace-nowrap">GST & Auditor ERP</p>
             </div>
           </div>
 
@@ -109,7 +109,7 @@ const Sidebar = ({ isOpen, onClose, isCollapsed, onToggleCollapse }) => {
               return (
                 <React.Fragment key={idx}>
                   <div
-                    className={`pt-4 pb-1 px-3 text-[10px] font-bold tracking-wider text-slate-400 uppercase ${
+                    className={`pt-4 pb-1 px-3 text-[10px] font-bold tracking-wider text-[#C59B27]/80 uppercase ${
                       isCollapsed ? 'lg:hidden' : 'block'
                     }`}
                   >
@@ -143,7 +143,7 @@ const Sidebar = ({ isOpen, onClose, isCollapsed, onToggleCollapse }) => {
                     isCollapsed ? 'px-3 lg:justify-center' : 'px-3.5 space-x-3'
                   } ${
                     isActive
-                      ? 'bg-[#52A636] text-white font-semibold shadow-md shadow-[#52A636]/30'
+                      ? 'bg-gradient-to-r from-[#C59B27] to-[#DFB135] text-[#07152B] font-bold shadow-md shadow-[#C59B27]/30'
                       : 'text-slate-300 hover:bg-white/10 hover:text-white'
                   }`
                 }
@@ -158,16 +158,16 @@ const Sidebar = ({ isOpen, onClose, isCollapsed, onToggleCollapse }) => {
         {/* Footer System Status */}
         <div className="border-t border-slate-700/60 p-4">
           <div
-            className={`flex items-center justify-between rounded-xl bg-slate-900/60 p-3 text-xs ${
+            className={`flex items-center justify-between rounded-xl bg-slate-900/60 p-3 text-xs border border-slate-800 ${
               isCollapsed ? 'lg:justify-center lg:p-2' : ''
             }`}
             title="Live API Server v1.0"
           >
             <div className="flex items-center space-x-2">
-              <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse shrink-0"></span>
+              <span className="h-2 w-2 rounded-full bg-[#C59B27] animate-pulse shrink-0"></span>
               <span className={`font-medium text-slate-300 ${isCollapsed ? 'lg:hidden' : 'block'}`}>Live API Server</span>
             </div>
-            <span className={`rounded bg-slate-800 px-1.5 py-0.5 text-[10px] font-semibold text-emerald-400 ${isCollapsed ? 'lg:hidden' : 'block'}`}>
+            <span className={`rounded bg-slate-800 px-1.5 py-0.5 text-[10px] font-semibold text-[#DFB135] ${isCollapsed ? 'lg:hidden' : 'block'}`}>
               v1.0
             </span>
           </div>

@@ -154,14 +154,14 @@ const CertificationPage = () => {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-xl font-bold text-[#0F2B48]">Certification Status & Tracking (Module 2)</h1>
+        <h1 className="text-xl font-bold text-[#0A1E3F]">Certification Status & Tracking (Module 2)</h1>
         <p className="text-xs text-slate-500">
           Workflow: Client Registration ➔ Waiting Certificate ➔ Certificate Received ➔ Move to Billing
         </p>
       </div>
 
       {/* Workflow Visual Timeline Banner */}
-      <GlacierCard className="p-3.5 sm:p-4 bg-gradient-to-r from-slate-900 to-[#0F2B48] text-white">
+      <GlacierCard className="p-3.5 sm:p-4 bg-gradient-to-r from-slate-900 to-[#0A1E3F] text-white">
         <div className="flex overflow-x-auto items-center justify-between gap-3 text-xs font-semibold no-scrollbar">
           <div className="flex items-center space-x-2 shrink-0">
             <span className="flex h-6 w-6 items-center justify-center rounded-full bg-emerald-500 text-xs text-white">1</span>
@@ -174,7 +174,7 @@ const CertificationPage = () => {
           </div>
           <ArrowRight className="h-4 w-4 text-slate-400 shrink-0" />
           <div className="flex items-center space-x-2 shrink-0">
-            <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[#52A636] text-xs text-white">3</span>
+            <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[#C59B27] text-xs text-white">3</span>
             <span>Certificate Received</span>
           </div>
           <ArrowRight className="h-4 w-4 text-slate-400 shrink-0" />
@@ -189,7 +189,7 @@ const CertificationPage = () => {
       <GlacierCard className="p-0 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs min-w-[760px]">
-            <thead className="bg-[#0F2B48] text-white">
+            <thead className="bg-[#0A1E3F] text-white">
               <tr>
                 <th className="p-3.5 font-semibold">Client Name</th>
                 <th className="p-3.5 font-semibold">Certificate Type</th>
@@ -239,7 +239,7 @@ const CertificationPage = () => {
                             subtitle: `Certificate No: ${c.certificateNumber || 'N/A'}`,
                             certNumber: c.certificateNumber || ''
                           })}
-                          className="inline-flex items-center space-x-1.5 px-2.5 py-1 rounded-lg bg-emerald-50 text-[#52A636] hover:bg-emerald-100 border border-emerald-200 text-[11px] font-bold transition shadow-2xs hover:shadow-xs cursor-pointer"
+                          className="inline-flex items-center space-x-1.5 px-2.5 py-1 rounded-lg bg-emerald-50 text-[#C59B27] hover:bg-emerald-100 border border-emerald-200 text-[11px] font-bold transition shadow-2xs hover:shadow-xs cursor-pointer"
                           title="Preview Certificate"
                         >
                           <Eye className="h-3.5 w-3.5" />
@@ -264,12 +264,12 @@ const CertificationPage = () => {
                     <td className="p-3.5 text-center">
                       {c.status === 'Certificate Received' || c.movedToBilling ? (
                         <span className="inline-flex items-center text-[11px] font-extrabold text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200">
-                          <CheckCircle2 className="mr-1 h-3.5 w-3.5 text-[#52A636]" /> Moved to Billing Phase
+                          <CheckCircle2 className="mr-1 h-3.5 w-3.5 text-[#C59B27]" /> Moved to Billing Phase
                         </span>
                       ) : (
                         <button
                           onClick={() => handleOpenUpdate(c)}
-                          className="rounded-lg bg-[#52A636] px-3 py-1 text-xs font-bold text-white hover:bg-[#438A2B] shadow-xs transition cursor-pointer"
+                          className="rounded-lg bg-[#C59B27] px-3 py-1 text-xs font-bold text-white hover:bg-[#A68018] shadow-xs transition cursor-pointer"
                         >
                           Update Status
                         </button>
@@ -289,7 +289,7 @@ const CertificationPage = () => {
           <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl border border-slate-100 animate-fadeIn">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <div>
-                <h3 className="text-base font-bold text-[#0F2B48]">Update Certificate Received</h3>
+                <h3 className="text-base font-bold text-[#0A1E3F]">Update Certificate Received</h3>
                 <p className="text-xs text-slate-500 mt-0.5">
                   Client: <span className="font-semibold text-slate-700">{selectedCert.client?.clientName}</span> <span className="text-slate-400">({getDisplayCertType(selectedCert)})</span>
                 </p>
@@ -312,7 +312,7 @@ const CertificationPage = () => {
                   value={updateData.certificateNumber}
                   onChange={(e) => setUpdateData({ ...updateData, certificateNumber: e.target.value })}
                   placeholder="e.g. 33AAACA1234F1Z5"
-                  className="mt-1 w-full rounded-xl border border-slate-200 p-2.5 outline-none focus:border-[#52A636] text-slate-800"
+                  className="mt-1 w-full rounded-xl border border-slate-200 p-2.5 outline-none focus:border-[#C59B27] text-slate-800"
                 />
               </div>
 
@@ -322,7 +322,7 @@ const CertificationPage = () => {
                   type="date"
                   value={updateData.receivedDate}
                   onChange={(e) => setUpdateData({ ...updateData, receivedDate: e.target.value })}
-                  className="mt-1 w-full rounded-xl border border-slate-200 p-2.5 outline-none focus:border-[#52A636] text-slate-800"
+                  className="mt-1 w-full rounded-xl border border-slate-200 p-2.5 outline-none focus:border-[#C59B27] text-slate-800"
                 />
               </div>
 
@@ -357,7 +357,7 @@ const CertificationPage = () => {
                             className="h-9 w-9 rounded-lg object-cover border border-emerald-300 shrink-0 bg-white"
                           />
                         ) : (
-                          <div className="h-9 w-9 rounded-lg bg-emerald-100 text-[#52A636] flex items-center justify-center shrink-0">
+                          <div className="h-9 w-9 rounded-lg bg-emerald-100 text-[#C59B27] flex items-center justify-center shrink-0">
                             <FileText className="h-5 w-5" />
                           </div>
                         )}
@@ -378,7 +378,7 @@ const CertificationPage = () => {
                             subtitle: `File: ${certFile.name} (${formatFileSize(certFile.size)})`,
                             certNumber: updateData.certificateNumber
                           })}
-                          className="flex items-center space-x-1 px-2.5 py-1 rounded-lg bg-[#52A636] text-white hover:bg-[#438A2B] font-bold text-[11px] shadow-2xs transition"
+                          className="flex items-center space-x-1 px-2.5 py-1 rounded-lg bg-[#C59B27] text-white hover:bg-[#A68018] font-bold text-[11px] shadow-2xs transition"
                           title="Preview Selected Certificate"
                         >
                           <Eye className="h-3.5 w-3.5" />
@@ -411,7 +411,7 @@ const CertificationPage = () => {
                         })}
                         className="flex items-center space-x-1 px-2.5 py-1 rounded-lg bg-white border border-slate-200 text-slate-700 hover:bg-slate-100 font-bold text-[11px] shrink-0 shadow-2xs transition"
                       >
-                        <Eye className="h-3.5 w-3.5 text-[#52A636]" />
+                        <Eye className="h-3.5 w-3.5 text-[#C59B27]" />
                         <span>Preview Existing</span>
                       </button>
                     </div>
@@ -426,7 +426,7 @@ const CertificationPage = () => {
                   value={updateData.remarks}
                   onChange={(e) => setUpdateData({ ...updateData, remarks: e.target.value })}
                   placeholder="Enter remarks or approval notes..."
-                  className="mt-1 w-full rounded-xl border border-slate-200 p-2.5 outline-none focus:border-[#52A636] text-slate-800"
+                  className="mt-1 w-full rounded-xl border border-slate-200 p-2.5 outline-none focus:border-[#C59B27] text-slate-800"
                 />
               </div>
 
@@ -440,7 +440,7 @@ const CertificationPage = () => {
                 </button>
                 <button
                   type="submit"
-                  className="rounded-xl bg-[#52A636] px-4 py-2 font-semibold text-white hover:bg-[#438A2B] shadow-md transition"
+                  className="rounded-xl bg-[#C59B27] px-4 py-2 font-semibold text-white hover:bg-[#A68018] shadow-md transition"
                 >
                   Confirm & Move to Billing
                 </button>

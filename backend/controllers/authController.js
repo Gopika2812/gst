@@ -3,7 +3,7 @@ const User = require('../models/User');
 const { logAudit } = require('../middleware/auditLogger');
 
 const generateToken = (id) => {
-  return jwt.sign({ id }, process.env.JWT_SECRET || 'vignesh_associates_auditor_erp_secret_key_2026', {
+  return jwt.sign({ id }, process.env.JWT_SECRET || 'royal_accounting_auditor_erp_secret_key_2026', {
     expiresIn: process.env.JWT_EXPIRE || '30d'
   });
 };

@@ -87,14 +87,14 @@ const TaskBoardPage = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-xl font-extrabold text-[#0F2B48]">Task Assignment & Delegation Board</h1>
+          <h1 className="text-xl font-extrabold text-[#0A1E3F]">Task Assignment & Delegation Board</h1>
           <p className="text-xs text-slate-500">
-            Super Admin assigns to Admins • Department Admins assign to Executives • Update status: <strong className="text-[#0F2B48]">Assigned ➔ In Progress ➔ Completed / Can't Complete</strong>
+            Super Admin assigns to Admins • Department Admins assign to Executives • Update status: <strong className="text-[#0A1E3F]">Assigned ➔ In Progress ➔ Completed / Can't Complete</strong>
           </p>
         </div>
         <button
           onClick={() => setIsTaskModalOpen(true)}
-          className="flex items-center justify-center space-x-1.5 rounded-xl bg-[#52A636] px-4 py-2.5 text-xs font-extrabold text-white shadow-md transition hover:bg-[#438A2B]"
+          className="flex items-center justify-center space-x-1.5 rounded-xl bg-[#C59B27] px-4 py-2.5 text-xs font-extrabold text-white shadow-md transition hover:bg-[#A68018]"
         >
           <Plus className="h-4 w-4" />
           <span>Assign New Task</span>
@@ -116,7 +116,7 @@ const TaskBoardPage = () => {
             <select
               value={departmentFilter}
               onChange={(e) => setDepartmentFilter(e.target.value)}
-              className="rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-[#0F2B48] outline-none cursor-pointer focus:border-[#52A636]"
+              className="rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-[#0A1E3F] outline-none cursor-pointer focus:border-[#C59B27]"
             >
               <option value="">All Departments</option>
               <option value="GST">GST</option>
@@ -129,7 +129,7 @@ const TaskBoardPage = () => {
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-[#0F2B48] outline-none cursor-pointer focus:border-[#52A636]"
+              className="rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-[#0A1E3F] outline-none cursor-pointer focus:border-[#C59B27]"
             >
               <option value="">All Statuses</option>
               <option value="Assigned">Assigned</option>
@@ -144,7 +144,7 @@ const TaskBoardPage = () => {
                 type="checkbox"
                 checked={myTasksOnly}
                 onChange={(e) => setMyTasksOnly(e.target.checked)}
-                className="h-3.5 w-3.5 rounded accent-[#52A636]"
+                className="h-3.5 w-3.5 rounded accent-[#C59B27]"
               />
               <span>My Assigned Only</span>
             </label>
@@ -155,7 +155,7 @@ const TaskBoardPage = () => {
             <button
               onClick={() => setViewMode('table')}
               className={`flex items-center space-x-1.5 rounded-lg px-3 py-1.5 text-xs font-bold transition ${
-                viewMode === 'table' ? 'bg-[#0F2B48] text-white shadow-xs' : 'text-slate-600 hover:text-slate-900'
+                viewMode === 'table' ? 'bg-[#0A1E3F] text-white shadow-xs' : 'text-slate-600 hover:text-slate-900'
               }`}
             >
               <Table className="h-3.5 w-3.5" />
@@ -164,7 +164,7 @@ const TaskBoardPage = () => {
             <button
               onClick={() => setViewMode('kanban')}
               className={`flex items-center space-x-1.5 rounded-lg px-3 py-1.5 text-xs font-bold transition ${
-                viewMode === 'kanban' ? 'bg-[#0F2B48] text-white shadow-xs' : 'text-slate-600 hover:text-slate-900'
+                viewMode === 'kanban' ? 'bg-[#0A1E3F] text-white shadow-xs' : 'text-slate-600 hover:text-slate-900'
               }`}
             >
               <KanbanSquare className="h-3.5 w-3.5" />

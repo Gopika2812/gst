@@ -5,10 +5,10 @@ import { Settings, Save, ShieldCheck, Mail, Bell, Building, Layers, ArrowRight }
 
 const SettingsPage = () => {
   const [firmInfo, setFirmInfo] = useState({
-    firmName: 'Vignesh Associates',
+    firmName: 'Royal Accounting',
     tagline: 'Chartered Accountants & Tax Consultants',
     phone: '+91 98765 43210',
-    email: 'contact@vigneshassociates.com',
+    email: 'contact@royalaccounting.co.in',
     address: 'No. 45, Mount Road, Guindy, Chennai - 600032',
     defaultGstRate: 18
   });
@@ -23,8 +23,8 @@ const SettingsPage = () => {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-lg sm:text-xl font-bold text-[#0F2B48]">ERP System Settings</h1>
-        <p className="text-xs text-slate-500">Configure Vignesh Associates firm profile, tax defaults & master services</p>
+        <h1 className="text-lg sm:text-xl font-bold text-[#0A1E3F]">ERP System Settings</h1>
+        <p className="text-xs text-slate-500">Configure Royal Accounting firm profile, tax defaults & master services</p>
       </div>
 
       {msg && <div className="rounded-xl bg-emerald-50 p-3 text-xs font-semibold text-emerald-700 border border-emerald-200">{msg}</div>}
@@ -38,7 +38,7 @@ const SettingsPage = () => {
                 type="text"
                 value={firmInfo.firmName}
                 onChange={(e) => setFirmInfo({ ...firmInfo, firmName: e.target.value })}
-                className="mt-1 w-full rounded-xl border border-slate-200 p-2.5 text-xs outline-none focus:border-[#52A636]"
+                className="mt-1 w-full rounded-xl border border-slate-200 p-2.5 text-xs outline-none focus:border-[#C59B27]"
               />
             </div>
             <div>
@@ -47,7 +47,7 @@ const SettingsPage = () => {
                 type="text"
                 value={firmInfo.tagline}
                 onChange={(e) => setFirmInfo({ ...firmInfo, tagline: e.target.value })}
-                className="mt-1 w-full rounded-xl border border-slate-200 p-2.5 text-xs outline-none focus:border-[#52A636]"
+                className="mt-1 w-full rounded-xl border border-slate-200 p-2.5 text-xs outline-none focus:border-[#C59B27]"
               />
             </div>
             <div>
@@ -56,7 +56,7 @@ const SettingsPage = () => {
                 type="text"
                 value={firmInfo.phone}
                 onChange={(e) => setFirmInfo({ ...firmInfo, phone: e.target.value })}
-                className="mt-1 w-full rounded-xl border border-slate-200 p-2.5 text-xs outline-none focus:border-[#52A636]"
+                className="mt-1 w-full rounded-xl border border-slate-200 p-2.5 text-xs outline-none focus:border-[#C59B27]"
               />
             </div>
             <div>
@@ -65,7 +65,7 @@ const SettingsPage = () => {
                 type="email"
                 value={firmInfo.email}
                 onChange={(e) => setFirmInfo({ ...firmInfo, email: e.target.value })}
-                className="mt-1 w-full rounded-xl border border-slate-200 p-2.5 text-xs outline-none focus:border-[#52A636]"
+                className="mt-1 w-full rounded-xl border border-slate-200 p-2.5 text-xs outline-none focus:border-[#C59B27]"
               />
             </div>
           </div>
@@ -75,8 +75,8 @@ const SettingsPage = () => {
         <GlacierCard title="Master Services & Sub-Services Setup">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mt-2 p-3 bg-slate-50 rounded-2xl border border-slate-200/80">
             <div>
-              <h4 className="text-xs font-extrabold text-[#0F2B48] flex items-center space-x-1.5">
-                <Layers className="h-4 w-4 text-[#52A636]" />
+              <h4 className="text-xs font-extrabold text-[#0A1E3F] flex items-center space-x-1.5">
+                <Layers className="h-4 w-4 text-[#C59B27]" />
                 <span>Department Services, Start Days & Due Days Master</span>
               </h4>
               <p className="text-[11px] text-slate-500 mt-0.5">
@@ -86,10 +86,10 @@ const SettingsPage = () => {
             <button
               type="button"
               onClick={() => setIsServiceModalOpen(true)}
-              className="flex items-center justify-center space-x-1.5 rounded-xl bg-[#0F2B48] px-4 py-2.5 text-xs font-bold text-white shadow-md hover:bg-[#16385C] transition shrink-0"
+              className="flex items-center justify-center space-x-1.5 rounded-xl bg-[#0A1E3F] px-4 py-2.5 text-xs font-bold text-white shadow-md hover:bg-[#16385C] transition shrink-0"
             >
               <span>Manage Services & Sub-Services</span>
-              <ArrowRight className="h-4 w-4 text-[#52A636]" />
+              <ArrowRight className="h-4 w-4 text-[#C59B27]" />
             </button>
           </div>
         </GlacierCard>
@@ -97,7 +97,7 @@ const SettingsPage = () => {
         <div className="flex justify-end">
           <button
             type="submit"
-            className="flex items-center justify-center space-x-1.5 rounded-xl bg-[#52A636] px-5 py-2.5 text-xs font-semibold text-white shadow-md transition hover:bg-[#438A2B] w-full sm:w-auto"
+            className="flex items-center justify-center space-x-1.5 rounded-xl bg-[#C59B27] px-5 py-2.5 text-xs font-semibold text-white shadow-md transition hover:bg-[#A68018] w-full sm:w-auto"
           >
             <Save className="h-4 w-4" />
             <span>Save System Settings</span>

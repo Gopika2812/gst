@@ -90,16 +90,16 @@ const Register = () => {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-[#0A1E36] bg-[url('/login_bg.jpg')] bg-cover bg-center bg-no-repeat p-4 relative overflow-hidden">
-      <div className="absolute inset-0 bg-slate-950/40 backdrop-blur-xs"></div>
+    <div className="flex min-h-screen items-center justify-center bg-[#07152B] bg-[url('/login_bg.jpg')] bg-cover bg-center bg-no-repeat p-4 relative overflow-hidden">
+      <div className="absolute inset-0 bg-[#07152B]/75 backdrop-blur-xs"></div>
       <div className="relative z-10 w-full max-w-md rounded-3xl bg-white/95 p-8 shadow-2xl backdrop-blur-xl border border-white/60">
         <div className="text-center">
-          <div className="mx-auto mb-3 flex h-16 w-16 items-center justify-center rounded-2xl bg-white p-1 shadow-md overflow-hidden border border-slate-200">
-            <img src="/logo.jpg" alt="Vignesh Associates Logo" className="h-full w-full object-cover rounded-xl" />
+          <div className="mx-auto mb-3 flex h-20 w-20 items-center justify-center rounded-2xl bg-white p-1 shadow-md overflow-hidden border border-[#C59B27]/40">
+            <img src="/logo_royal.jpeg" alt="Royal Accounting Logo" className="h-full w-full object-contain rounded-xl" />
           </div>
           <div className="flex items-center justify-center space-x-1.5">
-            <span className="rounded bg-[#0F2B48] px-2 py-0.5 font-extrabold text-sm text-white">Vignesh</span>
-            <span className="rounded bg-[#52A636] px-2 py-0.5 font-extrabold text-sm text-white">Associates</span>
+            <span className="rounded bg-[#0A1E3F] px-2.5 py-0.5 font-extrabold text-sm text-white tracking-wide">ROYAL</span>
+            <span className="rounded bg-[#C59B27] px-2.5 py-0.5 font-extrabold text-sm text-white tracking-wide">ACCOUNTING</span>
           </div>
           <h2 className="mt-2 text-xl font-bold text-slate-800">Staff Account Registration</h2>
           <p className="mt-1 text-xs text-slate-500">Requires Admin approval before login access</p>
@@ -110,7 +110,7 @@ const Register = () => {
             <CheckCircle2 className="h-6 w-6 text-emerald-600 mx-auto mb-1" />
             {successMsg}
             <div className="mt-3">
-              <Link to="/login" className="rounded-lg bg-[#0F2B48] px-4 py-1.5 text-white text-xs font-medium">
+              <Link to="/login" className="rounded-lg bg-[#0A1E3F] px-4 py-1.5 text-white text-xs font-medium border border-[#C59B27]/30">
                 Return to Login
               </Link>
             </div>
@@ -129,7 +129,7 @@ const Register = () => {
                 required
                 value={formData.name}
                 onChange={handleChange}
-                className="mt-1 w-full rounded-xl border border-slate-200 p-2 text-xs outline-none focus:border-[#52A636]"
+                className="mt-1 w-full rounded-xl border border-slate-200 p-2 text-xs outline-none focus:border-[#C59B27] focus:ring-1 focus:ring-[#C59B27]"
                 placeholder="e.g. Suresh Kumar"
               />
             </div>
@@ -141,8 +141,8 @@ const Register = () => {
                 required
                 value={formData.email}
                 onChange={handleChange}
-                className="mt-1 w-full rounded-xl border border-slate-200 p-2 text-xs outline-none focus:border-[#52A636]"
-                placeholder="suresh@vigneshassociates.com"
+                className="mt-1 w-full rounded-xl border border-slate-200 p-2 text-xs outline-none focus:border-[#C59B27] focus:ring-1 focus:ring-[#C59B27]"
+                placeholder="staff@royalaccounting.co.in"
               />
             </div>
             <div>
@@ -152,8 +152,8 @@ const Register = () => {
                 name="phone"
                 value={formData.phone}
                 onChange={handleChange}
-                className="mt-1 w-full rounded-xl border border-slate-200 p-2 text-xs outline-none focus:border-[#52A636]"
-                placeholder="+91 98765 43210"
+                className="mt-1 w-full rounded-xl border border-slate-200 p-2 text-xs outline-none focus:border-[#C59B27] focus:ring-1 focus:ring-[#C59B27]"
+                placeholder="+91 99943 60994"
               />
             </div>
             <div className="grid grid-cols-2 gap-2">
@@ -163,7 +163,7 @@ const Register = () => {
                   name="department"
                   value={formData.department}
                   onChange={handleDepartmentSelect}
-                  className="mt-1 w-full rounded-xl border border-slate-200 p-2 text-xs font-semibold text-[#0F2B48] outline-none focus:border-[#52A636]"
+                  className="mt-1 w-full rounded-xl border border-slate-200 p-2 text-xs font-semibold text-[#0A1E3F] outline-none focus:border-[#C59B27]"
                 >
                   <option value="GST">GST</option>
                   <option value="Income Tax">Income Tax</option>
@@ -179,7 +179,7 @@ const Register = () => {
                   name="role"
                   value={formData.role}
                   onChange={handleChange}
-                  className="mt-1 w-full rounded-xl border border-slate-200 p-2 text-xs font-semibold text-[#0F2B48] outline-none focus:border-[#52A636]"
+                  className="mt-1 w-full rounded-xl border border-slate-200 p-2 text-xs font-semibold text-[#0A1E3F] outline-none focus:border-[#C59B27]"
                 >
                   {getRoleOptionsForDept(formData.department).map((opt) => (
                     <option key={opt.value} value={opt.value}>
@@ -191,7 +191,7 @@ const Register = () => {
             </div>
             <div>
               <label className="text-xs font-semibold text-slate-700">Password *</label>
-              <div className="mt-1 flex items-center rounded-xl border border-slate-200 bg-white p-2 text-xs focus-within:border-[#52A636]">
+              <div className="mt-1 flex items-center rounded-xl border border-slate-200 bg-white p-2 text-xs focus-within:border-[#C59B27] focus-within:ring-1 focus-within:ring-[#C59B27]">
                 <Lock className="mr-2 h-4 w-4 text-slate-400 shrink-0" />
                 <input
                   type={showPassword ? 'text' : 'password'}
@@ -219,7 +219,7 @@ const Register = () => {
             <button
               type="submit"
               disabled={loading}
-              className="w-full rounded-xl bg-[#52A636] py-3 text-xs font-semibold text-white shadow-md transition hover:bg-[#438A2B]"
+              className="w-full rounded-xl bg-gradient-to-r from-[#0A1E3F] to-[#0E2A59] py-3 text-xs font-bold text-white shadow-lg shadow-[#0A1E3F]/25 border border-[#C59B27]/30 transition hover:from-[#07152B] hover:to-[#0A1E3F]"
             >
               {loading ? 'Submitting Registration...' : 'Register Account'}
             </button>
@@ -228,7 +228,7 @@ const Register = () => {
 
         <p className="mt-5 text-center text-xs text-slate-500">
           Already registered?{' '}
-          <Link to="/login" className="font-semibold text-[#0F2B48] hover:underline">
+          <Link to="/login" className="font-semibold text-[#0A1E3F] hover:text-[#C59B27] hover:underline">
             Back to Sign In
           </Link>
         </p>

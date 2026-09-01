@@ -137,14 +137,14 @@ const BookKeepingPage = () => {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
         <div>
-          <h1 className="text-lg sm:text-xl font-bold text-[#0F2B48]">Book Keeping Workspace</h1>
+          <h1 className="text-lg sm:text-xl font-bold text-[#0A1E3F]">Book Keeping Workspace</h1>
           <p className="text-xs text-slate-500">
             Assigned Client Accounts Queue • Status Updates (<span className="font-semibold text-blue-600">Assigned</span> ➔ <span className="font-semibold text-amber-600">In Progress</span> ➔ <span className="font-semibold text-emerald-600">Completed</span>) • Upload Statements
           </p>
         </div>
         <button
           onClick={() => handleOpenUploadModal()}
-          className="flex items-center justify-center space-x-1.5 rounded-xl bg-[#52A636] px-4 py-2.5 text-xs font-semibold text-white shadow-md transition hover:bg-[#438A2B] w-full sm:w-auto cursor-pointer"
+          className="flex items-center justify-center space-x-1.5 rounded-xl bg-[#C59B27] px-4 py-2.5 text-xs font-semibold text-white shadow-md transition hover:bg-[#A68018] w-full sm:w-auto cursor-pointer"
         >
           <Plus className="h-4 w-4" />
           <span>Upload Financial Sheet</span>
@@ -159,7 +159,7 @@ const BookKeepingPage = () => {
               <Calculator className="h-5 w-5" />
             </div>
             <div>
-              <h3 className="text-sm font-bold text-[#0F2B48]">Active Bookkeeping & Accounts Queue</h3>
+              <h3 className="text-sm font-bold text-[#0A1E3F]">Active Bookkeeping & Accounts Queue</h3>
               <p className="text-[11px] text-slate-500">
                 Assigned client accounting tasks ({filteredTasks.length} tasks)
               </p>
@@ -180,7 +180,7 @@ const BookKeepingPage = () => {
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="rounded-xl border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-semibold text-slate-700 outline-none focus:border-[#52A636]"
+              className="rounded-xl border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-semibold text-slate-700 outline-none focus:border-[#C59B27]"
             >
               <option value="">All Statuses</option>
               <option value="Assigned">Assigned (New)</option>
@@ -193,7 +193,7 @@ const BookKeepingPage = () => {
 
         <div className="overflow-x-auto rounded-xl border border-slate-100">
           <table className="w-full text-left text-xs min-w-[800px]">
-            <thead className="bg-[#0F2B48] text-white">
+            <thead className="bg-[#0A1E3F] text-white">
               <tr>
                 <th className="p-3 font-semibold">Client Name</th>
                 <th className="p-3 font-semibold">Service Type</th>
@@ -223,7 +223,7 @@ const BookKeepingPage = () => {
                       <td className="p-3 font-bold text-slate-800">
                         {t.client?.clientName || 'General Account Task'}
                       </td>
-                      <td className="p-3 font-semibold text-[#0F2B48]">{t.taskName}</td>
+                      <td className="p-3 font-semibold text-[#0A1E3F]">{t.taskName}</td>
                       <td className="p-3 text-slate-700 font-medium">
                         {t.assignedEmployee?.name || 'Assigned Staff'}
                       </td>
@@ -270,7 +270,7 @@ const BookKeepingPage = () => {
                           <button
                             onClick={() => handleOpenUploadModal(t.client, t)}
                             title="Upload Sheet & Mark Completed"
-                            className="inline-flex items-center space-x-1 rounded-lg bg-[#52A636] px-2.5 py-1 text-[11px] font-bold text-white shadow-2xs hover:bg-[#438A2B] transition cursor-pointer"
+                            className="inline-flex items-center space-x-1 rounded-lg bg-[#C59B27] px-2.5 py-1 text-[11px] font-bold text-white shadow-2xs hover:bg-[#A68018] transition cursor-pointer"
                           >
                             <Upload className="h-3.5 w-3.5" />
                             <span>Upload Sheet</span>
@@ -294,7 +294,7 @@ const BookKeepingPage = () => {
       <GlacierCard title="Book Keeping Submissions History" subtitle="Reconciliation references & financial statements" className="p-0 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs min-w-[700px]">
-            <thead className="bg-[#0F2B48] text-white">
+            <thead className="bg-[#0A1E3F] text-white">
               <tr>
                 <th className="p-3.5 font-semibold">Client Name</th>
                 <th className="p-3.5 font-semibold">Filing Period</th>
@@ -318,7 +318,7 @@ const BookKeepingPage = () => {
                 filings.map((f) => (
                   <tr key={f._id} className="hover:bg-slate-50">
                     <td className="p-3.5 font-bold text-slate-800">{f.client?.clientName}</td>
-                    <td className="p-3.5 font-semibold text-[#0F2B48]">{f.filingPeriod}</td>
+                    <td className="p-3.5 font-semibold text-[#0A1E3F]">{f.filingPeriod}</td>
                     <td className="p-3.5 font-mono text-[11px] text-slate-700">{f.acknowledgementNumber || 'REC-PASSED'}</td>
                     <td className="p-3.5 text-slate-600">{new Date(f.filingDate).toLocaleDateString('en-IN')}</td>
                     <td className="p-3.5 font-medium text-slate-800">{f.filedBy?.name || 'Book Keeping Staff'}</td>
@@ -331,7 +331,7 @@ const BookKeepingPage = () => {
                           href={f.filedDocumentUrl}
                           target="_blank"
                           rel="noreferrer"
-                          className="inline-flex items-center space-x-1 text-[11px] font-semibold text-[#52A636] hover:underline"
+                          className="inline-flex items-center space-x-1 text-[11px] font-semibold text-[#C59B27] hover:underline"
                         >
                           <Download className="h-3.5 w-3.5" />
                           <span>View Sheet</span>

@@ -22,11 +22,11 @@ const ForgotPassword = () => {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-[#0A1E36] bg-[url('/login_bg.jpg')] bg-cover bg-center bg-no-repeat p-4 relative overflow-hidden">
-      <div className="absolute inset-0 bg-slate-950/40 backdrop-blur-xs"></div>
+    <div className="flex min-h-screen items-center justify-center bg-[#07152B] bg-[url('/login_bg.jpg')] bg-cover bg-center bg-no-repeat p-4 relative overflow-hidden">
+      <div className="absolute inset-0 bg-[#07152B]/75 backdrop-blur-xs"></div>
       <div className="relative z-10 w-full max-w-md rounded-3xl bg-white/95 p-8 shadow-2xl backdrop-blur-xl border border-white/60">
         <div className="text-center">
-          <h2 className="text-xl font-bold text-[#0F2B48]">Reset Password</h2>
+          <h2 className="text-xl font-bold text-[#0A1E3F]">Reset Password</h2>
           <p className="mt-1 text-xs text-slate-500">Enter your registered email address to receive reset link</p>
         </div>
 
@@ -35,7 +35,7 @@ const ForgotPassword = () => {
             <CheckCircle2 className="h-5 w-5 mx-auto mb-1 text-emerald-600" />
             {msg}
             <div className="mt-3">
-              <Link to="/login" className="font-semibold text-[#0F2B48] underline">
+              <Link to="/login" className="font-semibold text-[#0A1E3F] underline">
                 Return to Login
               </Link>
             </div>
@@ -49,14 +49,14 @@ const ForgotPassword = () => {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="mt-1 w-full rounded-xl border border-slate-200 p-2.5 text-xs outline-none focus:border-[#52A636]"
-                placeholder="user@vigneshassociates.com"
+                className="mt-1 w-full rounded-xl border border-slate-200 p-2.5 text-xs outline-none focus:border-[#C59B27] focus:ring-1 focus:ring-[#C59B27]"
+                placeholder="staff@royalaccounting.co.in"
               />
             </div>
             <button
               type="submit"
               disabled={loading}
-              className="w-full rounded-xl bg-[#52A636] py-3 text-xs font-semibold text-white shadow-md hover:bg-[#438A2B]"
+              className="w-full rounded-xl bg-gradient-to-r from-[#0A1E3F] to-[#0E2A59] py-3 text-xs font-bold text-white shadow-lg shadow-[#0A1E3F]/25 border border-[#C59B27]/30 transition hover:from-[#07152B] hover:to-[#0A1E3F]"
             >
               {loading ? 'Sending Link...' : 'Send Reset Link'}
             </button>
