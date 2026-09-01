@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { X, Calendar, UserCheck, AlertCircle, FileText, Building2, User, CheckCircle2 } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { X, Calendar, UserCheck, AlertCircle, FileText, Building2, User, Search, ChevronDown, Check } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import api from '../../services/api';
 
@@ -13,6 +13,11 @@ const TaskModal = ({ isOpen, onClose, onRefresh, employees = [], clients = [], d
   const [selectedClient, setSelectedClient] = useState('');
   const [dueDate, setDueDate] = useState('');
   const [priority, setPriority] = useState('Medium');
+
+  // Client Search state
+  const [clientSearchQuery, setClientSearchQuery] = useState('');
+  const [isClientDropdownOpen, setIsClientDropdownOpen] = useState(false);
+  const clientDropdownRef = useRef(null);
 
   const [localEmployees, setLocalEmployees] = useState(employees);
   const [localClients, setLocalClients] = useState(clients);
@@ -43,6 +48,17 @@ const TaskModal = ({ isOpen, onClose, onRefresh, employees = [], clients = [], d
       }
     }
   }, [defaultAssignee, isOpen]);
+
+  // Click outside to close client dropdown
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (clientDropdownRef.current && !clientDropdownRef.current.contains(event.target)) {
+        setIsClientDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   if (!isOpen) return null;
 
@@ -84,6 +100,7 @@ const TaskModal = ({ isOpen, onClose, onRefresh, employees = [], clients = [], d
       // Reset Form State
       setTaskName('');
       setSelectedClient('');
+      setClientSearchQuery('');
       setRemarks('');
       setDueDate('');
       setPriority('Medium');
@@ -98,6 +115,30 @@ const TaskModal = ({ isOpen, onClose, onRefresh, employees = [], clients = [], d
   };
 
   const currentClientObj = localClients.find((c) => c._id === selectedClient);
+
+  const filteredClients = localClients.filter((c) => {
+    const q = clientSearchQuery.toLowerCase().trim();
+    if (!q) return true;
+    return (
+      (c.clientName && c.clientName.toLowerCase().includes(q)) ||
+      (c.tradeName && c.tradeName.toLowerCase().includes(q)) ||
+      (c.phone && c.phone.includes(q)) ||
+      (c.email && c.email.toLowerCase().includes(q))
+    );
+  });
+
+  const handleSelectClient = (client) => {
+    if (!client) {
+      setSelectedClient('');
+      setIsClientDropdownOpen(false);
+      return;
+    }
+    setSelectedClient(client._id);
+    setIsClientDropdownOpen(false);
+    if (!taskName.trim()) {
+      setTaskName(`${department} Service - ${client.clientName}`);
+    }
+  };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-3 sm:p-4 backdrop-blur-sm overflow-y-auto">
@@ -157,53 +198,118 @@ const TaskModal = ({ isOpen, onClose, onRefresh, employees = [], clients = [], d
             </div>
           </div>
 
-          {/* 2. Registered Client Selection (Optional) */}
-          <div>
+          {/* 2. Searchable Registered Client Selection */}
+          <div ref={clientDropdownRef} className="relative">
             <div className="flex items-center justify-between mb-1.5">
               <label className="text-xs font-bold text-slate-700 flex items-center space-x-1.5">
                 <User className="h-4 w-4 text-[#0A1E3F]" />
-                <span>Select Registered Client (Optional)</span>
+                <span>Registered Client (Optional)</span>
               </label>
               {selectedClient && (
                 <button
                   type="button"
-                  onClick={() => setSelectedClient('')}
-                  className="text-[11px] font-semibold text-rose-500 hover:underline"
+                  onClick={() => {
+                    setSelectedClient('');
+                    setClientSearchQuery('');
+                  }}
+                  className="text-[11px] font-semibold text-rose-600 hover:underline cursor-pointer"
                 >
                   Clear Selection
                 </button>
               )}
             </div>
-            <select
-              value={selectedClient}
-              onChange={(e) => {
-                const cId = e.target.value;
-                setSelectedClient(cId);
-                const found = localClients.find((c) => c._id === cId);
-                if (found && !taskName) {
-                  setTaskName(`${department} Service - ${found.clientName}`);
-                }
-              }}
-              className="w-full rounded-xl border border-slate-200 bg-slate-50/50 p-2.5 text-xs font-medium text-slate-800 outline-none transition focus:border-[#C59B27] focus:bg-white"
+
+            {/* Custom Dropdown Trigger Button */}
+            <div
+              onClick={() => setIsClientDropdownOpen(!isClientDropdownOpen)}
+              className={`w-full rounded-xl border p-2.5 text-xs font-medium transition cursor-pointer flex items-center justify-between ${
+                isClientDropdownOpen
+                  ? 'border-[#C59B27] bg-white ring-2 ring-[#C59B27]/20'
+                  : 'border-slate-200 bg-slate-50/50 hover:bg-slate-50'
+              }`}
             >
-              <option value="">-- No Client (Internal General Task) --</option>
-              {localClients
-                .filter((c) => c.status === 'Active' || !c.status)
-                .map((client) => (
-                  <option key={client._id} value={client._id}>
-                    🏢 {client.clientName} {client.tradeName ? `(${client.tradeName})` : ''} {client.phone ? `• 📞 ${client.phone}` : ''}
-                  </option>
-                ))}
-            </select>
-            {currentClientObj && (
-              <div className="mt-2 flex items-center justify-between rounded-xl bg-amber-50/60 p-2.5 border border-amber-200/60 text-xs">
-                <div className="flex items-center space-x-2 text-[#0A1E3F]">
-                  <CheckCircle2 className="h-4 w-4 text-[#C59B27] shrink-0" />
-                  <span className="font-semibold">Linked Client: <strong>{currentClientObj.clientName}</strong></span>
+              <div className="truncate pr-2">
+                {currentClientObj ? (
+                  <span className="font-bold text-[#0A1E3F]">
+                    {currentClientObj.clientName}
+                    {currentClientObj.tradeName ? ` (${currentClientObj.tradeName})` : ''}
+                    {currentClientObj.phone ? ` - ${currentClientObj.phone}` : ''}
+                  </span>
+                ) : (
+                  <span className="text-slate-400">Select registered client or leave empty for general task...</span>
+                )}
+              </div>
+              <ChevronDown className={`h-4 w-4 text-slate-400 shrink-0 transition-transform duration-200 ${isClientDropdownOpen ? 'rotate-180 text-[#C59B27]' : ''}`} />
+            </div>
+
+            {/* Search Dropdown Menu */}
+            {isClientDropdownOpen && (
+              <div className="absolute left-0 right-0 top-full z-50 mt-1.5 max-h-64 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xl flex flex-col">
+                {/* Search Bar Input */}
+                <div className="p-2 border-b border-slate-100 bg-slate-50/70">
+                  <div className="relative flex items-center">
+                    <Search className="absolute left-2.5 h-3.5 w-3.5 text-slate-400" />
+                    <input
+                      type="text"
+                      autoFocus
+                      value={clientSearchQuery}
+                      onChange={(e) => setClientSearchQuery(e.target.value)}
+                      placeholder="Search client by name, trade name, or phone..."
+                      className="w-full rounded-lg border border-slate-200 bg-white py-1.5 pl-8 pr-3 text-xs text-slate-800 outline-none focus:border-[#C59B27]"
+                    />
+                    {clientSearchQuery && (
+                      <button
+                        type="button"
+                        onClick={() => setClientSearchQuery('')}
+                        className="absolute right-2 text-slate-400 hover:text-slate-600"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    )}
+                  </div>
                 </div>
-                <span className="text-[11px] font-bold text-amber-800 bg-amber-100 px-2 py-0.5 rounded-md">
-                  Client Task
-                </span>
+
+                {/* Clients List */}
+                <div className="overflow-y-auto max-h-48 divide-y divide-slate-50 p-1">
+                  {/* Option: No Client */}
+                  <div
+                    onClick={() => handleSelectClient(null)}
+                    className={`flex items-center justify-between rounded-xl px-3 py-2 text-xs transition cursor-pointer ${
+                      !selectedClient ? 'bg-amber-50 text-[#C59B27] font-bold' : 'text-slate-600 hover:bg-slate-50'
+                    }`}
+                  >
+                    <span>No Client (Internal General Task)</span>
+                    {!selectedClient && <Check className="h-4 w-4 text-[#C59B27]" />}
+                  </div>
+
+                  {filteredClients.map((client) => {
+                    const isSelected = selectedClient === client._id;
+                    return (
+                      <div
+                        key={client._id}
+                        onClick={() => handleSelectClient(client)}
+                        className={`flex items-center justify-between rounded-xl px-3 py-2 text-xs transition cursor-pointer ${
+                          isSelected ? 'bg-amber-50 text-[#0A1E3F] font-bold' : 'hover:bg-slate-50 text-slate-700'
+                        }`}
+                      >
+                        <div className="truncate pr-2">
+                          <div className="font-semibold text-[#0A1E3F] truncate">{client.clientName}</div>
+                          <div className="text-[11px] text-slate-400 truncate">
+                            {client.tradeName && <span className="mr-2">{client.tradeName}</span>}
+                            {client.phone && <span>{client.phone}</span>}
+                          </div>
+                        </div>
+                        {isSelected && <Check className="h-4 w-4 text-[#C59B27] shrink-0" />}
+                      </div>
+                    );
+                  })}
+
+                  {filteredClients.length === 0 && (
+                    <div className="py-4 text-center text-xs text-slate-400">
+                      No matching clients found
+                    </div>
+                  )}
+                </div>
               </div>
             )}
           </div>
@@ -259,7 +365,7 @@ const TaskModal = ({ isOpen, onClose, onRefresh, employees = [], clients = [], d
                     .filter((e) => e.role && e.role.includes('Admin') && e.role !== 'Super Admin')
                     .map((e) => (
                       <option key={e._id} value={e._id}>
-                        👑 {e.name} ({e.designation || e.role} - {e.department})
+                        {e.name} ({e.designation || e.role} - {e.department})
                       </option>
                     ))}
                 </optgroup>
@@ -268,7 +374,7 @@ const TaskModal = ({ isOpen, onClose, onRefresh, employees = [], clients = [], d
                     .filter((e) => !e.role || !e.role.includes('Admin'))
                     .map((e) => (
                       <option key={e._id} value={e._id}>
-                        👤 {e.name} ({e.designation || e.role} - {e.department})
+                        {e.name} ({e.designation || e.role} - {e.department})
                       </option>
                     ))}
                 </optgroup>
@@ -314,14 +420,14 @@ const TaskModal = ({ isOpen, onClose, onRefresh, employees = [], clients = [], d
             <button
               type="button"
               onClick={onClose}
-              className="rounded-xl border border-slate-200 px-4 py-2.5 text-xs font-bold text-slate-600 hover:bg-slate-50 transition"
+              className="rounded-xl border border-slate-200 px-4 py-2.5 text-xs font-bold text-slate-600 hover:bg-slate-50 transition cursor-pointer"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={loading}
-              className="rounded-xl bg-[#C59B27] px-5 py-2.5 text-xs font-extrabold text-white shadow-md transition hover:bg-[#A68018] disabled:opacity-50"
+              className="rounded-xl bg-[#C59B27] px-5 py-2.5 text-xs font-extrabold text-white shadow-md transition hover:bg-[#A68018] disabled:opacity-50 cursor-pointer"
             >
               {loading ? 'Assigning Task...' : 'Assign Task'}
             </button>
