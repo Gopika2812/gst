@@ -4,7 +4,7 @@ import Badge from '../components/common/Badge';
 import InvoiceModal from '../components/billing/InvoiceModal';
 import AssignTaskModal from '../components/billing/AssignTaskModal';
 import api from '../services/api';
-import { Plus, Download, Mail, Share2, Printer, Search, CheckCircle2, RefreshCw, UserPlus, UserCheck } from 'lucide-react';
+import { Plus, Download, Mail, Share2, Printer, Search, CheckCircle2, RefreshCw, UserPlus, UserCheck, Edit3 } from 'lucide-react';
 
 const formatInvoiceNumber = (num) => {
   if (!num) return 'INV00126';
@@ -27,6 +27,7 @@ const BillingPage = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
   const [selectedInvoiceForAssign, setSelectedInvoiceForAssign] = useState(null);
+  const [selectedInvoiceForEdit, setSelectedInvoiceForEdit] = useState(null);
 
   const fetchBillingData = async () => {
     setLoading(true);
@@ -102,7 +103,10 @@ const BillingPage = () => {
           <p className="text-xs text-slate-500">Auto invoice generation, PDF downloads, WhatsApp sharing & task workflow push</p>
         </div>
         <button
-          onClick={() => setIsModalOpen(true)}
+          onClick={() => {
+            setSelectedInvoiceForEdit(null);
+            setIsModalOpen(true);
+          }}
           className="flex items-center justify-center space-x-1.5 rounded-xl bg-[#C59B27] px-4 py-2.5 text-xs font-semibold text-white shadow-md transition hover:bg-[#A68018] w-full sm:w-auto cursor-pointer"
         >
           <Plus className="h-4 w-4" />
@@ -198,6 +202,16 @@ const BillingPage = () => {
                       <td className="p-3.5 text-center">
                         <div className="flex items-center justify-center space-x-1.5">
                           <button
+                            onClick={() => {
+                              setSelectedInvoiceForEdit(inv);
+                              setIsModalOpen(true);
+                            }}
+                            title="Edit Tax Invoice Details"
+                            className="rounded-lg p-1.5 text-amber-700 bg-amber-50 hover:bg-[#C59B27] hover:text-white transition shadow-2xs cursor-pointer"
+                          >
+                            <Edit3 className="h-4 w-4" />
+                          </button>
+                          <button
                             onClick={() => handleOpenAssignModal(inv)}
                             title="Assign Client to Department & Executive"
                             className="rounded-lg p-1.5 text-emerald-700 bg-emerald-50 hover:bg-[#C59B27] hover:text-white transition shadow-2xs cursor-pointer"
@@ -231,10 +245,14 @@ const BillingPage = () => {
 
       <InvoiceModal
         isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
+        onClose={() => {
+          setIsModalOpen(false);
+          setSelectedInvoiceForEdit(null);
+        }}
         onRefresh={fetchBillingData}
         clients={clients}
         employees={employees}
+        invoice={selectedInvoiceForEdit}
       />
 
       <AssignTaskModal

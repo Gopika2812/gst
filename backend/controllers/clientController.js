@@ -15,6 +15,43 @@ exports.createClient = async (req, res) => {
   try {
     const clientData = { ...req.body };
 
+    // Duplicate Checks: Prevent duplicate client entries by Phone, GSTIN, or PAN
+    if (clientData.phone && clientData.phone.trim()) {
+      const cleanPhone = clientData.phone.trim();
+      const existingPhone = await Client.findOne({
+        $or: [
+          { phone: cleanPhone },
+          { phone: `+91${cleanPhone}` },
+          { phone: cleanPhone.replace('+91', '') }
+        ]
+      });
+      if (existingPhone && clientData.registrationCategory === 'New Client') {
+        return res.status(400).json({
+          message: `Duplicate Client Error: A client with phone number "${cleanPhone}" already exists (${existingPhone.clientName} - ${existingPhone.clientCode}).`
+        });
+      }
+    }
+
+    if (clientData.gstin && clientData.gstin.trim() && clientData.gstin.trim().toUpperCase() !== 'N/A') {
+      const cleanGstin = clientData.gstin.trim().toUpperCase();
+      const existingGstin = await Client.findOne({ gstin: cleanGstin });
+      if (existingGstin) {
+        return res.status(400).json({
+          message: `Duplicate Client Error: A client with GSTIN "${cleanGstin}" already exists (${existingGstin.clientName} - ${existingGstin.clientCode}).`
+        });
+      }
+    }
+
+    if (clientData.pan && clientData.pan.trim() && clientData.pan.trim().toUpperCase() !== 'N/A') {
+      const cleanPan = clientData.pan.trim().toUpperCase();
+      const existingPan = await Client.findOne({ pan: cleanPan });
+      if (existingPan && clientData.registrationCategory === 'New Client') {
+        return res.status(400).json({
+          message: `Duplicate Client Error: A client with PAN "${cleanPan}" already exists (${existingPan.clientName} - ${existingPan.clientCode}).`
+        });
+      }
+    }
+
     // Sanitize empty strings for ObjectId/Date fields
     if (!clientData.responsibleEmployee) delete clientData.responsibleEmployee;
     if (!clientData.dateOfIncorporation) delete clientData.dateOfIncorporation;

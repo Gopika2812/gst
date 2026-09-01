@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { X, Plus, Trash2, ArrowRight, ShieldCheck, CheckSquare } from 'lucide-react';
 import api from '../../services/api';
 
-const InvoiceModal = ({ isOpen, onClose, onRefresh, clients = [], employees = [] }) => {
+const InvoiceModal = ({ isOpen, onClose, onRefresh, clients = [], employees = [], invoice = null }) => {
   const [selectedClient, setSelectedClient] = useState('');
   const [serviceType, setServiceType] = useState('GST Filing GSTR-3B & GSTR-1');
   const [items, setItems] = useState([{ description: 'GST Monthly Filing Fee', amount: 5000 }]);
@@ -31,7 +31,31 @@ const InvoiceModal = ({ isOpen, onClose, onRefresh, clients = [], employees = []
     } else if (isOpen) {
       api.get('/users').then((res) => setLocalEmployees(res.data)).catch(console.error);
     }
-  }, [isOpen, employees]);
+
+    if (isOpen) {
+      if (invoice) {
+        setSelectedClient(invoice.client?._id || invoice.client || '');
+        setServiceType(invoice.serviceType || 'GST Filing GSTR-3B & GSTR-1');
+        setItems(invoice.items?.length ? invoice.items : [{ description: invoice.serviceType || 'Service', amount: invoice.subTotal || 0 }]);
+        setGstPercent(invoice.gstPercent ?? 18);
+        setDiscount(invoice.discount || 0);
+        setPaidAmount(invoice.paidAmount || 0);
+        setPaymentMode(invoice.paymentMode || 'Bank Transfer');
+        setRemarks(invoice.remarks || '');
+        setMoveToTaskAssignment(false);
+      } else {
+        setSelectedClient('');
+        setServiceType('GST Filing GSTR-3B & GSTR-1');
+        setItems([{ description: 'GST Monthly Filing Fee', amount: 5000 }]);
+        setGstPercent(18);
+        setDiscount(0);
+        setPaidAmount(0);
+        setPaymentMode('Bank Transfer');
+        setRemarks('');
+        setMoveToTaskAssignment(true);
+      }
+    }
+  }, [isOpen, employees, invoice]);
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -104,29 +128,44 @@ const InvoiceModal = ({ isOpen, onClose, onRefresh, clients = [], employees = []
     setError('');
 
     try {
-      await api.post('/invoices', {
-        client: selectedClient,
-        serviceType,
-        items,
-        subTotal,
-        gstPercent,
-        gstAmount,
-        discount,
-        total,
-        paidAmount,
-        paymentMode,
-        remarks,
-        moveToTaskAssignment,
-        assignedGroup,
-        assignedEmployee,
-        taskDueDate,
-        taskPriority
-      });
+      if (invoice) {
+        await api.put(`/invoices/${invoice._id}`, {
+          serviceType,
+          items,
+          subTotal,
+          gstPercent,
+          gstAmount,
+          discount,
+          total,
+          paidAmount,
+          paymentMode,
+          remarks
+        });
+      } else {
+        await api.post('/invoices', {
+          client: selectedClient,
+          serviceType,
+          items,
+          subTotal,
+          gstPercent,
+          gstAmount,
+          discount,
+          total,
+          paidAmount,
+          paymentMode,
+          remarks,
+          moveToTaskAssignment,
+          assignedGroup,
+          assignedEmployee,
+          taskDueDate,
+          taskPriority
+        });
+      }
 
       onRefresh && onRefresh();
       onClose();
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to generate invoice');
+      setError(err.response?.data?.message || (invoice ? 'Failed to update invoice' : 'Failed to generate invoice'));
     } finally {
       setLoading(false);
     }
@@ -137,8 +176,8 @@ const InvoiceModal = ({ isOpen, onClose, onRefresh, clients = [], employees = []
       <div className="relative w-full max-w-3xl rounded-2xl bg-white p-6 shadow-2xl max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between border-b border-slate-100 pb-4">
           <div>
-            <h3 className="text-lg font-bold text-[#0A1E3F]">Generate Tax Invoice (Module 3)</h3>
-            <p className="text-xs text-slate-500">Auto-calculate taxes, ledgers, and push to task workflow</p>
+            <h3 className="text-lg font-bold text-[#0A1E3F]">{invoice ? `Edit Tax Invoice (${invoice.invoiceNumber})` : 'Generate Tax Invoice (Module 3)'}</h3>
+            <p className="text-xs text-slate-500">{invoice ? 'Update invoice amounts, items, taxes and payment status' : 'Auto-calculate taxes, ledgers, and push to task workflow'}</p>
           </div>
           <button onClick={onClose} className="rounded-xl p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600">
             <X className="h-5 w-5" />
@@ -382,9 +421,9 @@ const InvoiceModal = ({ isOpen, onClose, onRefresh, clients = [], employees = []
             <button
               type="submit"
               disabled={loading}
-              className="rounded-xl bg-[#C59B27] px-5 py-2 text-xs font-semibold text-white shadow-md transition hover:bg-[#A68018]"
+              className="rounded-xl bg-[#C59B27] px-5 py-2 text-xs font-semibold text-white shadow-md transition hover:bg-[#A68018] cursor-pointer disabled:opacity-50"
             >
-              {loading ? 'Generating...' : 'Generate Tax Invoice'}
+              {loading ? (invoice ? 'Saving Changes...' : 'Generating...') : (invoice ? 'Update Tax Invoice' : 'Generate Tax Invoice')}
             </button>
           </div>
         </form>

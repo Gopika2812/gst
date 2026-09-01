@@ -3,21 +3,27 @@ import GlacierCard from '../components/common/GlacierCard';
 import StatCard from '../components/common/StatCard';
 import Badge from '../components/common/Badge';
 import api from '../services/api';
-import { BookOpen, Plus, Printer, Download, CreditCard, ArrowDownRight, ArrowUpRight } from 'lucide-react';
+import { BookOpen, Plus, Printer, Download, CreditCard, ArrowDownRight, ArrowUpRight, Edit3, Trash2, X } from 'lucide-react';
 
 const LedgerPage = () => {
   const [clients, setClients] = useState([]);
   const [selectedClientId, setSelectedClientId] = useState('');
   const [ledgerData, setLedgerData] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
   const [isTransactionModalOpen, setIsTransactionModalOpen] = useState(false);
+  const [editingTransaction, setEditingTransaction] = useState(null);
+
   const [txData, setTxData] = useState({
     transactionType: 'Payment Received',
     referenceNumber: '',
     amount: '',
-    description: ''
+    description: '',
+    date: new Date().toISOString().split('T')[0]
   });
+
+  const [formError, setFormError] = useState('');
 
   useEffect(() => {
     const fetchClients = async () => {
@@ -53,17 +59,65 @@ const LedgerPage = () => {
     }
   }, [selectedClientId]);
 
+  const handleOpenCreateModal = () => {
+    setEditingTransaction(null);
+    setTxData({
+      transactionType: 'Payment Received',
+      referenceNumber: '',
+      amount: '',
+      description: '',
+      date: new Date().toISOString().split('T')[0]
+    });
+    setFormError('');
+    setIsTransactionModalOpen(true);
+  };
+
+  const handleOpenEditModal = (entry) => {
+    setEditingTransaction(entry);
+    setTxData({
+      transactionType: entry.transactionType,
+      referenceNumber: entry.referenceNumber || '',
+      amount: entry.credit || entry.debit || '',
+      description: entry.description || '',
+      date: entry.date ? new Date(entry.date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0]
+    });
+    setFormError('');
+    setIsTransactionModalOpen(true);
+  };
+
   const handleTransactionSubmit = async (e) => {
     e.preventDefault();
+    if (submitting) return;
+
+    setSubmitting(true);
+    setFormError('');
+
     try {
-      await api.post('/ledgers/transaction', {
-        client: selectedClientId,
-        ...txData
-      });
+      if (editingTransaction) {
+        await api.put(`/ledgers/transaction/${editingTransaction._id}`, txData);
+      } else {
+        await api.post('/ledgers/transaction', {
+          client: selectedClientId,
+          ...txData
+        });
+      }
       setIsTransactionModalOpen(false);
       fetchLedger(selectedClientId);
     } catch (err) {
-      alert('Failed to record transaction');
+      setFormError(err.response?.data?.message || 'Failed to record transaction');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleDeleteTransaction = async (entry) => {
+    if (window.confirm(`Are you sure you want to remove this ${entry.transactionType} entry (₹${(entry.credit || entry.debit)?.toLocaleString('en-IN')})? This will automatically recalculate the client's balance.`)) {
+      try {
+        await api.delete(`/ledgers/transaction/${entry._id}`);
+        fetchLedger(selectedClientId);
+      } catch (err) {
+        alert(err.response?.data?.message || 'Failed to remove transaction');
+      }
     }
   };
 
@@ -82,7 +136,7 @@ const LedgerPage = () => {
           <select
             value={selectedClientId}
             onChange={(e) => setSelectedClientId(e.target.value)}
-            className="w-full sm:w-auto rounded-xl border border-slate-200 bg-white p-2 text-xs font-bold text-[#0A1E3F] shadow-xs outline-none focus:border-[#C59B27]"
+            className="w-full sm:w-auto rounded-xl border border-slate-200 bg-white p-2 text-xs font-bold text-[#0A1E3F] shadow-xs outline-none focus:border-[#C59B27] cursor-pointer"
           >
             {clients.map((c) => (
               <option key={c._id} value={c._id}>
@@ -91,8 +145,8 @@ const LedgerPage = () => {
             ))}
           </select>
           <button
-            onClick={() => setIsTransactionModalOpen(true)}
-            className="flex items-center justify-center space-x-1.5 rounded-xl bg-[#C59B27] px-4 py-2 text-xs font-semibold text-white shadow-md transition hover:bg-[#A68018] w-full sm:w-auto shrink-0"
+            onClick={handleOpenCreateModal}
+            className="flex items-center justify-center space-x-1.5 rounded-xl bg-[#C59B27] px-4 py-2 text-xs font-semibold text-white shadow-md transition hover:bg-[#A68018] w-full sm:w-auto shrink-0 cursor-pointer"
           >
             <Plus className="h-4 w-4" />
             <span>Record Payment</span>
@@ -132,7 +186,7 @@ const LedgerPage = () => {
           <h3 className="font-bold text-slate-800 text-sm">Statement of Account: {clientInfo?.clientName}</h3>
           <button
             onClick={() => window.print()}
-            className="flex items-center space-x-1 text-xs font-semibold text-[#0A1E3F] hover:underline"
+            className="flex items-center space-x-1 text-xs font-semibold text-[#0A1E3F] hover:underline cursor-pointer"
           >
             <Printer className="h-4 w-4" />
             <span>Print Ledger</span>
@@ -140,7 +194,7 @@ const LedgerPage = () => {
         </div>
 
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs min-w-[750px]">
+          <table className="w-full text-left text-xs min-w-[850px]">
             <thead className="bg-[#0A1E3F] text-white">
               <tr>
                 <th className="p-3.5 font-semibold">Date</th>
@@ -150,20 +204,21 @@ const LedgerPage = () => {
                 <th className="p-3.5 font-semibold text-right">Debit (₹)</th>
                 <th className="p-3.5 font-semibold text-right">Credit (₹)</th>
                 <th className="p-3.5 font-semibold text-right">Running Balance (₹)</th>
+                <th className="p-3.5 font-semibold text-center">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {loading ? (
                 <tr>
-                  <td colSpan={7} className="p-8 text-center text-slate-400">Loading ledger statement...</td>
+                  <td colSpan={8} className="p-8 text-center text-slate-400">Loading ledger statement...</td>
                 </tr>
               ) : entries.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="p-8 text-center text-slate-400">No transactions recorded</td>
+                  <td colSpan={8} className="p-8 text-center text-slate-400">No transactions recorded</td>
                 </tr>
               ) : (
                 entries.map((e) => (
-                  <tr key={e._id} className="hover:bg-slate-50">
+                  <tr key={e._id} className="hover:bg-slate-50 transition">
                     <td className="p-3.5 text-slate-600">
                       {new Date(e.date).toLocaleDateString('en-IN')}
                     </td>
@@ -181,6 +236,24 @@ const LedgerPage = () => {
                     <td className="p-3.5 text-right font-bold text-[#0A1E3F]">
                       ₹{e.runningBalance.toLocaleString('en-IN')}
                     </td>
+                    <td className="p-3.5 text-center">
+                      <div className="flex items-center justify-center space-x-1.5">
+                        <button
+                          onClick={() => handleOpenEditModal(e)}
+                          title="Edit Transaction Entry"
+                          className="rounded-lg p-1.5 text-slate-600 hover:bg-amber-50 hover:text-[#C59B27] transition cursor-pointer"
+                        >
+                          <Edit3 className="h-4 w-4" />
+                        </button>
+                        <button
+                          onClick={() => handleDeleteTransaction(e)}
+                          title="Remove Transaction Entry"
+                          className="rounded-lg p-1.5 text-rose-600 hover:bg-rose-50 transition cursor-pointer"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </div>
+                    </td>
                   </tr>
                 ))
               )}
@@ -189,12 +262,30 @@ const LedgerPage = () => {
         </div>
       </GlacierCard>
 
-      {/* Record Payment Modal */}
+      {/* Record / Edit Payment Modal */}
       {isTransactionModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-sm">
           <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl">
-            <h3 className="text-base font-bold text-[#0A1E3F]">Record Payment / Ledger Entry</h3>
-            <p className="text-xs text-slate-500 mt-0.5">Client: {clientInfo?.clientName}</p>
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div>
+                <h3 className="text-base font-bold text-[#0A1E3F]">
+                  {editingTransaction ? 'Edit Ledger / Payment Entry' : 'Record Payment / Ledger Entry'}
+                </h3>
+                <p className="text-xs text-slate-500 mt-0.5">Client: {clientInfo?.clientName}</p>
+              </div>
+              <button
+                onClick={() => setIsTransactionModalOpen(false)}
+                className="rounded-xl p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            {formError && (
+              <div className="mt-3 rounded-xl bg-rose-50 p-2.5 text-xs font-semibold text-rose-600 border border-rose-200">
+                {formError}
+              </div>
+            )}
 
             <form onSubmit={handleTransactionSubmit} className="mt-4 space-y-3 text-xs">
               <div>
@@ -202,7 +293,7 @@ const LedgerPage = () => {
                 <select
                   value={txData.transactionType}
                   onChange={(e) => setTxData({ ...txData, transactionType: e.target.value })}
-                  className="mt-1 w-full rounded-xl border border-slate-200 p-2 outline-none"
+                  className="mt-1 w-full rounded-xl border border-slate-200 p-2 outline-none focus:border-[#C59B27]"
                 >
                   <option>Payment Received</option>
                   <option>Credit Note</option>
@@ -218,17 +309,29 @@ const LedgerPage = () => {
                   required
                   value={txData.amount}
                   onChange={(e) => setTxData({ ...txData, amount: e.target.value })}
-                  className="mt-1 w-full rounded-xl border border-slate-200 p-2 outline-none"
+                  placeholder="Enter amount (e.g. 500)"
+                  className="mt-1 w-full rounded-xl border border-slate-200 p-2 outline-none focus:border-[#C59B27]"
                 />
               </div>
 
               <div>
-                <label className="font-semibold text-slate-600">Reference Number (UPI / Cheque #)</label>
+                <label className="font-semibold text-slate-600">Reference Number (UPI / Cheque / Ref #)</label>
                 <input
                   type="text"
                   value={txData.referenceNumber}
                   onChange={(e) => setTxData({ ...txData, referenceNumber: e.target.value })}
-                  className="mt-1 w-full rounded-xl border border-slate-200 p-2 outline-none"
+                  placeholder="e.g. UPI-9834729384"
+                  className="mt-1 w-full rounded-xl border border-slate-200 p-2 outline-none focus:border-[#C59B27]"
+                />
+              </div>
+
+              <div>
+                <label className="font-semibold text-slate-600">Transaction Date</label>
+                <input
+                  type="date"
+                  value={txData.date}
+                  onChange={(e) => setTxData({ ...txData, date: e.target.value })}
+                  className="mt-1 w-full rounded-xl border border-slate-200 p-2 outline-none focus:border-[#C59B27]"
                 />
               </div>
 
@@ -238,23 +341,25 @@ const LedgerPage = () => {
                   rows={2}
                   value={txData.description}
                   onChange={(e) => setTxData({ ...txData, description: e.target.value })}
-                  className="mt-1 w-full rounded-xl border border-slate-200 p-2 outline-none"
+                  placeholder="Optional remarks or service details..."
+                  className="mt-1 w-full rounded-xl border border-slate-200 p-2 outline-none focus:border-[#C59B27]"
                 />
               </div>
 
-              <div className="flex items-center justify-end space-x-2 pt-3">
+              <div className="flex items-center justify-end space-x-2 pt-3 border-t border-slate-100">
                 <button
                   type="button"
                   onClick={() => setIsTransactionModalOpen(false)}
-                  className="rounded-xl border border-slate-200 px-4 py-2 font-medium text-slate-600"
+                  className="rounded-xl border border-slate-200 px-4 py-2 font-medium text-slate-600 hover:bg-slate-50 cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="rounded-xl bg-[#C59B27] px-4 py-2 font-semibold text-white hover:bg-[#A68018]"
+                  disabled={submitting}
+                  className="rounded-xl bg-[#C59B27] px-4 py-2 font-semibold text-white hover:bg-[#A68018] cursor-pointer disabled:opacity-50"
                 >
-                  Save Transaction
+                  {submitting ? 'Saving...' : editingTransaction ? 'Update Entry' : 'Save Transaction'}
                 </button>
               </div>
             </form>

@@ -40,6 +40,20 @@ exports.createInvoice = async (req, res) => {
       return res.status(404).json({ message: 'Client not found' });
     }
 
+    // Duplicate Invoice Check (within last 15 seconds)
+    const fifteenSecsAgo = new Date(Date.now() - 15 * 1000);
+    const recentDuplicate = await Invoice.findOne({
+      client,
+      serviceType,
+      total,
+      createdAt: { $gte: fifteenSecsAgo }
+    });
+    if (recentDuplicate) {
+      return res.status(400).json({
+        message: `Duplicate submission detected: Invoice ${recentDuplicate.invoiceNumber} for this client was just generated.`
+      });
+    }
+
     const invoiceNumber = await generateInvoiceNumber();
     const paid = Number(paidAmount) || 0;
     const pending = total - paid;
@@ -263,6 +277,127 @@ exports.getWhatsAppShareLink = async (req, res) => {
     const whatsappUrl = `https://wa.me/91${phone}?text=${encodedMessage}`;
 
     res.json({ whatsappUrl, message });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// Update Invoice (Edit Tax Invoice Details)
+exports.updateInvoice = async (req, res) => {
+  try {
+    const {
+      serviceType,
+      items,
+      subTotal,
+      gstPercent,
+      gstAmount,
+      discount,
+      total,
+      paidAmount,
+      paymentMode,
+      remarks,
+      paymentStatus: requestedStatus
+    } = req.body;
+
+    const invoice = await Invoice.findById(req.params.id);
+    if (!invoice) {
+      return res.status(404).json({ message: 'Invoice not found' });
+    }
+
+    const finalTotal = Number(total) !== undefined && !isNaN(Number(total)) ? Number(total) : invoice.total;
+    const paid = Number(paidAmount) !== undefined && !isNaN(Number(paidAmount)) ? Number(paidAmount) : invoice.paidAmount;
+    const pending = finalTotal - paid;
+
+    let paymentStatus = requestedStatus || 'Pending';
+    if (paid >= finalTotal) paymentStatus = 'Paid';
+    else if (paid > 0) paymentStatus = 'Partial';
+    else paymentStatus = 'Pending';
+
+    if (serviceType) invoice.serviceType = serviceType;
+    if (items) invoice.items = items;
+    if (subTotal !== undefined) invoice.subTotal = subTotal;
+    if (gstPercent !== undefined) invoice.gstPercent = gstPercent;
+    if (gstAmount !== undefined) invoice.gstAmount = gstAmount;
+    if (discount !== undefined) invoice.discount = discount;
+    invoice.total = finalTotal;
+    invoice.paidAmount = paid;
+    invoice.pendingAmount = pending;
+    invoice.paymentStatus = paymentStatus;
+    if (paymentMode) invoice.paymentMode = paymentMode;
+    if (remarks !== undefined) invoice.remarks = remarks;
+
+    await invoice.save();
+
+    // Update corresponding invoice Ledger entry if total or service changed
+    const invLedger = await Ledger.findOne({ client: invoice.client, referenceNumber: invoice.invoiceNumber, transactionType: 'Invoice' });
+    if (invLedger) {
+      invLedger.debit = finalTotal;
+      invLedger.description = `Tax Invoice Generated: ${invoice.serviceType}`;
+      await invLedger.save();
+    }
+
+    // Recalculate client running balances
+    const client = await Client.findById(invoice.client);
+    if (client) {
+      const entries = await Ledger.find({ client: invoice.client }).sort({ date: 1, createdAt: 1 });
+      let running = client.openingBalance || 0;
+      for (const entry of entries) {
+        if (['Debit Note', 'Invoice'].includes(entry.transactionType)) {
+          running += (entry.debit || 0);
+        } else if (['Payment Received', 'Credit Note'].includes(entry.transactionType)) {
+          running -= (entry.credit || 0);
+        }
+        entry.runningBalance = running;
+        await entry.save();
+      }
+      client.closingBalance = running;
+      await client.save();
+    }
+
+    await logAudit(req.user, 'Invoice Updated', 'Billing', `Updated invoice ${invoice.invoiceNumber} total ₹${finalTotal}`, req);
+
+    res.json({ message: 'Invoice updated successfully', invoice });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// Delete Invoice
+exports.deleteInvoice = async (req, res) => {
+  try {
+    const invoice = await Invoice.findById(req.params.id);
+    if (!invoice) {
+      return res.status(404).json({ message: 'Invoice not found' });
+    }
+
+    const clientId = invoice.client;
+    const invNumber = invoice.invoiceNumber;
+
+    // Remove ledger entries associated with this invoice
+    await Ledger.deleteMany({ client: clientId, referenceNumber: { $in: [invNumber, `REC-${invNumber}`] } });
+    await invoice.deleteOne();
+
+    // Recalculate client balances
+    const client = await Client.findById(clientId);
+    if (client) {
+      const entries = await Ledger.find({ client: clientId }).sort({ date: 1, createdAt: 1 });
+      let running = client.openingBalance || 0;
+      for (const entry of entries) {
+        if (['Debit Note', 'Invoice'].includes(entry.transactionType)) {
+          running += (entry.debit || 0);
+        } else if (['Payment Received', 'Credit Note'].includes(entry.transactionType)) {
+          running -= (entry.credit || 0);
+        }
+        entry.runningBalance = running;
+        await entry.save();
+      }
+      client.closingBalance = running;
+      await client.save();
+    }
+
+    await logAudit(req.user, 'Invoice Deleted', 'Billing', `Deleted invoice ${invNumber}`, req);
+
+    res.json({ message: 'Invoice deleted successfully' });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
