@@ -51,9 +51,23 @@ const TaskTable = ({ tasks = [], onStatusChange, onDeleteTask, onDelegateTask, c
             ) : (
               tasks.map((task) => {
                 const isOverdue = new Date(task.dueDate) < new Date() && !['Completed', "Can't Complete"].includes(task.status);
-                const createdDateFormatted = task.createdAt
-                  ? new Date(task.createdAt).toLocaleDateString('en-IN', { month: 'short', day: 'numeric', year: 'numeric' })
-                  : new Date().toLocaleDateString('en-IN', { month: 'short', day: 'numeric', year: 'numeric' });
+                const createdDateTimeFormatted = (task.createdAt || task.assignedDate)
+                  ? new Date(task.createdAt || task.assignedDate).toLocaleString('en-IN', {
+                      day: 'numeric',
+                      month: 'short',
+                      year: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit',
+                      hour12: true
+                    })
+                  : new Date().toLocaleString('en-IN', {
+                      day: 'numeric',
+                      month: 'short',
+                      year: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit',
+                      hour12: true
+                    });
 
                 return (
                   <tr key={task._id} className="hover:bg-slate-50 transition">
@@ -65,7 +79,10 @@ const TaskTable = ({ tasks = [], onStatusChange, onDeleteTask, onDelegateTask, c
                       {task.remarks && (
                         <p className="text-[11px] text-slate-500 line-clamp-2">{task.remarks}</p>
                       )}
-                      <span className="text-[10px] text-slate-400 mt-1 block">Created: {createdDateFormatted}</span>
+                      <div className="mt-1 flex items-center space-x-1 text-[10px] text-slate-400">
+                        <Clock className="h-3 w-3 text-slate-400 shrink-0" />
+                        <span>Created: <strong className="font-semibold text-slate-600">{createdDateTimeFormatted}</strong></span>
+                      </div>
                     </td>
 
                     {/* Task Type & Department */}
