@@ -29,7 +29,8 @@ import {
   ChevronDown,
   UserCheck,
   Building2,
-  Sparkles
+  Sparkles,
+  ArrowRight
 } from 'lucide-react';
 
 const Dashboard = () => {
@@ -37,10 +38,10 @@ const Dashboard = () => {
   const [summary, setSummary] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // Filtration States (Default is 'Today')
-  const [dateFilter, setDateFilter] = useState('Today');
-  const [startDate, setStartDate] = useState(() => new Date().toISOString().split('T')[0]);
-  const [endDate, setEndDate] = useState(() => new Date().toISOString().split('T')[0]);
+  // Filtration States: Default 'All Time' so all existing data is immediately shown
+  const [dateFilter, setDateFilter] = useState('All Time');
+  const [fromDate, setFromDate] = useState('');
+  const [toDate, setToDate] = useState('');
   const [selectedDept, setSelectedDept] = useState('All');
   const [selectedEmployee, setSelectedEmployee] = useState('All');
 
@@ -65,8 +66,8 @@ const Dashboard = () => {
         api.get('/reports/dashboard-summary', {
           params: {
             dateFilter,
-            startDate: dateFilter === 'Custom' ? startDate : undefined,
-            endDate: dateFilter === 'Custom' ? endDate : undefined,
+            startDate: fromDate || undefined,
+            endDate: toDate || undefined,
             department: selectedDept !== 'All' ? selectedDept : undefined,
             employeeId: selectedEmployee !== 'All' ? selectedEmployee : undefined
           }
@@ -88,7 +89,30 @@ const Dashboard = () => {
 
   useEffect(() => {
     fetchDashboardData(false);
-  }, [dateFilter, startDate, endDate, selectedDept, selectedEmployee]);
+  }, [dateFilter, fromDate, toDate, selectedDept, selectedEmployee]);
+
+  const handleQuickPreset = (preset) => {
+    setDateFilter(preset);
+    const now = new Date();
+    if (preset === 'Today') {
+      const todayStr = now.toISOString().split('T')[0];
+      setFromDate(todayStr);
+      setToDate(todayStr);
+    } else if (preset === 'This Week') {
+      const first = new Date(now.setDate(now.getDate() - now.getDay()));
+      const last = new Date(now.setDate(now.getDate() - now.getDay() + 6));
+      setFromDate(first.toISOString().split('T')[0]);
+      setToDate(last.toISOString().split('T')[0]);
+    } else if (preset === 'This Month') {
+      const first = new Date(now.getFullYear(), now.getMonth(), 1);
+      const last = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+      setFromDate(first.toISOString().split('T')[0]);
+      setToDate(last.toISOString().split('T')[0]);
+    } else if (preset === 'All Time') {
+      setFromDate('');
+      setToDate('');
+    }
+  };
 
   const handleTaskStatusChange = async (taskId, newStatus) => {
     try {
@@ -132,7 +156,7 @@ const Dashboard = () => {
     const selectedEmpObj = employees.find((e) => e._id === selectedEmployee);
     printExecutiveReport({
       filters: {
-        dateFilter,
+        dateFilter: fromDate && toDate ? `${fromDate} to ${toDate}` : dateFilter,
         department: selectedDept,
         employeeName: selectedEmpObj ? `${selectedEmpObj.name} (${selectedEmpObj.role})` : 'All Executives'
       },
@@ -220,44 +244,54 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* FILTER CONTROL BAR (Date Filtration: Default Today + Dept + User Filters) */}
-      <GlacierCard className="p-3.5">
+      {/* FILTER CONTROL BAR: From / To Date Pickers + Quick Presets + Dept + User Filters */}
+      <GlacierCard className="p-3.5 space-y-3">
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
-          {/* Date Filter Selection (Today is selected defaultly) */}
+          {/* Quick Preset Buttons */}
           <div className="flex items-center space-x-1 rounded-xl bg-slate-100 p-1 overflow-x-auto no-scrollbar">
-            {['Today', 'This Week', 'This Month', 'Custom'].map((filter) => (
+            {['All Time', 'Today', 'This Week', 'This Month'].map((preset) => (
               <button
-                key={filter}
-                onClick={() => setDateFilter(filter)}
+                key={preset}
+                onClick={() => handleQuickPreset(preset)}
                 className={`whitespace-nowrap rounded-lg px-3 py-1.5 text-xs font-bold transition cursor-pointer ${
-                  dateFilter === filter
+                  dateFilter === preset
                     ? 'bg-white text-[#0F2B48] shadow-xs'
                     : 'text-slate-600 hover:text-slate-900'
                 }`}
               >
-                {filter === 'Custom' ? 'Custom Range' : filter}
+                {preset}
               </button>
             ))}
           </div>
 
-          {/* Custom Date Pickers */}
-          {dateFilter === 'Custom' && (
-            <div className="flex items-center space-x-2">
+          {/* Explicit From Date ➔ To Date Pickers */}
+          <div className="flex items-center space-x-2 bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-xl">
+            <div className="flex items-center space-x-1.5">
+              <span className="text-[11px] font-bold text-slate-500">From:</span>
               <input
                 type="date"
-                value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
-                className="rounded-xl border border-slate-200 bg-white px-2.5 py-1 text-xs font-semibold text-slate-800 outline-none focus:border-[#52A636]"
-              />
-              <span className="text-xs text-slate-400 font-bold">➔</span>
-              <input
-                type="date"
-                value={endDate}
-                onChange={(e) => setEndDate(e.target.value)}
-                className="rounded-xl border border-slate-200 bg-white px-2.5 py-1 text-xs font-semibold text-slate-800 outline-none focus:border-[#52A636]"
+                value={fromDate}
+                onChange={(e) => {
+                  setFromDate(e.target.value);
+                  setDateFilter('Custom');
+                }}
+                className="bg-white border border-slate-200 rounded-lg px-2 py-0.5 text-xs font-semibold text-slate-800 outline-none focus:border-[#52A636]"
               />
             </div>
-          )}
+            <span className="text-xs text-slate-400 font-bold">➔</span>
+            <div className="flex items-center space-x-1.5">
+              <span className="text-[11px] font-bold text-slate-500">To:</span>
+              <input
+                type="date"
+                value={toDate}
+                onChange={(e) => {
+                  setToDate(e.target.value);
+                  setDateFilter('Custom');
+                }}
+                className="bg-white border border-slate-200 rounded-lg px-2 py-0.5 text-xs font-semibold text-slate-800 outline-none focus:border-[#52A636]"
+              />
+            </div>
+          </div>
 
           {/* Department & User Wise Filtration */}
           <div className="flex flex-wrap items-center gap-2.5">
@@ -301,110 +335,16 @@ const Dashboard = () => {
         </div>
       </GlacierCard>
 
-      {/* SUPERADMIN ONLY METRICS ROW: Client Count, Registered Clients, Certification Pending, Billing Value */}
-      {isSuperAdmin && (
-        <div className="space-y-2">
-          <div className="flex items-center space-x-2">
-            <Sparkles className="h-4 w-4 text-[#52A636]" />
-            <h3 className="text-xs font-extrabold uppercase tracking-wider text-[#0F2B48]">
-              Executive Firm KPI Summary (Click any card to inspect records)
-            </h3>
-          </div>
-
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            <div
-              onClick={() =>
-                handleCardClick(
-                  'Total Onboarded Clients',
-                  'All active client records across departments',
-                  'clients',
-                  details.allClientsList
-                )
-              }
-              className="cursor-pointer transition-transform hover:-translate-y-0.5 active:scale-95"
-            >
-              <StatCard
-                title="Total Clients"
-                value={counters.totalClients || 0}
-                subtitle="All onboarded active clients"
-                icon={Users}
-                color="navy"
-              />
-            </div>
-
-            <div
-              onClick={() =>
-                handleCardClick(
-                  'Registered Clients',
-                  `Clients registered in selected period (${dateFilter})`,
-                  'clients',
-                  details.allClientsList
-                )
-              }
-              className="cursor-pointer transition-transform hover:-translate-y-0.5 active:scale-95"
-            >
-              <StatCard
-                title="Registered Clients"
-                value={counters.registeredClientsCount || 0}
-                subtitle={`Registered for ${dateFilter}`}
-                icon={FileCheck}
-                color="blue"
-              />
-            </div>
-
-            <div
-              onClick={() =>
-                handleCardClick(
-                  'Certification Pending Clients',
-                  'Clients awaiting certification approval & upload',
-                  'certifications',
-                  details.allPendingCertificates
-                )
-              }
-              className="cursor-pointer transition-transform hover:-translate-y-0.5 active:scale-95"
-            >
-              <StatCard
-                title="Certification Pending"
-                value={counters.pendingCertificatesCount || 0}
-                subtitle="Waiting for certificate upload"
-                icon={Award}
-                color="amber"
-              />
-            </div>
-
-            <div
-              onClick={() =>
-                handleCardClick(
-                  'Total Billing Value Invoices',
-                  `Invoices generated in selected period (${dateFilter})`,
-                  'invoices',
-                  details.allFilteredInvoices
-                )
-              }
-              className="cursor-pointer transition-transform hover:-translate-y-0.5 active:scale-95"
-            >
-              <StatCard
-                title="Total Billing Value"
-                value={`₹${(counters.totalBillingValue || 0).toLocaleString('en-IN')}`}
-                subtitle={`Collected: ₹${(counters.totalCollected || 0).toLocaleString('en-IN')}`}
-                icon={Receipt}
-                color="green"
-              />
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* OPERATIONAL TASK PROCESS STATUS CARDS (Clickable with full drilldown) */}
+      {/* 1st ROW: FIRM TASK PROCESS OVERVIEW (SHOW IN 1ST AS REQUESTED) */}
       <div className="space-y-2">
         <div className="flex items-center justify-between">
-          <h2 className="text-xs sm:text-sm font-bold text-[#0F2B48] uppercase tracking-wider">
+          <h2 className="text-xs sm:text-sm font-extrabold text-[#0F2B48] uppercase tracking-wider">
             {isExecutive
-              ? 'My Daily Task Workflow (Click card to view details)'
+              ? 'My Daily Task Workflow (Click card to inspect details)'
               : 'Firm Task Process Overview (Click card to inspect client & service status)'}
           </h2>
           <span className="text-[11px] font-semibold text-slate-500">
-            Period: <strong className="text-[#0F2B48]">{dateFilter}</strong>
+            Period: <strong className="text-[#0F2B48]">{fromDate && toDate ? `${fromDate} to ${toDate}` : dateFilter}</strong>
           </span>
         </div>
 
@@ -510,6 +450,100 @@ const Dashboard = () => {
           </div>
         </div>
       </div>
+
+      {/* 2nd ROW: SUPERADMIN ONLY METRICS (CLIENT COUNT, REGISTERED, CERTIFICATION, BILLING VALUE) */}
+      {isSuperAdmin && (
+        <div className="space-y-2">
+          <div className="flex items-center space-x-2">
+            <Sparkles className="h-4 w-4 text-[#52A636]" />
+            <h3 className="text-xs font-extrabold uppercase tracking-wider text-[#0F2B48]">
+              Executive Firm KPI Summary (Click any card to inspect records)
+            </h3>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            <div
+              onClick={() =>
+                handleCardClick(
+                  'Total Onboarded Clients',
+                  'All active client records across departments',
+                  'clients',
+                  details.allClientsList
+                )
+              }
+              className="cursor-pointer transition-transform hover:-translate-y-0.5 active:scale-95"
+            >
+              <StatCard
+                title="Total Clients"
+                value={counters.totalClients || 0}
+                subtitle="All onboarded active clients"
+                icon={Users}
+                color="navy"
+              />
+            </div>
+
+            <div
+              onClick={() =>
+                handleCardClick(
+                  'Registered Clients',
+                  `Clients registered in selected period (${dateFilter})`,
+                  'clients',
+                  details.allClientsList
+                )
+              }
+              className="cursor-pointer transition-transform hover:-translate-y-0.5 active:scale-95"
+            >
+              <StatCard
+                title="Registered Clients"
+                value={counters.registeredClientsCount || 0}
+                subtitle={`Registered for ${dateFilter}`}
+                icon={FileCheck}
+                color="blue"
+              />
+            </div>
+
+            <div
+              onClick={() =>
+                handleCardClick(
+                  'Certification Pending Clients',
+                  'Clients awaiting certification approval & upload',
+                  'certifications',
+                  details.allPendingCertificates
+                )
+              }
+              className="cursor-pointer transition-transform hover:-translate-y-0.5 active:scale-95"
+            >
+              <StatCard
+                title="Certification Pending"
+                value={counters.pendingCertificatesCount || 0}
+                subtitle="Waiting for certificate upload"
+                icon={Award}
+                color="amber"
+              />
+            </div>
+
+            <div
+              onClick={() =>
+                handleCardClick(
+                  'Total Billing Value Invoices',
+                  `Invoices generated in selected period (${dateFilter})`,
+                  'invoices',
+                  details.allFilteredInvoices
+                )
+              }
+              className="cursor-pointer transition-transform hover:-translate-y-0.5 active:scale-95"
+            >
+              <StatCard
+                title="Total Billing Value"
+                value={`₹${(counters.totalBillingValue || 0).toLocaleString('en-IN')}`}
+                subtitle={`Collected: ₹${(counters.totalCollected || 0).toLocaleString('en-IN')}`}
+                icon={Receipt}
+                color="green"
+              />
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* CLIENT SUBSCRIBED SERVICE REMINDERS (START DATE ➔ DUE DATE) */}
       <GlacierCard

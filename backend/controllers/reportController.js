@@ -21,7 +21,12 @@ exports.getDashboardSummary = async (req, res) => {
     let startRange = null;
     let endRange = null;
 
-    if (dateFilter === 'Today' || !dateFilter) {
+    if (startDate && endDate) {
+      startRange = new Date(startDate);
+      startRange.setHours(0, 0, 0, 0);
+      endRange = new Date(endDate);
+      endRange.setHours(23, 59, 59, 999);
+    } else if (dateFilter === 'Today') {
       startRange = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0);
       endRange = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59);
     } else if (dateFilter === 'This Week') {
@@ -31,11 +36,9 @@ exports.getDashboardSummary = async (req, res) => {
     } else if (dateFilter === 'This Month') {
       startRange = new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0);
       endRange = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
-    } else if (dateFilter === 'Custom' && startDate && endDate) {
-      startRange = new Date(startDate);
-      startRange.setHours(0, 0, 0, 0);
-      endRange = new Date(endDate);
-      endRange.setHours(23, 59, 59, 999);
+    } else if (dateFilter === 'All Time') {
+      startRange = null;
+      endRange = null;
     }
 
     // 2. Build Filters
@@ -75,12 +78,23 @@ exports.getDashboardSummary = async (req, res) => {
     let invoiceDateQuery = {};
 
     if (startRange && endRange) {
-      taskDateQuery = {
-        $or: [
-          { dueDate: { $gte: startRange, $lte: endRange } },
-          { createdAt: { $gte: startRange, $lte: endRange } }
-        ]
-      };
+      if (dateFilter === 'Today') {
+        // For Today: include tasks due today, created today, OR active in-progress/assigned
+        taskDateQuery = {
+          $or: [
+            { dueDate: { $gte: startRange, $lte: endRange } },
+            { createdAt: { $gte: startRange, $lte: endRange } },
+            { status: { $in: ['Assigned', 'In Progress'] } }
+          ]
+        };
+      } else {
+        taskDateQuery = {
+          $or: [
+            { dueDate: { $gte: startRange, $lte: endRange } },
+            { createdAt: { $gte: startRange, $lte: endRange } }
+          ]
+        };
+      }
       clientDateQuery = { createdAt: { $gte: startRange, $lte: endRange } };
       invoiceDateQuery = { invoiceDate: { $gte: startRange, $lte: endRange } };
     }
@@ -97,7 +111,7 @@ exports.getDashboardSummary = async (req, res) => {
       allPendingCertificates
     ] = await Promise.all([
       Client.countDocuments(clientFilter),
-      Client.countDocuments({ ...clientFilter, ...clientDateQuery }),
+      Client.countDocuments(startRange && endRange ? { ...clientFilter, ...clientDateQuery } : clientFilter),
       Client.countDocuments({ ...clientFilter, status: 'Active' }),
       Certification.countDocuments({ ...certFilter, status: 'Waiting For Certificate' }),
       Task.find({ ...taskFilter, ...taskDateQuery })
