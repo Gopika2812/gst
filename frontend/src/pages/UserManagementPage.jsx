@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import GlacierCard from '../components/common/GlacierCard';
 import Badge from '../components/common/Badge';
+import { SortableHeader, sortTableData } from '../components/common/SortableHeader';
 import PermissionMatrixModal from '../components/users/PermissionMatrixModal';
 import UserModal from '../components/users/UserModal';
 import OrgChartModal from '../components/users/OrgChartModal';
@@ -20,6 +21,7 @@ const UserManagementPage = () => {
   const [actionLoadingId, setActionLoadingId] = useState(null);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
+  const [sortConfig, setSortConfig] = useState({ key: 'name', direction: 'asc' });
   const [isPermModalOpen, setIsPermModalOpen] = useState(false);
   const [isUserModalOpen, setIsUserModalOpen] = useState(false);
   const [isOrgChartOpen, setIsOrgChartOpen] = useState(false);
@@ -48,6 +50,17 @@ const UserManagementPage = () => {
   useEffect(() => {
     fetchUsers();
   }, [search, statusFilter]);
+
+  const handleSort = (key) => {
+    setSortConfig((prev) => ({
+      key,
+      direction: prev.key === key && prev.direction === 'asc' ? 'desc' : 'asc'
+    }));
+  };
+
+  const sortedUsers = useMemo(() => {
+    return sortTableData(users, sortConfig);
+  }, [users, sortConfig]);
 
   const handleCreateUser = () => {
     setSelectedUser(null);
@@ -201,13 +214,13 @@ const UserManagementPage = () => {
           <table className="w-full text-left text-xs min-w-[750px]">
             <thead className="bg-[#0A1E3F] text-white">
               <tr>
-                <th className="p-3.5 font-semibold">User Name & Email</th>
-                <th className="p-3.5 font-semibold">Role</th>
-                <th className="p-3.5 font-semibold">Department</th>
-                <th className="p-3.5 font-semibold">Phone</th>
-                <th className="p-3.5 font-semibold">Status</th>
-                <th className="p-3.5 font-semibold">Last Login</th>
-                <th className="p-3.5 text-center font-semibold">Actions</th>
+                <SortableHeader label="User Name & Email" sortKey="name" currentSort={sortConfig} onSort={handleSort} />
+                <SortableHeader label="Role" sortKey="role" currentSort={sortConfig} onSort={handleSort} />
+                <SortableHeader label="Department" sortKey="department" currentSort={sortConfig} onSort={handleSort} />
+                <SortableHeader label="Phone" sortKey="phone" currentSort={sortConfig} onSort={handleSort} />
+                <SortableHeader label="Status" sortKey="status" currentSort={sortConfig} onSort={handleSort} />
+                <SortableHeader label="Last Login" sortKey="lastLogin" currentSort={sortConfig} onSort={handleSort} />
+                <th className="p-3.5 text-center font-semibold text-white">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
@@ -215,8 +228,12 @@ const UserManagementPage = () => {
                 <tr>
                   <td colSpan={7} className="p-8 text-center text-slate-400">Loading user accounts...</td>
                 </tr>
+              ) : sortedUsers.length === 0 ? (
+                <tr>
+                  <td colSpan={7} className="p-8 text-center text-slate-400">No user accounts found</td>
+                </tr>
               ) : (
-                users.map((u) => (
+                sortedUsers.map((u) => (
                   <tr key={u._id} className="hover:bg-slate-50">
                     <td className="p-3.5">
                       <p className="font-bold text-slate-800">{u.name}</p>

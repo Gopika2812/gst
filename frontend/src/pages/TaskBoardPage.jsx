@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import GlacierCard from '../components/common/GlacierCard';
 import KanbanBoard from '../components/tasks/KanbanBoard';
 import TaskTable from '../components/tasks/TaskTable';
@@ -6,7 +6,7 @@ import TaskModal from '../components/tasks/TaskModal';
 import DelegateModal from '../components/tasks/DelegateModal';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
-import { KanbanSquare, Table, Plus, Filter, Calendar, User, Clock, CheckCircle2, Building2 } from 'lucide-react';
+import { KanbanSquare, Table, Plus, Filter, Calendar, User, Clock, CheckCircle2, Building2, Search } from 'lucide-react';
 
 const TaskBoardPage = () => {
   const { user } = useAuth();
@@ -15,6 +15,7 @@ const TaskBoardPage = () => {
   const [employees, setEmployees] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  const [search, setSearch] = useState('');
   const [viewMode, setViewMode] = useState('table'); // 'table' or 'kanban'
   const [departmentFilter, setDepartmentFilter] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
@@ -82,6 +83,21 @@ const TaskBoardPage = () => {
     }
   };
 
+  const filteredTasks = useMemo(() => {
+    if (!search.trim()) return tasks;
+    const q = search.toLowerCase();
+    return tasks.filter((t) =>
+      (t.taskName && t.taskName.toLowerCase().includes(q)) ||
+      (t.remarks && t.remarks.toLowerCase().includes(q)) ||
+      (t.department && t.department.toLowerCase().includes(q)) ||
+      (t.client?.clientName && t.client.clientName.toLowerCase().includes(q)) ||
+      (t.assignedTo?.name && t.assignedTo.name.toLowerCase().includes(q)) ||
+      (t.assignedBy?.name && t.assignedBy.name.toLowerCase().includes(q)) ||
+      (t.priority && t.priority.toLowerCase().includes(q)) ||
+      (t.status && t.status.toLowerCase().includes(q))
+    );
+  }, [tasks, search]);
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -94,7 +110,7 @@ const TaskBoardPage = () => {
         </div>
         <button
           onClick={() => setIsTaskModalOpen(true)}
-          className="flex items-center justify-center space-x-1.5 rounded-xl bg-[#C59B27] px-4 py-2.5 text-xs font-extrabold text-white shadow-md transition hover:bg-[#A68018]"
+          className="flex items-center justify-center space-x-1.5 rounded-xl bg-[#C59B27] px-4 py-2.5 text-xs font-extrabold text-white shadow-md transition hover:bg-[#A68018] cursor-pointer"
         >
           <Plus className="h-4 w-4" />
           <span>Assign New Task</span>
@@ -107,6 +123,17 @@ const TaskBoardPage = () => {
           
           {/* Filters Group */}
           <div className="flex flex-wrap items-center gap-2">
+            <div className="flex w-full sm:w-64 items-center rounded-xl border border-slate-200 bg-white px-2.5 py-1.5">
+              <Search className="mr-1.5 h-3.5 w-3.5 text-slate-400 shrink-0" />
+              <input
+                type="text"
+                placeholder="Search tasks, clients, staff..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="w-full bg-transparent text-xs outline-none"
+              />
+            </div>
+
             <div className="flex items-center space-x-1 text-slate-400 mr-1">
               <Filter className="h-4 w-4" />
               <span className="text-xs font-bold text-slate-600">Filters:</span>
@@ -181,14 +208,14 @@ const TaskBoardPage = () => {
         </div>
       ) : viewMode === 'table' ? (
         <TaskTable
-          tasks={tasks}
+          tasks={filteredTasks}
           onStatusChange={handleStatusChange}
           onDeleteTask={handleDeleteTask}
           onDelegateTask={handleOpenDelegateModal}
           currentUser={user}
         />
       ) : (
-        <KanbanBoard tasks={tasks} onStatusChange={handleStatusChange} />
+        <KanbanBoard tasks={filteredTasks} onStatusChange={handleStatusChange} />
       )}
 
       <TaskModal

@@ -1,14 +1,17 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import GlacierCard from '../components/common/GlacierCard';
 import Badge from '../components/common/Badge';
 import FilePreviewModal from '../components/common/FilePreviewModal';
+import { SortableHeader, sortTableData } from '../components/common/SortableHeader';
 import api from '../services/api';
-import { Award, CheckCircle2, Clock, Upload, ArrowRight, ShieldCheck, Eye, FileText, Image as ImageIcon, X, Trash2 } from 'lucide-react';
+import { Award, CheckCircle2, Clock, Upload, ArrowRight, ShieldCheck, Eye, FileText, Image as ImageIcon, X, Trash2, Search } from 'lucide-react';
 import { formatFileSize, isImageFile, isPdfFile } from '../utils/fileUtils';
 
 const CertificationPage = () => {
   const [certifications, setCertifications] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState('');
+  const [sortConfig, setSortConfig] = useState({ key: 'applicationDate', direction: 'desc' });
   const [selectedCert, setSelectedCert] = useState(null);
   const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
 
@@ -61,15 +64,12 @@ const CertificationPage = () => {
     setSelectedCert(cert);
     setUpdateData({
       certificateNumber: cert.certificateNumber || '',
-      certificateReceived: 'Yes',
-      receivedDate: new Date().toISOString().split('T')[0],
+      certificateReceived: cert.certificateReceived || 'Yes',
+      receivedDate: cert.receivedDate ? new Date(cert.receivedDate).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
       remarks: cert.remarks || ''
     });
     setCertFile(null);
-    if (certFilePreviewUrl) {
-      URL.revokeObjectURL(certFilePreviewUrl);
-      setCertFilePreviewUrl(null);
-    }
+    setCertFilePreviewUrl(null);
     setIsUpdateModalOpen(true);
   };
 
@@ -150,14 +150,48 @@ const CertificationPage = () => {
     });
   };
 
+  const handleSort = (key) => {
+    setSortConfig((prev) => ({
+      key,
+      direction: prev.key === key && prev.direction === 'asc' ? 'desc' : 'asc'
+    }));
+  };
+
+  const filteredCerts = useMemo(() => {
+    if (!search.trim()) return certifications;
+    const q = search.toLowerCase();
+    return certifications.filter((c) =>
+      (c.client?.clientName && c.client.clientName.toLowerCase().includes(q)) ||
+      (c.certificateType && c.certificateType.toLowerCase().includes(q)) ||
+      (c.certificateNumber && c.certificateNumber.toLowerCase().includes(q)) ||
+      (c.status && c.status.toLowerCase().includes(q))
+    );
+  }, [certifications, search]);
+
+  const sortedCerts = useMemo(() => {
+    return sortTableData(filteredCerts, sortConfig);
+  }, [filteredCerts, sortConfig]);
+
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div>
-        <h1 className="text-xl font-bold text-[#0A1E3F]">Certification Status & Tracking (Module 2)</h1>
-        <p className="text-xs text-slate-500">
-          Workflow: Client Registration ➔ Waiting Certificate ➔ Certificate Received ➔ Move to Billing
-        </p>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
+        <div>
+          <h1 className="text-xl font-bold text-[#0A1E3F]">Certification Status & Tracking (Module 2)</h1>
+          <p className="text-xs text-slate-500">
+            Workflow: Client Registration ➔ Waiting Certificate ➔ Certificate Received ➔ Move to Billing
+          </p>
+        </div>
+        <div className="flex w-full sm:w-72 items-center rounded-xl border border-slate-200 bg-white px-3 py-2">
+          <Search className="mr-2 h-4 w-4 text-slate-400 shrink-0" />
+          <input
+            type="text"
+            placeholder="Search Certificate, Client, #..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="w-full bg-transparent text-xs outline-none"
+          />
+        </div>
       </div>
 
       {/* Workflow Visual Timeline Banner */}
@@ -191,14 +225,14 @@ const CertificationPage = () => {
           <table className="w-full text-left text-xs min-w-[760px]">
             <thead className="bg-[#0A1E3F] text-white">
               <tr>
-                <th className="p-3.5 font-semibold">Client Name</th>
-                <th className="p-3.5 font-semibold">Certificate Type</th>
-                <th className="p-3.5 font-semibold">Application Date</th>
-                <th className="p-3.5 font-semibold">Expected Date</th>
-                <th className="p-3.5 font-semibold">Cert Number</th>
+                <SortableHeader label="Client Name" sortKey="client.clientName" currentSort={sortConfig} onSort={handleSort} />
+                <SortableHeader label="Certificate Type" sortKey="certificateType" currentSort={sortConfig} onSort={handleSort} />
+                <SortableHeader label="Application Date" sortKey="applicationDate" currentSort={sortConfig} onSort={handleSort} />
+                <SortableHeader label="Expected Date" sortKey="expectedDate" currentSort={sortConfig} onSort={handleSort} />
+                <SortableHeader label="Cert Number" sortKey="certificateNumber" currentSort={sortConfig} onSort={handleSort} />
                 <th className="p-3.5 font-semibold">Certificate Doc</th>
-                <th className="p-3.5 font-semibold">Received?</th>
-                <th className="p-3.5 font-semibold">Status</th>
+                <SortableHeader label="Received?" sortKey="certificateReceived" currentSort={sortConfig} onSort={handleSort} />
+                <SortableHeader label="Status" sortKey="status" currentSort={sortConfig} onSort={handleSort} />
                 <th className="p-3.5 text-center font-semibold">Action</th>
               </tr>
             </thead>
@@ -207,12 +241,12 @@ const CertificationPage = () => {
                 <tr>
                   <td colSpan={9} className="p-8 text-center text-slate-400">Loading certification records...</td>
                 </tr>
-              ) : certifications.length === 0 ? (
+              ) : sortedCerts.length === 0 ? (
                 <tr>
                   <td colSpan={9} className="p-8 text-center text-slate-400">No pending certification tracking records</td>
                 </tr>
               ) : (
-                certifications.map((c) => (
+                sortedCerts.map((c) => (
                   <tr key={c._id} className="hover:bg-slate-50 transition">
                     <td className="p-3.5">
                       <div className="font-bold text-slate-900">{c.client?.clientName || 'N/A'}</div>

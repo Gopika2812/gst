@@ -1,11 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import GlacierCard from '../components/common/GlacierCard';
 import StatCard from '../components/common/StatCard';
 import Badge from '../components/common/Badge';
+import { SortableHeader, sortTableData } from '../components/common/SortableHeader';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { printClientLedger } from '../utils/exportUtils';
-import { BookOpen, Plus, Printer, Download, CreditCard, ArrowDownRight, ArrowUpRight, Edit3, Trash2, X } from 'lucide-react';
+import { BookOpen, Plus, Printer, Download, CreditCard, ArrowDownRight, ArrowUpRight, Edit3, Trash2, X, Search } from 'lucide-react';
 
 const LedgerPage = () => {
   const { user } = useAuth();
@@ -14,6 +15,8 @@ const LedgerPage = () => {
   const [ledgerData, setLedgerData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [search, setSearch] = useState('');
+  const [sortConfig, setSortConfig] = useState({ key: 'date', direction: 'asc' });
 
   const [isTransactionModalOpen, setIsTransactionModalOpen] = useState(false);
   const [editingTransaction, setEditingTransaction] = useState(null);
@@ -136,8 +139,32 @@ const LedgerPage = () => {
     });
   };
 
+  const handleSort = (key) => {
+    setSortConfig((prev) => ({
+      key,
+      direction: prev.key === key && prev.direction === 'asc' ? 'desc' : 'asc'
+    }));
+  };
+
   const clientInfo = ledgerData?.client;
-  const entries = ledgerData?.entries || [];
+  const rawEntries = ledgerData?.entries || [];
+
+  const filteredEntries = useMemo(() => {
+    if (!search.trim()) return rawEntries;
+    const q = search.toLowerCase();
+    return rawEntries.filter((e) =>
+      (e.referenceNumber && e.referenceNumber.toLowerCase().includes(q)) ||
+      (e.transactionType && e.transactionType.toLowerCase().includes(q)) ||
+      (e.description && e.description.toLowerCase().includes(q)) ||
+      String(e.debit).includes(q) ||
+      String(e.credit).includes(q) ||
+      String(e.runningBalance).includes(q)
+    );
+  }, [rawEntries, search]);
+
+  const sortedEntries = useMemo(() => {
+    return sortTableData(filteredEntries, sortConfig);
+  }, [filteredEntries, sortConfig]);
 
   return (
     <div className="space-y-6">
@@ -197,11 +224,23 @@ const LedgerPage = () => {
 
       {/* Ledger Entries Table */}
       <GlacierCard className="p-0 overflow-hidden">
-        <div className="flex items-center justify-between border-b border-slate-100 p-4 bg-slate-50">
-          <h3 className="font-bold text-slate-800 text-sm">Statement of Account: {clientInfo?.clientName}</h3>
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between border-b border-slate-100 p-3.5 bg-slate-50 gap-3">
+          <div className="flex items-center space-x-3">
+            <h3 className="font-bold text-slate-800 text-sm whitespace-nowrap">Statement: {clientInfo?.clientName}</h3>
+            <div className="flex items-center rounded-xl border border-slate-200 bg-white px-2.5 py-1.5 w-full sm:w-64">
+              <Search className="mr-1.5 h-3.5 w-3.5 text-slate-400 shrink-0" />
+              <input
+                type="text"
+                placeholder="Search transactions..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="w-full bg-transparent text-xs outline-none"
+              />
+            </div>
+          </div>
           <button
             onClick={handlePrintLedger}
-            className="flex items-center space-x-1.5 rounded-lg bg-white border border-slate-200 px-3 py-1.5 text-xs font-bold text-[#0A1E3F] hover:bg-[#0A1E3F] hover:text-white transition shadow-2xs cursor-pointer"
+            className="flex items-center justify-center space-x-1.5 rounded-lg bg-white border border-slate-200 px-3 py-1.5 text-xs font-bold text-[#0A1E3F] hover:bg-[#0A1E3F] hover:text-white transition shadow-2xs cursor-pointer"
           >
             <Printer className="h-4 w-4 text-[#C59B27]" />
             <span>Print Official Ledger</span>
@@ -212,14 +251,14 @@ const LedgerPage = () => {
           <table className="w-full text-left text-xs min-w-[850px]">
             <thead className="bg-[#0A1E3F] text-white">
               <tr>
-                <th className="p-3.5 font-semibold">Date</th>
-                <th className="p-3.5 font-semibold">Transaction Type</th>
-                <th className="p-3.5 font-semibold">Reference #</th>
-                <th className="p-3.5 font-semibold">Description</th>
-                <th className="p-3.5 font-semibold text-right">Debit (₹)</th>
-                <th className="p-3.5 font-semibold text-right">Credit (₹)</th>
-                <th className="p-3.5 font-semibold text-right">Running Balance (₹)</th>
-                <th className="p-3.5 font-semibold text-center">Actions</th>
+                <SortableHeader label="Date" sortKey="date" currentSort={sortConfig} onSort={handleSort} />
+                <SortableHeader label="Transaction Type" sortKey="transactionType" currentSort={sortConfig} onSort={handleSort} />
+                <SortableHeader label="Reference #" sortKey="referenceNumber" currentSort={sortConfig} onSort={handleSort} />
+                <SortableHeader label="Description" sortKey="description" currentSort={sortConfig} onSort={handleSort} />
+                <SortableHeader label="Debit (₹)" sortKey="debit" currentSort={sortConfig} onSort={handleSort} align="right" />
+                <SortableHeader label="Credit (₹)" sortKey="credit" currentSort={sortConfig} onSort={handleSort} align="right" />
+                <SortableHeader label="Running Balance (₹)" sortKey="runningBalance" currentSort={sortConfig} onSort={handleSort} align="right" />
+                <th className="p-3.5 font-semibold text-center text-white">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
@@ -227,12 +266,12 @@ const LedgerPage = () => {
                 <tr>
                   <td colSpan={8} className="p-8 text-center text-slate-400">Loading ledger statement...</td>
                 </tr>
-              ) : entries.length === 0 ? (
+              ) : sortedEntries.length === 0 ? (
                 <tr>
                   <td colSpan={8} className="p-8 text-center text-slate-400">No transactions recorded</td>
                 </tr>
               ) : (
-                entries.map((e) => (
+                sortedEntries.map((e) => (
                   <tr key={e._id} className="hover:bg-slate-50 transition">
                     <td className="p-3.5 text-slate-600">
                       {new Date(e.date).toLocaleDateString('en-IN')}

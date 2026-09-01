@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import GlacierCard from '../components/common/GlacierCard';
 import Badge from '../components/common/Badge';
+import { SortableHeader, sortTableData } from '../components/common/SortableHeader';
 import api from '../services/api';
 import {
   FileSpreadsheet,
@@ -20,6 +21,8 @@ const ITFilingPage = () => {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
+  const [taskSortConfig, setTaskSortConfig] = useState({ key: 'dueDate', direction: 'asc' });
+  const [filingSortConfig, setFilingSortConfig] = useState({ key: 'filingDate', direction: 'desc' });
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedTaskForUpload, setSelectedTaskForUpload] = useState(null);
@@ -93,46 +96,75 @@ const ITFilingPage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!formData.client) {
+      alert('Please choose a client');
+      return;
+    }
+
     setUploading(true);
     try {
-      const data = new FormData();
-      data.append('client', formData.client);
-      data.append('department', 'Income Tax');
-      data.append('filingPeriod', formData.filingPeriod);
-      data.append('acknowledgementNumber', formData.acknowledgementNumber);
-      data.append('remarks', formData.remarks);
-      if (fileDoc) data.append('filedDocument', fileDoc);
+      const formPayload = new FormData();
+      formPayload.append('client', formData.client);
+      formPayload.append('filingPeriod', formData.filingPeriod);
+      formPayload.append('acknowledgementNumber', formData.acknowledgementNumber);
+      formPayload.append('remarks', formData.remarks);
+      formPayload.append('department', 'Income Tax');
+      if (fileDoc) {
+        formPayload.append('document', fileDoc);
+      }
 
-      await api.post('/filings', data, {
+      await api.post('/filings', formPayload, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
 
       if (selectedTaskForUpload) {
-        await api.put(`/tasks/${selectedTaskForUpload._id}/status`, {
-          status: 'Completed',
-          remarks: `ITR filed with ACK: ${formData.acknowledgementNumber}`
-        });
+        await api.put(`/tasks/${selectedTaskForUpload._id}/status`, { status: 'Completed' });
       }
 
       setIsModalOpen(false);
       fetchITWorkspaceData();
     } catch (err) {
-      alert('Failed to upload Income Tax filing record');
+      alert(err.response?.data?.message || 'Failed to upload ITR record');
     } finally {
       setUploading(false);
     }
   };
 
-  const filteredTasks = tasks.filter((t) => {
-    const matchesSearch =
-      !search ||
-      t.taskName?.toLowerCase().includes(search.toLowerCase()) ||
-      t.client?.clientName?.toLowerCase().includes(search.toLowerCase()) ||
-      t.client?.pan?.toLowerCase().includes(search.toLowerCase());
+  const filteredTasks = useMemo(() => {
+    return tasks.filter((t) => {
+      const matchesSearch =
+        !search ||
+        t.taskName?.toLowerCase().includes(search.toLowerCase()) ||
+        t.client?.clientName?.toLowerCase().includes(search.toLowerCase()) ||
+        t.client?.pan?.toLowerCase().includes(search.toLowerCase()) ||
+        t.assignedEmployee?.name?.toLowerCase().includes(search.toLowerCase());
 
-    const matchesStatus = !statusFilter || t.status === statusFilter;
-    return matchesSearch && matchesStatus;
-  });
+      const matchesStatus = !statusFilter || t.status === statusFilter;
+      return matchesSearch && matchesStatus;
+    });
+  }, [tasks, search, statusFilter]);
+
+  const sortedTasks = useMemo(() => {
+    return sortTableData(filteredTasks, taskSortConfig);
+  }, [filteredTasks, taskSortConfig]);
+
+  const sortedFilings = useMemo(() => {
+    return sortTableData(filings, filingSortConfig);
+  }, [filings, filingSortConfig]);
+
+  const handleTaskSort = (key) => {
+    setTaskSortConfig((prev) => ({
+      key,
+      direction: prev.key === key && prev.direction === 'asc' ? 'desc' : 'asc'
+    }));
+  };
+
+  const handleFilingSort = (key) => {
+    setFilingSortConfig((prev) => ({
+      key,
+      direction: prev.key === key && prev.direction === 'asc' ? 'desc' : 'asc'
+    }));
+  };
 
   return (
     <div className="space-y-6">
@@ -163,7 +195,7 @@ const ITFilingPage = () => {
             <div>
               <h3 className="text-sm font-bold text-[#0A1E3F]">Active Income Tax Tasks Queue</h3>
               <p className="text-[11px] text-slate-500">
-                Assigned ITR returns & audits to process & complete ({filteredTasks.length} tasks)
+                Assigned ITR returns & audits to process & complete ({sortedTasks.length} tasks)
               </p>
             </div>
           </div>
@@ -182,7 +214,7 @@ const ITFilingPage = () => {
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="rounded-xl border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-semibold text-slate-700 outline-none focus:border-[#C59B27]"
+              className="rounded-xl border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-semibold text-slate-700 outline-none focus:border-[#C59B27] cursor-pointer"
             >
               <option value="">All Statuses</option>
               <option value="Assigned">Assigned (New)</option>
@@ -197,14 +229,14 @@ const ITFilingPage = () => {
           <table className="w-full text-left text-xs min-w-[800px]">
             <thead className="bg-[#0A1E3F] text-white">
               <tr>
-                <th className="p-3 font-semibold">Client Name</th>
-                <th className="p-3 font-semibold">PAN</th>
-                <th className="p-3 font-semibold">Service / ITR Type</th>
-                <th className="p-3 font-semibold">Assigned Executive</th>
-                <th className="p-3 font-semibold">Due Date</th>
-                <th className="p-3 font-semibold">Priority</th>
-                <th className="p-3 font-semibold">Process Status</th>
-                <th className="p-3 text-center font-semibold">Action</th>
+                <SortableHeader label="Client Name" sortKey="client.clientName" currentSort={taskSortConfig} onSort={handleTaskSort} />
+                <SortableHeader label="PAN" sortKey="client.pan" currentSort={taskSortConfig} onSort={handleTaskSort} />
+                <SortableHeader label="Service / ITR Type" sortKey="taskName" currentSort={taskSortConfig} onSort={handleTaskSort} />
+                <SortableHeader label="Assigned Executive" sortKey="assignedEmployee.name" currentSort={taskSortConfig} onSort={handleTaskSort} />
+                <SortableHeader label="Due Date" sortKey="dueDate" currentSort={taskSortConfig} onSort={handleTaskSort} />
+                <SortableHeader label="Priority" sortKey="priority" currentSort={taskSortConfig} onSort={handleTaskSort} />
+                <SortableHeader label="Process Status" sortKey="status" currentSort={taskSortConfig} onSort={handleTaskSort} />
+                <th className="p-3 text-center font-semibold text-white">Action</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 bg-white">
@@ -212,14 +244,14 @@ const ITFilingPage = () => {
                 <tr>
                   <td colSpan={8} className="p-8 text-center text-slate-400">Loading assigned tasks...</td>
                 </tr>
-              ) : filteredTasks.length === 0 ? (
+              ) : sortedTasks.length === 0 ? (
                 <tr>
                   <td colSpan={8} className="p-8 text-center text-slate-400">
                     No active Income Tax tasks assigned yet.
                   </td>
                 </tr>
               ) : (
-                filteredTasks.map((t) => {
+                sortedTasks.map((t) => {
                   const isOverdue = new Date(t.dueDate) < new Date() && t.status !== 'Completed' && t.status !== "Can't Complete";
                   return (
                     <tr key={t._id} className={`hover:bg-slate-50 transition ${isOverdue ? 'bg-rose-50/30' : ''}`}>
@@ -279,14 +311,14 @@ const ITFilingPage = () => {
                         {t.status !== 'Completed' ? (
                           <button
                             onClick={() => handleOpenUploadModal(t.client, t)}
-                            title="Upload ITR Proof & Mark Completed"
+                            title="Upload ITR-V Proof & Mark Completed"
                             className="inline-flex items-center space-x-1 rounded-lg bg-[#C59B27] px-2.5 py-1 text-[11px] font-bold text-white shadow-2xs hover:bg-[#A68018] transition cursor-pointer"
                           >
                             <Upload className="h-3.5 w-3.5" />
                             <span>Upload ITR</span>
                           </button>
                         ) : (
-                          <span className="inline-flex items-center text-[10px] font-bold text-emerald-600">
+                          <span className="inline-flex items-center text-[10px] font-bold text-emerald-700">
                             <CheckCircle2 className="mr-1 h-3.5 w-3.5" /> Completed
                           </span>
                         )}
@@ -300,19 +332,19 @@ const ITFilingPage = () => {
         </div>
       </GlacierCard>
 
-      {/* SECTION 2: FILED ITR HISTORY */}
-      <GlacierCard title="Filed ITR Records History" subtitle="Submitted ITRs, ACK numbers & verification proofs" className="p-0 overflow-hidden">
+      {/* SECTION 2: FILED ITR RETURNS HISTORY */}
+      <GlacierCard title="Filed Income Tax Returns History" subtitle="Submitted returns, ITR ACK numbers & verification proofs" className="p-0 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs min-w-[700px]">
             <thead className="bg-[#0A1E3F] text-white">
               <tr>
-                <th className="p-3.5 font-semibold">Client Name</th>
-                <th className="p-3.5 font-semibold">PAN Number</th>
-                <th className="p-3.5 font-semibold">Assessment Year</th>
-                <th className="p-3.5 font-semibold">ITR ACK Number</th>
-                <th className="p-3.5 font-semibold">Filing Date</th>
-                <th className="p-3.5 font-semibold">Status</th>
-                <th className="p-3.5 text-center font-semibold">ITR Verification File</th>
+                <SortableHeader label="Client Name" sortKey="client.clientName" currentSort={filingSortConfig} onSort={handleFilingSort} />
+                <SortableHeader label="PAN Number" sortKey="client.pan" currentSort={filingSortConfig} onSort={handleFilingSort} />
+                <SortableHeader label="Assessment Year" sortKey="filingPeriod" currentSort={filingSortConfig} onSort={handleFilingSort} />
+                <SortableHeader label="ITR ACK Number" sortKey="acknowledgementNumber" currentSort={filingSortConfig} onSort={handleFilingSort} />
+                <SortableHeader label="Filing Date" sortKey="filingDate" currentSort={filingSortConfig} onSort={handleFilingSort} />
+                <SortableHeader label="Status" sortKey="status" currentSort={filingSortConfig} onSort={handleFilingSort} />
+                <th className="p-3.5 text-center font-semibold text-white">ITR Verification File</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
@@ -320,12 +352,12 @@ const ITFilingPage = () => {
                 <tr>
                   <td colSpan={7} className="p-8 text-center text-slate-400">Loading Income Tax records...</td>
                 </tr>
-              ) : filings.length === 0 ? (
+              ) : sortedFilings.length === 0 ? (
                 <tr>
                   <td colSpan={7} className="p-8 text-center text-slate-400">No ITR filings logged yet</td>
                 </tr>
               ) : (
-                filings.map((f) => (
+                sortedFilings.map((f) => (
                   <tr key={f._id} className="hover:bg-slate-50">
                     <td className="p-3.5 font-bold text-slate-800">{f.client?.clientName}</td>
                     <td className="p-3.5 font-mono text-[11px] text-slate-700">{f.client?.pan || 'N/A'}</td>

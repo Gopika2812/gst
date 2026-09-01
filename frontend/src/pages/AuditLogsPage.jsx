@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import GlacierCard from '../components/common/GlacierCard';
 import Badge from '../components/common/Badge';
+import { SortableHeader, sortTableData } from '../components/common/SortableHeader';
 import api from '../services/api';
 import { ShieldAlert, Search, Filter } from 'lucide-react';
 
@@ -9,6 +10,7 @@ const AuditLogsPage = () => {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [moduleFilter, setModuleFilter] = useState('');
+  const [sortConfig, setSortConfig] = useState({ key: 'timestamp', direction: 'desc' });
 
   const fetchLogs = async () => {
     setLoading(true);
@@ -25,6 +27,17 @@ const AuditLogsPage = () => {
   useEffect(() => {
     fetchLogs();
   }, [search, moduleFilter]);
+
+  const handleSort = (key) => {
+    setSortConfig((prev) => ({
+      key,
+      direction: prev.key === key && prev.direction === 'asc' ? 'desc' : 'asc'
+    }));
+  };
+
+  const sortedLogs = useMemo(() => {
+    return sortTableData(logs, sortConfig);
+  }, [logs, sortConfig]);
 
   return (
     <div className="space-y-6">
@@ -73,12 +86,12 @@ const AuditLogsPage = () => {
           <table className="w-full text-left text-xs min-w-[700px]">
             <thead className="bg-[#0A1E3F] text-white">
               <tr>
-                <th className="p-3.5 font-semibold">Timestamp</th>
-                <th className="p-3.5 font-semibold">User Name & Role</th>
-                <th className="p-3.5 font-semibold">Action</th>
-                <th className="p-3.5 font-semibold">Module</th>
-                <th className="p-3.5 font-semibold">Activity Details</th>
-                <th className="p-3.5 font-semibold">IP Address</th>
+                <SortableHeader label="Timestamp" sortKey="timestamp" currentSort={sortConfig} onSort={handleSort} />
+                <SortableHeader label="User Name & Role" sortKey="userName" currentSort={sortConfig} onSort={handleSort} />
+                <SortableHeader label="Action" sortKey="action" currentSort={sortConfig} onSort={handleSort} />
+                <SortableHeader label="Module" sortKey="module" currentSort={sortConfig} onSort={handleSort} />
+                <SortableHeader label="Activity Details" sortKey="details" currentSort={sortConfig} onSort={handleSort} />
+                <SortableHeader label="IP Address" sortKey="ipAddress" currentSort={sortConfig} onSort={handleSort} />
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
@@ -86,12 +99,12 @@ const AuditLogsPage = () => {
                 <tr>
                   <td colSpan={6} className="p-8 text-center text-slate-400">Loading audit trail records...</td>
                 </tr>
-              ) : logs.length === 0 ? (
+              ) : sortedLogs.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="p-8 text-center text-slate-400">No audit log records found</td>
                 </tr>
               ) : (
-                logs.map((log) => (
+                sortedLogs.map((log) => (
                   <tr key={log._id} className="hover:bg-slate-50">
                     <td className="p-3.5 text-slate-600 font-mono text-[11px]">
                       {new Date(log.timestamp).toLocaleString('en-IN')}

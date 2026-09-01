@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import GlacierCard from '../components/common/GlacierCard';
 import Badge from '../components/common/Badge';
 import InvoiceModal from '../components/billing/InvoiceModal';
 import AssignTaskModal from '../components/billing/AssignTaskModal';
+import { SortableHeader, sortTableData } from '../components/common/SortableHeader';
 import api from '../services/api';
 import { Plus, Download, Mail, Share2, Printer, Search, CheckCircle2, RefreshCw, UserPlus, UserCheck, Edit3 } from 'lucide-react';
 
@@ -24,6 +25,7 @@ const BillingPage = () => {
   const [employees, setEmployees] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
+  const [sortConfig, setSortConfig] = useState({ key: 'invoiceDate', direction: 'desc' });
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
   const [selectedInvoiceForAssign, setSelectedInvoiceForAssign] = useState(null);
@@ -50,6 +52,17 @@ const BillingPage = () => {
   useEffect(() => {
     fetchBillingData();
   }, [search]);
+
+  const handleSort = (key) => {
+    setSortConfig((prev) => ({
+      key,
+      direction: prev.key === key && prev.direction === 'asc' ? 'desc' : 'asc'
+    }));
+  };
+
+  const sortedInvoices = useMemo(() => {
+    return sortTableData(invoices, sortConfig);
+  }, [invoices, sortConfig]);
 
   const handleDownloadPDF = async (invoiceId, invoiceNumber) => {
     try {
@@ -134,16 +147,16 @@ const BillingPage = () => {
           <table className="w-full text-left text-xs min-w-[900px]">
             <thead className="bg-[#0A1E3F] text-white">
               <tr>
-                <th className="p-3.5 font-semibold">Invoice #</th>
-                <th className="p-3.5 font-semibold">Date</th>
-                <th className="p-3.5 font-semibold">Client Name</th>
-                <th className="p-3.5 font-semibold">Service Type</th>
-                <th className="p-3.5 font-semibold">Total (₹)</th>
-                <th className="p-3.5 font-semibold">Paid (₹)</th>
-                <th className="p-3.5 font-semibold">Pending (₹)</th>
-                <th className="p-3.5 font-semibold">Status</th>
-                <th className="p-3.5 font-semibold">Workflow / Executive</th>
-                <th className="p-3.5 text-center font-semibold">Actions</th>
+                <SortableHeader label="Invoice #" sortKey="invoiceNumber" currentSort={sortConfig} onSort={handleSort} />
+                <SortableHeader label="Date" sortKey="invoiceDate" currentSort={sortConfig} onSort={handleSort} />
+                <SortableHeader label="Client Name" sortKey="client.clientName" currentSort={sortConfig} onSort={handleSort} />
+                <SortableHeader label="Service Type" sortKey="serviceType" currentSort={sortConfig} onSort={handleSort} />
+                <SortableHeader label="Total (₹)" sortKey="total" currentSort={sortConfig} onSort={handleSort} />
+                <SortableHeader label="Paid (₹)" sortKey="paidAmount" currentSort={sortConfig} onSort={handleSort} />
+                <SortableHeader label="Pending (₹)" sortKey="pendingAmount" currentSort={sortConfig} onSort={handleSort} />
+                <SortableHeader label="Status" sortKey="paymentStatus" currentSort={sortConfig} onSort={handleSort} />
+                <SortableHeader label="Workflow / Executive" sortKey="assignedEmployee.name" currentSort={sortConfig} onSort={handleSort} />
+                <th className="p-3.5 text-center font-semibold text-white">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
@@ -151,12 +164,12 @@ const BillingPage = () => {
                 <tr>
                   <td colSpan={10} className="p-8 text-center text-slate-400">Loading invoices...</td>
                 </tr>
-              ) : invoices.length === 0 ? (
+              ) : sortedInvoices.length === 0 ? (
                 <tr>
                   <td colSpan={10} className="p-8 text-center text-slate-400">No invoices generated yet</td>
                 </tr>
               ) : (
-                invoices.map((inv) => {
+                sortedInvoices.map((inv) => {
                   const displayInvNo = formatInvoiceNumber(inv.invoiceNumber);
                   return (
                     <tr key={inv._id} className="hover:bg-slate-50 transition">

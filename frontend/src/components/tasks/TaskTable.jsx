@@ -1,8 +1,10 @@
-import React from 'react';
+import React, { useState, useMemo } from 'react';
 import { Calendar, User, Clock, AlertTriangle, CheckCircle2, XCircle, ArrowRight, Building2, Trash2, UserPlus } from 'lucide-react';
 import Badge from '../common/Badge';
+import { SortableHeader, sortTableData } from '../common/SortableHeader';
 
 const TaskTable = ({ tasks = [], onStatusChange, onDeleteTask, onDelegateTask, currentUser }) => {
+  const [sortConfig, setSortConfig] = useState({ key: 'dueDate', direction: 'asc' });
   const statusOptions = ['Assigned', 'In Progress', 'Completed', "Can't Complete"];
 
   const getStatusBadgeStyle = (status) => {
@@ -25,31 +27,42 @@ const TaskTable = ({ tasks = [], onStatusChange, onDeleteTask, onDelegateTask, c
 
   const isSuperOrDeptAdmin = currentUser && (currentUser.role === 'Super Admin' || currentUser.role.includes('Admin'));
 
+  const handleSort = (key) => {
+    setSortConfig((prev) => ({
+      key,
+      direction: prev.key === key && prev.direction === 'asc' ? 'desc' : 'asc'
+    }));
+  };
+
+  const sortedTasks = useMemo(() => {
+    return sortTableData(tasks, sortConfig);
+  }, [tasks, sortConfig]);
+
   return (
     <div className="glacier-card p-0 overflow-hidden rounded-2xl border border-slate-200 shadow-sm">
       <div className="overflow-x-auto">
         <table className="w-full text-left text-xs min-w-[950px]">
           <thead className="bg-[#0A1E3F] text-white">
             <tr>
-              <th className="p-3.5 font-semibold">Task Title & Details</th>
-              <th className="p-3.5 font-semibold">Type & Department</th>
-              <th className="p-3.5 font-semibold">Client Context</th>
-              <th className="p-3.5 font-semibold">Hierarchy Flow (Assigned By ➔ To)</th>
-              <th className="p-3.5 font-semibold">Priority</th>
-              <th className="p-3.5 font-semibold">Deadline</th>
-              <th className="p-3.5 font-semibold text-center">Status Update</th>
-              {isSuperOrDeptAdmin && <th className="p-3.5 text-center font-semibold">Action</th>}
+              <SortableHeader label="Task Title & Details" sortKey="taskName" currentSort={sortConfig} onSort={handleSort} />
+              <SortableHeader label="Type & Department" sortKey="department" currentSort={sortConfig} onSort={handleSort} />
+              <SortableHeader label="Client Context" sortKey="client.clientName" currentSort={sortConfig} onSort={handleSort} />
+              <SortableHeader label="Hierarchy Flow (Assigned By ➔ To)" sortKey="assignedTo.name" currentSort={sortConfig} onSort={handleSort} />
+              <SortableHeader label="Priority" sortKey="priority" currentSort={sortConfig} onSort={handleSort} />
+              <SortableHeader label="Deadline" sortKey="dueDate" currentSort={sortConfig} onSort={handleSort} />
+              <SortableHeader label="Status Update" sortKey="status" currentSort={sortConfig} onSort={handleSort} align="center" />
+              {isSuperOrDeptAdmin && <th className="p-3.5 text-center font-semibold text-white">Action</th>}
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
-            {tasks.length === 0 ? (
+            {sortedTasks.length === 0 ? (
               <tr>
                 <td colSpan={8} className="p-10 text-center text-slate-400 font-medium">
                   No tasks found matching your filter criteria.
                 </td>
               </tr>
             ) : (
-              tasks.map((task) => {
+              sortedTasks.map((task) => {
                 const isOverdue = new Date(task.dueDate) < new Date() && !['Completed', "Can't Complete"].includes(task.status);
                 const createdDateTimeFormatted = (task.createdAt || task.assignedDate)
                   ? new Date(task.createdAt || task.assignedDate).toLocaleString('en-IN', {

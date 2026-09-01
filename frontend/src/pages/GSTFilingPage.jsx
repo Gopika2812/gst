@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import GlacierCard from '../components/common/GlacierCard';
 import Badge from '../components/common/Badge';
+import { SortableHeader, sortTableData } from '../components/common/SortableHeader';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import {
@@ -131,16 +132,44 @@ const GSTFilingPage = () => {
     }
   };
 
-  const filteredTasks = tasks.filter((t) => {
-    const matchesSearch =
-      !search ||
-      t.taskName?.toLowerCase().includes(search.toLowerCase()) ||
-      t.client?.clientName?.toLowerCase().includes(search.toLowerCase()) ||
-      t.client?.gstin?.toLowerCase().includes(search.toLowerCase());
+  const [taskSortConfig, setTaskSortConfig] = useState({ key: 'dueDate', direction: 'asc' });
+  const [filingSortConfig, setFilingSortConfig] = useState({ key: 'filingDate', direction: 'desc' });
 
-    const matchesStatus = !statusFilter || t.status === statusFilter;
-    return matchesSearch && matchesStatus;
-  });
+  const filteredTasks = useMemo(() => {
+    return tasks.filter((t) => {
+      const matchesSearch =
+        !search ||
+        t.taskName?.toLowerCase().includes(search.toLowerCase()) ||
+        t.client?.clientName?.toLowerCase().includes(search.toLowerCase()) ||
+        t.client?.gstin?.toLowerCase().includes(search.toLowerCase()) ||
+        t.assignedEmployee?.name?.toLowerCase().includes(search.toLowerCase());
+
+      const matchesStatus = !statusFilter || t.status === statusFilter;
+      return matchesSearch && matchesStatus;
+    });
+  }, [tasks, search, statusFilter]);
+
+  const sortedTasks = useMemo(() => {
+    return sortTableData(filteredTasks, taskSortConfig);
+  }, [filteredTasks, taskSortConfig]);
+
+  const sortedFilings = useMemo(() => {
+    return sortTableData(filings, filingSortConfig);
+  }, [filings, filingSortConfig]);
+
+  const handleTaskSort = (key) => {
+    setTaskSortConfig((prev) => ({
+      key,
+      direction: prev.key === key && prev.direction === 'asc' ? 'desc' : 'asc'
+    }));
+  };
+
+  const handleFilingSort = (key) => {
+    setFilingSortConfig((prev) => ({
+      key,
+      direction: prev.key === key && prev.direction === 'asc' ? 'desc' : 'asc'
+    }));
+  };
 
   return (
     <div className="space-y-6">
@@ -171,7 +200,7 @@ const GSTFilingPage = () => {
             <div>
               <h3 className="text-sm font-bold text-[#0A1E3F]">Active GST Filing Tasks Queue</h3>
               <p className="text-[11px] text-slate-500">
-                Assigned client returns to process & complete ({filteredTasks.length} tasks)
+                Assigned client returns to process & complete ({sortedTasks.length} tasks)
               </p>
             </div>
           </div>
@@ -191,7 +220,7 @@ const GSTFilingPage = () => {
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="rounded-xl border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-semibold text-slate-700 outline-none focus:border-[#C59B27]"
+              className="rounded-xl border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-semibold text-slate-700 outline-none focus:border-[#C59B27] cursor-pointer"
             >
               <option value="">All Statuses</option>
               <option value="Assigned">Assigned (New)</option>
@@ -207,14 +236,14 @@ const GSTFilingPage = () => {
           <table className="w-full text-left text-xs min-w-[800px]">
             <thead className="bg-[#0A1E3F] text-white">
               <tr>
-                <th className="p-3 font-semibold">Client Name</th>
-                <th className="p-3 font-semibold">GSTIN</th>
-                <th className="p-3 font-semibold">Return / Service</th>
-                <th className="p-3 font-semibold">Assigned Executive</th>
-                <th className="p-3 font-semibold">Due Date</th>
-                <th className="p-3 font-semibold">Priority</th>
-                <th className="p-3 font-semibold">Process Status</th>
-                <th className="p-3 text-center font-semibold">Action</th>
+                <SortableHeader label="Client Name" sortKey="client.clientName" currentSort={taskSortConfig} onSort={handleTaskSort} />
+                <SortableHeader label="GSTIN" sortKey="client.gstin" currentSort={taskSortConfig} onSort={handleTaskSort} />
+                <SortableHeader label="Return / Service" sortKey="taskName" currentSort={taskSortConfig} onSort={handleTaskSort} />
+                <SortableHeader label="Assigned Executive" sortKey="assignedEmployee.name" currentSort={taskSortConfig} onSort={handleTaskSort} />
+                <SortableHeader label="Due Date" sortKey="dueDate" currentSort={taskSortConfig} onSort={handleTaskSort} />
+                <SortableHeader label="Priority" sortKey="priority" currentSort={taskSortConfig} onSort={handleTaskSort} />
+                <SortableHeader label="Process Status" sortKey="status" currentSort={taskSortConfig} onSort={handleTaskSort} />
+                <th className="p-3 text-center font-semibold text-white">Action</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 bg-white">
@@ -222,14 +251,14 @@ const GSTFilingPage = () => {
                 <tr>
                   <td colSpan={8} className="p-8 text-center text-slate-400">Loading assigned tasks...</td>
                 </tr>
-              ) : filteredTasks.length === 0 ? (
+              ) : sortedTasks.length === 0 ? (
                 <tr>
                   <td colSpan={8} className="p-8 text-center text-slate-400">
                     No active GST filing tasks assigned yet. Tasks assigned from Billing or Client Master will appear here.
                   </td>
                 </tr>
               ) : (
-                filteredTasks.map((t) => {
+                sortedTasks.map((t) => {
                   const isOverdue = new Date(t.dueDate) < new Date() && t.status !== 'Completed' && t.status !== "Can't Complete";
                   return (
                     <tr key={t._id} className={`hover:bg-slate-50 transition ${isOverdue ? 'bg-rose-50/30' : ''}`}>
@@ -299,7 +328,7 @@ const GSTFilingPage = () => {
                             <span>Upload Return</span>
                           </button>
                         ) : (
-                          <span className="inline-flex items-center text-[10px] font-bold text-emerald-600">
+                          <span className="inline-flex items-center text-[10px] font-bold text-emerald-700">
                             <CheckCircle2 className="mr-1 h-3.5 w-3.5" /> Completed
                           </span>
                         )}
@@ -319,14 +348,14 @@ const GSTFilingPage = () => {
           <table className="w-full text-left text-xs min-w-[750px]">
             <thead className="bg-[#0A1E3F] text-white">
               <tr>
-                <th className="p-3.5 font-semibold">Client Name</th>
-                <th className="p-3.5 font-semibold">GSTIN</th>
-                <th className="p-3.5 font-semibold">Filing Period</th>
-                <th className="p-3.5 font-semibold">ACK Number</th>
-                <th className="p-3.5 font-semibold">Filing Date</th>
-                <th className="p-3.5 font-semibold">Filed By</th>
-                <th className="p-3.5 font-semibold">Status</th>
-                <th className="p-3.5 text-center font-semibold">Proof File</th>
+                <SortableHeader label="Client Name" sortKey="client.clientName" currentSort={filingSortConfig} onSort={handleFilingSort} />
+                <SortableHeader label="GSTIN" sortKey="client.gstin" currentSort={filingSortConfig} onSort={handleFilingSort} />
+                <SortableHeader label="Filing Period" sortKey="filingPeriod" currentSort={filingSortConfig} onSort={handleFilingSort} />
+                <SortableHeader label="ACK Number" sortKey="acknowledgementNumber" currentSort={filingSortConfig} onSort={handleFilingSort} />
+                <SortableHeader label="Filing Date" sortKey="filingDate" currentSort={filingSortConfig} onSort={handleFilingSort} />
+                <SortableHeader label="Filed By" sortKey="filedBy.name" currentSort={filingSortConfig} onSort={handleFilingSort} />
+                <SortableHeader label="Status" sortKey="status" currentSort={filingSortConfig} onSort={handleFilingSort} />
+                <th className="p-3.5 text-center font-semibold text-white">Proof File</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
@@ -334,12 +363,12 @@ const GSTFilingPage = () => {
                 <tr>
                   <td colSpan={8} className="p-8 text-center text-slate-400">Loading GST filing records...</td>
                 </tr>
-              ) : filings.length === 0 ? (
+              ) : sortedFilings.length === 0 ? (
                 <tr>
                   <td colSpan={8} className="p-8 text-center text-slate-400">No GST filing records submitted yet</td>
                 </tr>
               ) : (
-                filings.map((f) => (
+                sortedFilings.map((f) => (
                   <tr key={f._id} className="hover:bg-slate-50">
                     <td className="p-3.5 font-bold text-slate-800">{f.client?.clientName}</td>
                     <td className="p-3.5 font-mono text-[11px] text-slate-700">{f.client?.gstin || 'N/A'}</td>

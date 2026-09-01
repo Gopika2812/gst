@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import GlacierCard from '../components/common/GlacierCard';
 import Badge from '../components/common/Badge';
 import ClientModal from '../components/clients/ClientModal';
+import { SortableHeader, sortTableData } from '../components/common/SortableHeader';
 import api from '../services/api';
 import { Plus, Search, Filter, ShieldAlert, FileText, Phone, Mail, Edit3, Power } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
@@ -15,6 +16,7 @@ const ClientsPage = () => {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
+  const [sortConfig, setSortConfig] = useState({ key: 'clientName', direction: 'asc' });
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedClientForEdit, setSelectedClientForEdit] = useState(null);
 
@@ -46,6 +48,17 @@ const ClientsPage = () => {
       alert('Failed to update client status');
     }
   };
+
+  const handleSort = (key) => {
+    setSortConfig((prev) => ({
+      key,
+      direction: prev.key === key && prev.direction === 'asc' ? 'desc' : 'asc'
+    }));
+  };
+
+  const sortedClients = useMemo(() => {
+    return sortTableData(clients, sortConfig);
+  }, [clients, sortConfig]);
 
   return (
     <div className="space-y-6">
@@ -100,17 +113,17 @@ const ClientsPage = () => {
       {/* Clients Table */}
       <GlacierCard className="p-0 overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs">
+          <table className="w-full text-left text-xs min-w-[750px]">
             <thead className="bg-[#0A1E3F] text-white">
               <tr>
-                <th className="p-3.5 font-semibold">Client Code / Name</th>
-                <th className="p-3.5 font-semibold">Trade Name & Type</th>
-                <th className="p-3.5 font-semibold">PAN & GSTIN</th>
-                <th className="p-3.5 font-semibold">Responsible Staff</th>
-                <th className="p-3.5 font-semibold">Credit Limit</th>
-                <th className="p-3.5 font-semibold">Closing Bal</th>
-                <th className="p-3.5 font-semibold">Status</th>
-                <th className="p-3.5 text-center font-semibold">Actions</th>
+                <SortableHeader label="Client Code / Name" sortKey="clientName" currentSort={sortConfig} onSort={handleSort} />
+                <SortableHeader label="Trade Name & Type" sortKey="tradeName" currentSort={sortConfig} onSort={handleSort} />
+                <SortableHeader label="PAN & GSTIN" sortKey="gstin" currentSort={sortConfig} onSort={handleSort} />
+                <SortableHeader label="Responsible Staff" sortKey="responsibleEmployee.name" currentSort={sortConfig} onSort={handleSort} />
+                <SortableHeader label="Credit Limit" sortKey="creditLimit" currentSort={sortConfig} onSort={handleSort} />
+                <SortableHeader label="Closing Bal" sortKey="closingBalance" currentSort={sortConfig} onSort={handleSort} />
+                <SortableHeader label="Status" sortKey="status" currentSort={sortConfig} onSort={handleSort} />
+                <th className="p-3.5 text-center font-semibold text-white">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
@@ -118,12 +131,12 @@ const ClientsPage = () => {
                 <tr>
                   <td colSpan={8} className="p-8 text-center text-slate-400">Loading clients...</td>
                 </tr>
-              ) : clients.length === 0 ? (
+              ) : sortedClients.length === 0 ? (
                 <tr>
                   <td colSpan={8} className="p-8 text-center text-slate-400">No client records found</td>
                 </tr>
               ) : (
-                clients.map((c) => (
+                sortedClients.map((c) => (
                   <tr key={c._id} className="hover:bg-slate-50 transition">
                     <td className="p-3.5">
                       <p className="font-bold text-slate-800">{c.clientName}</p>
