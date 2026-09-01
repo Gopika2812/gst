@@ -7,9 +7,9 @@ const Certification = require('../models/Certification');
 // Executive Dashboard Counters & Summary (with Date, Department & User Filtration)
 exports.getDashboardSummary = async (req, res) => {
   try {
-    const userRole = req.user.role || '';
-    const userDept = req.user.department || '';
-    const userId = req.user._id;
+    const userRole = req.user?.role || '';
+    const userDept = req.user?.department || '';
+    const userId = req.user?._id;
 
     const isSuperAdmin = userRole === 'Super Admin';
     const isAdmin = userRole.includes('Admin') && !isSuperAdmin;
@@ -36,7 +36,8 @@ exports.getDashboardSummary = async (req, res) => {
     } else if (dateFilter === 'This Month') {
       startRange = new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0);
       endRange = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
-    } else if (dateFilter === 'All Time') {
+    } else {
+      // Default / 'All Time'
       startRange = null;
       endRange = null;
     }
@@ -79,7 +80,6 @@ exports.getDashboardSummary = async (req, res) => {
 
     if (startRange && endRange) {
       if (dateFilter === 'Today') {
-        // For Today: include tasks due today, created today, OR active in-progress/assigned
         taskDateQuery = {
           $or: [
             { dueDate: { $gte: startRange, $lte: endRange } },
@@ -99,7 +99,7 @@ exports.getDashboardSummary = async (req, res) => {
       invoiceDateQuery = { invoiceDate: { $gte: startRange, $lte: endRange } };
     }
 
-    // Parallelize all queries concurrently
+    // Parallelize all queries safely
     const [
       totalClients,
       registeredClientsCount,
@@ -110,56 +110,68 @@ exports.getDashboardSummary = async (req, res) => {
       allClientsList,
       allPendingCertificates
     ] = await Promise.all([
-      Client.countDocuments(clientFilter),
-      Client.countDocuments(startRange && endRange ? { ...clientFilter, ...clientDateQuery } : clientFilter),
-      Client.countDocuments({ ...clientFilter, status: 'Active' }),
-      Certification.countDocuments({ ...certFilter, status: 'Waiting For Certificate' }),
+      Client.countDocuments(clientFilter).catch(() => 0),
+      Client.countDocuments(startRange && endRange ? { ...clientFilter, ...clientDateQuery } : clientFilter).catch(() => 0),
+      Client.countDocuments({ ...clientFilter, status: 'Active' }).catch(() => 0),
+      Certification.countDocuments({ ...certFilter, status: 'Waiting For Certificate' }).catch(() => 0),
       Task.find({ ...taskFilter, ...taskDateQuery })
         .populate('client', 'clientName tradeName gstin pan phone email')
         .populate('assignedEmployee', 'name email role department designation')
         .populate('assignedBy', 'name role')
         .sort({ dueDate: 1, createdAt: -1 })
-        .lean(),
+        .lean()
+        .catch(() => []),
       Invoice.find({ ...invoiceFilter, ...invoiceDateQuery })
         .populate('client', 'clientName tradeName gstin pan phone email')
         .populate('assignedEmployee', 'name email role department')
         .sort({ invoiceDate: -1 })
-        .lean(),
+        .lean()
+        .catch(() => []),
       Client.find(clientFilter)
         .populate('responsibleEmployee', 'name email department')
         .sort({ createdAt: -1 })
-        .lean(),
+        .lean()
+        .catch(() => []),
       Certification.find({ ...certFilter, status: 'Waiting For Certificate' })
         .populate('client', 'clientName tradeName gstin pan phone')
         .populate('assignedEmployee', 'name email department')
         .sort({ createdAt: -1 })
         .lean()
+        .catch(() => [])
     ]);
 
+    const tasksList = allFilteredTasks || [];
+    const invoicesList = allFilteredInvoices || [];
+
     // Compute Task Process Counters from filtered tasks
-    const todaysTasks = allFilteredTasks.filter((t) => {
-      const created = new Date(t.createdAt);
-      const due = new Date(t.dueDate);
-      const isToday = (d) => d.toDateString() === now.toDateString();
+    const todaysTasks = tasksList.filter((t) => {
+      if (!t) return false;
+      const created = t.createdAt ? new Date(t.createdAt) : null;
+      const due = t.dueDate ? new Date(t.dueDate) : null;
+      const isToday = (d) => d && !isNaN(d.getTime()) && d.toDateString() === now.toDateString();
       return isToday(created) || isToday(due) || t.status === 'Assigned';
     });
 
-    const inProgressTasks = allFilteredTasks.filter((t) => t.status === 'In Progress');
-    const completedTasks = allFilteredTasks.filter((t) => t.status === 'Completed');
-    const cantCompleteTasks = allFilteredTasks.filter((t) => t.status === "Can't Complete" || t.status === 'On Hold');
-    const overdueTasks = allFilteredTasks.filter((t) => new Date(t.dueDate) < now && t.status !== 'Completed' && t.status !== "Can't Complete");
+    const inProgressTasks = tasksList.filter((t) => t && t.status === 'In Progress');
+    const completedTasks = tasksList.filter((t) => t && t.status === 'Completed');
+    const cantCompleteTasks = tasksList.filter((t) => t && (t.status === "Can't Complete" || t.status === 'On Hold'));
+    const overdueTasks = tasksList.filter((t) => {
+      if (!t || !t.dueDate) return false;
+      const due = new Date(t.dueDate);
+      return !isNaN(due.getTime()) && due < now && t.status !== 'Completed' && t.status !== "Can't Complete";
+    });
 
     // Billing Counters
-    const totalBillingValue = allFilteredInvoices.reduce((sum, inv) => sum + (inv.total || 0), 0);
-    const totalCollected = allFilteredInvoices.reduce((sum, inv) => sum + (inv.paidAmount || 0), 0);
-    const totalPending = allFilteredInvoices.reduce((sum, inv) => sum + (inv.pendingAmount || 0), 0);
+    const totalBillingValue = invoicesList.reduce((sum, inv) => sum + (Number(inv.total) || 0), 0);
+    const totalCollected = invoicesList.reduce((sum, inv) => sum + (Number(inv.paidAmount) || 0), 0);
+    const totalPending = invoicesList.reduce((sum, inv) => sum + (Number(inv.pendingAmount) || 0), 0);
 
     res.json({
       counters: {
-        totalClients,
-        registeredClientsCount,
-        activeClients,
-        pendingCertificatesCount,
+        totalClients: totalClients || 0,
+        registeredClientsCount: registeredClientsCount || 0,
+        activeClients: activeClients || 0,
+        pendingCertificatesCount: pendingCertificatesCount || 0,
         todaysTasksCount: todaysTasks.length,
         inProgressTasksCount: inProgressTasks.length,
         completedTasksCount: completedTasks.length,
@@ -175,13 +187,14 @@ exports.getDashboardSummary = async (req, res) => {
         completedTasks,
         cantCompleteTasks,
         overdueTasks,
-        allFilteredTasks,
-        allFilteredInvoices,
-        allClientsList,
-        allPendingCertificates
+        allFilteredTasks: tasksList,
+        allFilteredInvoices: invoicesList,
+        allClientsList: allClientsList || [],
+        allPendingCertificates: allPendingCertificates || []
       }
     });
   } catch (error) {
+    console.error('Error in getDashboardSummary:', error);
     res.status(500).json({ message: error.message });
   }
 };
