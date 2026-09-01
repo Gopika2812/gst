@@ -6,7 +6,9 @@ import Badge from '../components/common/Badge';
 import TaskModal from '../components/tasks/TaskModal';
 import ClientModal from '../components/clients/ClientModal';
 import TaskTable from '../components/tasks/TaskTable';
+import CardDetailModal from '../components/dashboard/CardDetailModal';
 import api from '../services/api';
+import { exportToCSV, printExecutiveReport } from '../utils/exportUtils';
 import {
   Users,
   Award,
@@ -15,26 +17,38 @@ import {
   Clock,
   AlertTriangle,
   Calendar,
-  TrendingUp,
-  ArrowUpRight,
   Filter,
   BarChart2,
   ShieldCheck,
   CheckSquare,
   FileCheck,
   XCircle,
-  PlayCircle
+  PlayCircle,
+  Download,
+  Printer,
+  ChevronDown,
+  UserCheck,
+  Building2,
+  Sparkles
 } from 'lucide-react';
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 const Dashboard = () => {
   const { user } = useAuth();
   const [summary, setSummary] = useState(null);
-  const [dateFilter, setDateFilter] = useState('This Month');
   const [loading, setLoading] = useState(true);
 
+  // Filtration States (Default is 'Today')
+  const [dateFilter, setDateFilter] = useState('Today');
+  const [startDate, setStartDate] = useState(() => new Date().toISOString().split('T')[0]);
+  const [endDate, setEndDate] = useState(() => new Date().toISOString().split('T')[0]);
+  const [selectedDept, setSelectedDept] = useState('All');
+  const [selectedEmployee, setSelectedEmployee] = useState('All');
+
+  // Modals
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
   const [isClientModalOpen, setIsClientModalOpen] = useState(false);
+  const [cardModalData, setCardModalData] = useState(null);
+  const [isExportMenuOpen, setIsExportMenuOpen] = useState(false);
 
   const [clients, setClients] = useState([]);
   const [employees, setEmployees] = useState([]);
@@ -48,7 +62,15 @@ const Dashboard = () => {
     if (isInitial || !summary) setLoading(true);
     try {
       const [sumRes, clientRes, userRes, taskRes] = await Promise.all([
-        api.get('/reports/dashboard-summary'),
+        api.get('/reports/dashboard-summary', {
+          params: {
+            dateFilter,
+            startDate: dateFilter === 'Custom' ? startDate : undefined,
+            endDate: dateFilter === 'Custom' ? endDate : undefined,
+            department: selectedDept !== 'All' ? selectedDept : undefined,
+            employeeId: selectedEmployee !== 'All' ? selectedEmployee : undefined
+          }
+        }),
         isSuperAdmin || isAdmin ? api.get('/clients') : Promise.resolve({ data: [] }),
         isSuperAdmin || isAdmin ? api.get('/users') : Promise.resolve({ data: [] }),
         api.get('/tasks', { params: { myTasksOnly: isExecutive ? true : false } })
@@ -65,8 +87,8 @@ const Dashboard = () => {
   };
 
   useEffect(() => {
-    fetchDashboardData(true);
-  }, []);
+    fetchDashboardData(false);
+  }, [dateFilter, startDate, endDate, selectedDept, selectedEmployee]);
 
   const handleTaskStatusChange = async (taskId, newStatus) => {
     try {
@@ -78,8 +100,47 @@ const Dashboard = () => {
   };
 
   const counters = summary?.counters || {};
-  const monthlyRevenue = summary?.monthlyRevenue || [];
-  const recentTasks = summary?.recentTasks || [];
+  const details = summary?.details || {};
+
+  const handleCardClick = (title, subtitle, type, items) => {
+    setCardModalData({
+      title,
+      subtitle,
+      type,
+      items: items || []
+    });
+  };
+
+  const handleExportCSV = () => {
+    setIsExportMenuOpen(false);
+    const tasksToExport = details.allFilteredTasks || [];
+    const headers = {
+      'client.clientName': 'Client Name',
+      'client.gstin': 'GSTIN',
+      taskName: 'Service / Task Name',
+      department: 'Department',
+      'assignedEmployee.name': 'Assigned Executive',
+      dueDate: 'Due Date',
+      priority: 'Priority',
+      status: 'Status'
+    };
+    exportToCSV(`VigneshAssociates_OperationsReport_${dateFilter}`, tasksToExport, headers);
+  };
+
+  const handlePrintReport = () => {
+    setIsExportMenuOpen(false);
+    const selectedEmpObj = employees.find((e) => e._id === selectedEmployee);
+    printExecutiveReport({
+      filters: {
+        dateFilter,
+        department: selectedDept,
+        employeeName: selectedEmpObj ? `${selectedEmpObj.name} (${selectedEmpObj.role})` : 'All Executives'
+      },
+      counters,
+      tasks: details.allFilteredTasks || [],
+      user
+    });
+  };
 
   return (
     <div className="space-y-6">
@@ -104,91 +165,357 @@ const Dashboard = () => {
             </div>
           </div>
 
-          {/* Action Buttons */}
-          {(isSuperAdmin || isAdmin) && (
-            <div className="flex items-center space-x-2 sm:space-x-3">
-              {isSuperAdmin && (
-                <button
-                  onClick={() => setIsClientModalOpen(true)}
-                  className="flex-1 sm:flex-none justify-center flex items-center space-x-1.5 rounded-xl bg-white/10 px-4 py-2.5 text-xs font-bold text-white backdrop-blur-md border border-white/20 transition hover:bg-white/20 cursor-pointer"
-                >
-                  <span>Add Client</span>
-                </button>
-              )}
+          {/* Action Buttons & Professional Export */}
+          <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+            {/* Professional Export Dropdown */}
+            <div className="relative">
               <button
-                onClick={() => setIsTaskModalOpen(true)}
-                className="flex-1 sm:flex-none justify-center flex items-center space-x-1.5 rounded-xl bg-[#52A636] px-4 py-2.5 text-xs font-bold text-white shadow-md transition hover:bg-[#438A2B] cursor-pointer"
+                onClick={() => setIsExportMenuOpen(!isExportMenuOpen)}
+                className="flex items-center space-x-1.5 rounded-xl bg-white/10 px-3.5 py-2.5 text-xs font-bold text-white backdrop-blur-md border border-white/20 transition hover:bg-white/20 cursor-pointer shadow-xs"
               >
-                <span>Assign Task</span>
+                <Download className="h-4 w-4 text-[#52A636]" />
+                <span>Export Report</span>
+                <ChevronDown className="h-3.5 w-3.5 opacity-70" />
               </button>
+
+              {isExportMenuOpen && (
+                <div className="absolute right-0 mt-2 w-52 rounded-2xl bg-white p-1.5 text-slate-800 shadow-2xl border border-slate-100 z-30 animate-in fade-in zoom-in-95 duration-150">
+                  <button
+                    onClick={handleExportCSV}
+                    className="flex w-full items-center space-x-2 rounded-xl px-3 py-2 text-xs font-bold text-slate-700 hover:bg-emerald-50 hover:text-emerald-800 transition cursor-pointer"
+                  >
+                    <Download className="h-4 w-4 text-[#52A636]" />
+                    <span>Export to Excel / CSV</span>
+                  </button>
+                  <button
+                    onClick={handlePrintReport}
+                    className="flex w-full items-center space-x-2 rounded-xl px-3 py-2 text-xs font-bold text-slate-700 hover:bg-blue-50 hover:text-[#0F2B48] transition cursor-pointer"
+                  >
+                    <Printer className="h-4 w-4 text-[#0F2B48]" />
+                    <span>Print Executive Summary</span>
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {(isSuperAdmin || isAdmin) && (
+              <>
+                {isSuperAdmin && (
+                  <button
+                    onClick={() => setIsClientModalOpen(true)}
+                    className="flex items-center space-x-1.5 rounded-xl bg-white/10 px-4 py-2.5 text-xs font-bold text-white backdrop-blur-md border border-white/20 transition hover:bg-white/20 cursor-pointer"
+                  >
+                    <span>Add Client</span>
+                  </button>
+                )}
+                <button
+                  onClick={() => setIsTaskModalOpen(true)}
+                  className="flex items-center space-x-1.5 rounded-xl bg-[#52A636] px-4 py-2.5 text-xs font-bold text-white shadow-md transition hover:bg-[#438A2B] cursor-pointer"
+                >
+                  <span>Assign Task</span>
+                </button>
+              </>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* FILTER CONTROL BAR (Date Filtration: Default Today + Dept + User Filters) */}
+      <GlacierCard className="p-3.5">
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
+          {/* Date Filter Selection (Today is selected defaultly) */}
+          <div className="flex items-center space-x-1 rounded-xl bg-slate-100 p-1 overflow-x-auto no-scrollbar">
+            {['Today', 'This Week', 'This Month', 'Custom'].map((filter) => (
+              <button
+                key={filter}
+                onClick={() => setDateFilter(filter)}
+                className={`whitespace-nowrap rounded-lg px-3 py-1.5 text-xs font-bold transition cursor-pointer ${
+                  dateFilter === filter
+                    ? 'bg-white text-[#0F2B48] shadow-xs'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                {filter === 'Custom' ? 'Custom Range' : filter}
+              </button>
+            ))}
+          </div>
+
+          {/* Custom Date Pickers */}
+          {dateFilter === 'Custom' && (
+            <div className="flex items-center space-x-2">
+              <input
+                type="date"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+                className="rounded-xl border border-slate-200 bg-white px-2.5 py-1 text-xs font-semibold text-slate-800 outline-none focus:border-[#52A636]"
+              />
+              <span className="text-xs text-slate-400 font-bold">➔</span>
+              <input
+                type="date"
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+                className="rounded-xl border border-slate-200 bg-white px-2.5 py-1 text-xs font-semibold text-slate-800 outline-none focus:border-[#52A636]"
+              />
             </div>
           )}
-        </div>
-      </div>
 
-      {/* Date Filter Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5">
-        <h2 className="text-xs sm:text-sm font-bold text-[#0F2B48] uppercase tracking-wider">
-          {isExecutive ? 'My Daily Workflow Overview' : (isSuperAdmin ? 'Firm Task Process Overview' : `${user?.department} Task Process Overview`)}
-        </h2>
-        <div className="flex items-center space-x-1 rounded-xl bg-slate-200/60 p-1 overflow-x-auto no-scrollbar">
-          {['Today', 'This Week', 'This Month', 'Custom Date'].map((filter) => (
-            <button
-              key={filter}
-              onClick={() => setDateFilter(filter)}
-              className={`whitespace-nowrap rounded-lg px-2.5 sm:px-3 py-1 text-xs font-semibold transition ${
-                dateFilter === filter
-                  ? 'bg-white text-[#0F2B48] shadow-xs'
-                  : 'text-slate-600 hover:text-slate-900'
-              }`}
+          {/* Department & User Wise Filtration */}
+          <div className="flex flex-wrap items-center gap-2.5">
+            {/* Department Filter */}
+            <div className="flex items-center space-x-1.5 rounded-xl border border-slate-200 bg-white px-2.5 py-1">
+              <Building2 className="h-3.5 w-3.5 text-slate-400" />
+              <select
+                value={selectedDept}
+                onChange={(e) => setSelectedDept(e.target.value)}
+                className="bg-transparent text-xs font-semibold text-slate-800 outline-none cursor-pointer"
+              >
+                <option value="All">All Departments</option>
+                <option value="GST">GST Department</option>
+                <option value="Income Tax">Income Tax Department</option>
+                <option value="Accounts">Accounts Department</option>
+                <option value="Book Keeping">Book Keeping Department</option>
+                <option value="Registration">Registration Department</option>
+                <option value="Administration">Administration</option>
+              </select>
+            </div>
+
+            {/* User / Executive Wise Filter */}
+            {(isSuperAdmin || isAdmin) && (
+              <div className="flex items-center space-x-1.5 rounded-xl border border-slate-200 bg-white px-2.5 py-1">
+                <UserCheck className="h-3.5 w-3.5 text-slate-400" />
+                <select
+                  value={selectedEmployee}
+                  onChange={(e) => setSelectedEmployee(e.target.value)}
+                  className="bg-transparent text-xs font-semibold text-slate-800 outline-none cursor-pointer max-w-[160px]"
+                >
+                  <option value="All">All Executives</option>
+                  {employees.map((emp) => (
+                    <option key={emp._id} value={emp._id}>
+                      {emp.name} ({emp.department})
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+          </div>
+        </div>
+      </GlacierCard>
+
+      {/* SUPERADMIN ONLY METRICS ROW: Client Count, Registered Clients, Certification Pending, Billing Value */}
+      {isSuperAdmin && (
+        <div className="space-y-2">
+          <div className="flex items-center space-x-2">
+            <Sparkles className="h-4 w-4 text-[#52A636]" />
+            <h3 className="text-xs font-extrabold uppercase tracking-wider text-[#0F2B48]">
+              Executive Firm KPI Summary (Click any card to inspect records)
+            </h3>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            <div
+              onClick={() =>
+                handleCardClick(
+                  'Total Onboarded Clients',
+                  'All active client records across departments',
+                  'clients',
+                  details.allClientsList
+                )
+              }
+              className="cursor-pointer transition-transform hover:-translate-y-0.5 active:scale-95"
             >
-              {filter}
-            </button>
-          ))}
-        </div>
-      </div>
+              <StatCard
+                title="Total Clients"
+                value={counters.totalClients || 0}
+                subtitle="All onboarded active clients"
+                icon={Users}
+                color="navy"
+              />
+            </div>
 
-      {/* 1st ROW: ALL TASK PROCESS STATUS CARDS */}
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
-        <StatCard
-          title="Today's Tasks"
-          value={counters.todaysTasksCount || 0}
-          subtitle="Assigned or created today"
-          icon={Calendar}
-          color="navy"
-        />
-        <StatCard
-          title="In Progress Tasks"
-          value={counters.inProgressTasksCount || 0}
-          subtitle="Currently undergoing work"
-          icon={Clock}
-          color="blue"
-        />
-        <StatCard
-          title="Completed Tasks"
-          value={counters.completedTasksCount || 0}
-          subtitle="Successfully completed"
-          icon={CheckCircle2}
-          color="green"
-        />
-        <StatCard
-          title="Can't Complete"
-          value={counters.cantCompleteTasksCount || 0}
-          subtitle="On hold / pending info"
-          icon={XCircle}
-          color="amber"
-        />
-        <StatCard
-          title="Overdue Tasks"
-          value={counters.overdueTasksCount || 0}
-          subtitle="Passed deadline date"
-          icon={AlertTriangle}
-          color="rose"
-        />
+            <div
+              onClick={() =>
+                handleCardClick(
+                  'Registered Clients',
+                  `Clients registered in selected period (${dateFilter})`,
+                  'clients',
+                  details.allClientsList
+                )
+              }
+              className="cursor-pointer transition-transform hover:-translate-y-0.5 active:scale-95"
+            >
+              <StatCard
+                title="Registered Clients"
+                value={counters.registeredClientsCount || 0}
+                subtitle={`Registered for ${dateFilter}`}
+                icon={FileCheck}
+                color="blue"
+              />
+            </div>
+
+            <div
+              onClick={() =>
+                handleCardClick(
+                  'Certification Pending Clients',
+                  'Clients awaiting certification approval & upload',
+                  'certifications',
+                  details.allPendingCertificates
+                )
+              }
+              className="cursor-pointer transition-transform hover:-translate-y-0.5 active:scale-95"
+            >
+              <StatCard
+                title="Certification Pending"
+                value={counters.pendingCertificatesCount || 0}
+                subtitle="Waiting for certificate upload"
+                icon={Award}
+                color="amber"
+              />
+            </div>
+
+            <div
+              onClick={() =>
+                handleCardClick(
+                  'Total Billing Value Invoices',
+                  `Invoices generated in selected period (${dateFilter})`,
+                  'invoices',
+                  details.allFilteredInvoices
+                )
+              }
+              className="cursor-pointer transition-transform hover:-translate-y-0.5 active:scale-95"
+            >
+              <StatCard
+                title="Total Billing Value"
+                value={`₹${(counters.totalBillingValue || 0).toLocaleString('en-IN')}`}
+                subtitle={`Collected: ₹${(counters.totalCollected || 0).toLocaleString('en-IN')}`}
+                icon={Receipt}
+                color="green"
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* OPERATIONAL TASK PROCESS STATUS CARDS (Clickable with full drilldown) */}
+      <div className="space-y-2">
+        <div className="flex items-center justify-between">
+          <h2 className="text-xs sm:text-sm font-bold text-[#0F2B48] uppercase tracking-wider">
+            {isExecutive
+              ? 'My Daily Task Workflow (Click card to view details)'
+              : 'Firm Task Process Overview (Click card to inspect client & service status)'}
+          </h2>
+          <span className="text-[11px] font-semibold text-slate-500">
+            Period: <strong className="text-[#0F2B48]">{dateFilter}</strong>
+          </span>
+        </div>
+
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+          <div
+            onClick={() =>
+              handleCardClick(
+                "Today's Assigned Tasks",
+                'Tasks assigned, due, or created for today',
+                'tasks',
+                details.todaysTasks
+              )
+            }
+            className="cursor-pointer transition-transform hover:-translate-y-0.5 active:scale-95"
+          >
+            <StatCard
+              title="Today's Tasks"
+              value={counters.todaysTasksCount || 0}
+              subtitle="Assigned or created today"
+              icon={Calendar}
+              color="navy"
+            />
+          </div>
+
+          <div
+            onClick={() =>
+              handleCardClick(
+                'In Progress Tasks',
+                'Tasks currently undergoing executive work',
+                'tasks',
+                details.inProgressTasks
+              )
+            }
+            className="cursor-pointer transition-transform hover:-translate-y-0.5 active:scale-95"
+          >
+            <StatCard
+              title="In Progress Tasks"
+              value={counters.inProgressTasksCount || 0}
+              subtitle="Currently undergoing work"
+              icon={Clock}
+              color="blue"
+            />
+          </div>
+
+          <div
+            onClick={() =>
+              handleCardClick(
+                'Completed Tasks',
+                'Tasks successfully completed and verified',
+                'tasks',
+                details.completedTasks
+              )
+            }
+            className="cursor-pointer transition-transform hover:-translate-y-0.5 active:scale-95"
+          >
+            <StatCard
+              title="Completed Tasks"
+              value={counters.completedTasksCount || 0}
+              subtitle="Successfully completed"
+              icon={CheckCircle2}
+              color="green"
+            />
+          </div>
+
+          <div
+            onClick={() =>
+              handleCardClick(
+                "Can't Complete / On Hold",
+                'Tasks waiting on client documents or on hold',
+                'tasks',
+                details.cantCompleteTasks
+              )
+            }
+            className="cursor-pointer transition-transform hover:-translate-y-0.5 active:scale-95"
+          >
+            <StatCard
+              title="Can't Complete"
+              value={counters.cantCompleteTasksCount || 0}
+              subtitle="On hold / pending info"
+              icon={XCircle}
+              color="amber"
+            />
+          </div>
+
+          <div
+            onClick={() =>
+              handleCardClick(
+                'Overdue Tasks',
+                'Tasks that have passed their deadline date without completion',
+                'tasks',
+                details.overdueTasks
+              )
+            }
+            className="cursor-pointer transition-transform hover:-translate-y-0.5 active:scale-95"
+          >
+            <StatCard
+              title="Overdue Tasks"
+              value={counters.overdueTasksCount || 0}
+              subtitle="Passed deadline date"
+              icon={AlertTriangle}
+              color="rose"
+            />
+          </div>
+        </div>
       </div>
 
       {/* CLIENT SUBSCRIBED SERVICE REMINDERS (START DATE ➔ DUE DATE) */}
-      <GlacierCard title="Client Service Filing Reminders" subtitle="Active Start Date to Due Date Tracking (Completed services are automatically dismissed for the month)">
+      <GlacierCard
+        title="Client Service Filing Reminders"
+        subtitle="Active Start Date to Due Date Tracking (Completed services are automatically dismissed for the month)"
+      >
         <div className="mt-2 space-y-3">
           {(() => {
             const isServiceCompletedThisMonth = (client, service) => {
@@ -210,12 +537,13 @@ const Dashboard = () => {
 
             const activeReminders = clients.flatMap((client) =>
               (client.subscribedServices || []).filter((service) => {
-                // If executive, only show services assigned to them or their client
                 if (isExecutive) {
-                  const isAssigned = String(service.assignedStaff) === String(user?._id) || String(client.responsibleEmployee?._id || client.responsibleEmployee) === String(user?._id);
+                  const isAssigned =
+                    String(service.assignedStaff) === String(user?._id) ||
+                    String(client.responsibleEmployee?._id || client.responsibleEmployee) === String(user?._id);
                   if (!isAssigned) return false;
                 }
-                // Dismiss if already completed for this month
+                if (selectedDept !== 'All' && service.department !== selectedDept) return false;
                 return !isServiceCompletedThisMonth(client, service);
               }).map((service, idx) => ({ client, service, idx }))
             );
@@ -225,7 +553,7 @@ const Dashboard = () => {
                 <div className="py-6 text-center text-xs text-slate-400">
                   {clients.length === 0
                     ? 'No client service subscriptions configured yet.'
-                    : 'All client service reminders for this month are completed and up to date! 🎉'}
+                    : 'All client service reminders for this period are completed and up to date! 🎉'}
                 </div>
               );
             }
@@ -240,13 +568,26 @@ const Dashboard = () => {
                   const startDate = new Date(year, month, service.startDayOfMonth || 1);
                   const dueDate = new Date(year, month, service.dueDayOfMonth || 11);
 
-                  const startDateStr = startDate.toLocaleDateString('en-IN', { day: '2-digit', month: '2-digit', year: 'numeric' });
-                  const dueDateStr = dueDate.toLocaleDateString('en-IN', { day: '2-digit', month: '2-digit', year: 'numeric' });
+                  const startDateStr = startDate.toLocaleDateString('en-IN', {
+                    day: '2-digit',
+                    month: '2-digit',
+                    year: 'numeric'
+                  });
+                  const dueDateStr = dueDate.toLocaleDateString('en-IN', {
+                    day: '2-digit',
+                    month: '2-digit',
+                    year: 'numeric'
+                  });
 
-                  const assignedStaffObj = employees.find((e) => String(e._id) === String(service.assignedStaff)) || client.responsibleEmployee;
+                  const assignedStaffObj =
+                    employees.find((e) => String(e._id) === String(service.assignedStaff)) ||
+                    client.responsibleEmployee;
 
                   return (
-                    <div key={`${client._id}-${idx}`} className="rounded-2xl bg-slate-50 p-3.5 border border-slate-200/80 hover:bg-slate-100/60 transition space-y-2">
+                    <div
+                      key={`${client._id}-${idx}`}
+                      className="rounded-2xl bg-slate-50 p-3.5 border border-slate-200/80 hover:bg-slate-100/60 transition space-y-2"
+                    >
                       <div className="flex items-start justify-between">
                         <div>
                           <span className="text-[9px] font-extrabold uppercase px-1.5 py-0.5 rounded bg-[#0F2B48] text-white">
@@ -261,7 +602,9 @@ const Dashboard = () => {
                       </div>
 
                       <div className="flex items-center justify-between text-[11px] text-slate-600 pt-1 border-t border-slate-200/60">
-                        <span>Window: <strong>{startDateStr}</strong> ➔ <strong>{dueDateStr}</strong></span>
+                        <span>
+                          Window: <strong>{startDateStr}</strong> ➔ <strong>{dueDateStr}</strong>
+                        </span>
                       </div>
 
                       <div className="flex items-center justify-between text-[10px] text-slate-500">
@@ -295,6 +638,13 @@ const Dashboard = () => {
           />
         </div>
       ) : null}
+
+      {/* CARD DETAIL POPUP MODAL (Shows client name, service, executive & status upon clicking any card) */}
+      <CardDetailModal
+        isOpen={!!cardModalData}
+        onClose={() => setCardModalData(null)}
+        modalData={cardModalData}
+      />
 
       {/* Task & Client Modals for Super Admin / Admin */}
       {(isSuperAdmin || isAdmin) && (

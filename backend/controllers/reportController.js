@@ -4,7 +4,7 @@ const Task = require('../models/Task');
 const User = require('../models/User');
 const Certification = require('../models/Certification');
 
-// Executive Dashboard Counters & Summary (Optimized with Concurrent Execution & Lean Queries)
+// Executive Dashboard Counters & Summary (with Date, Department & User Filtration)
 exports.getDashboardSummary = async (req, res) => {
   try {
     const userRole = req.user.role || '';
@@ -14,113 +14,158 @@ exports.getDashboardSummary = async (req, res) => {
     const isSuperAdmin = userRole === 'Super Admin';
     const isAdmin = userRole.includes('Admin') && !isSuperAdmin;
 
-    let clientFilter = {};
-    let taskFilter = {};
-    let certFilter = {};
-    let recentTaskFilter = {};
+    const { dateFilter, startDate, endDate, department, employeeId } = req.query;
 
-    if (isSuperAdmin) {
-      clientFilter = {};
-      taskFilter = {};
-      certFilter = {};
-      recentTaskFilter = {};
-    } else if (isAdmin) {
-      clientFilter = {};
-      taskFilter = {
-        $or: [
-          { department: userDept },
-          { assignedEmployee: userId },
-          { assignedBy: userId }
-        ]
-      };
-      certFilter = {};
-      recentTaskFilter = taskFilter;
-    } else {
-      clientFilter = {};
-      taskFilter = { assignedEmployee: userId };
-      certFilter = { assignedEmployee: userId };
-      recentTaskFilter = { assignedEmployee: userId };
+    // 1. Calculate Date Range
+    const now = new Date();
+    let startRange = null;
+    let endRange = null;
+
+    if (dateFilter === 'Today' || !dateFilter) {
+      startRange = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0);
+      endRange = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59);
+    } else if (dateFilter === 'This Week') {
+      const firstDay = now.getDate() - now.getDay();
+      startRange = new Date(now.getFullYear(), now.getMonth(), firstDay, 0, 0, 0);
+      endRange = new Date(now.getFullYear(), now.getMonth(), firstDay + 6, 23, 59, 59);
+    } else if (dateFilter === 'This Month') {
+      startRange = new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0);
+      endRange = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
+    } else if (dateFilter === 'Custom' && startDate && endDate) {
+      startRange = new Date(startDate);
+      startRange.setHours(0, 0, 0, 0);
+      endRange = new Date(endDate);
+      endRange.setHours(23, 59, 59, 999);
     }
 
-    const now = new Date();
-    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0);
-    const endOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59);
+    // 2. Build Filters
+    let taskFilter = {};
+    let clientFilter = {};
+    let invoiceFilter = {};
+    let certFilter = {};
 
-    // Parallelize all database queries concurrently
+    // Role-based baseline
+    if (isSuperAdmin) {
+      // Super Admin sees everything
+    } else if (isAdmin) {
+      taskFilter.department = userDept;
+      certFilter.department = userDept;
+    } else {
+      taskFilter.assignedEmployee = userId;
+      certFilter.assignedEmployee = userId;
+      invoiceFilter.assignedEmployee = userId;
+    }
+
+    // Department Filter
+    if (department && department !== 'All') {
+      taskFilter.department = department;
+      certFilter.department = department;
+    }
+
+    // Employee Filter
+    if (employeeId && employeeId !== 'All') {
+      taskFilter.assignedEmployee = employeeId;
+      invoiceFilter.assignedEmployee = employeeId;
+      clientFilter.responsibleEmployee = employeeId;
+    }
+
+    // Date Filters
+    let taskDateQuery = {};
+    let clientDateQuery = {};
+    let invoiceDateQuery = {};
+
+    if (startRange && endRange) {
+      taskDateQuery = {
+        $or: [
+          { dueDate: { $gte: startRange, $lte: endRange } },
+          { createdAt: { $gte: startRange, $lte: endRange } }
+        ]
+      };
+      clientDateQuery = { createdAt: { $gte: startRange, $lte: endRange } };
+      invoiceDateQuery = { invoiceDate: { $gte: startRange, $lte: endRange } };
+    }
+
+    // Parallelize all queries concurrently
     const [
       totalClients,
+      registeredClientsCount,
       activeClients,
-      inactiveClients,
-      pendingCertificates,
-      todaysTasksCount,
-      pendingTasksCount,
-      inProgressTasksCount,
-      completedTasksCount,
-      cantCompleteTasksCount,
-      overdueTasksCount,
-      invoices,
-      recentTasks
+      pendingCertificatesCount,
+      allFilteredTasks,
+      allFilteredInvoices,
+      allClientsList,
+      allPendingCertificates
     ] = await Promise.all([
       Client.countDocuments(clientFilter),
+      Client.countDocuments({ ...clientFilter, ...clientDateQuery }),
       Client.countDocuments({ ...clientFilter, status: 'Active' }),
-      Client.countDocuments({ ...clientFilter, status: 'Inactive' }),
-      Certification.countDocuments({ status: 'Waiting For Certificate' }),
-      Task.countDocuments({
-        ...taskFilter,
-        $or: [
-          { createdAt: { $gte: startOfToday, $lte: endOfToday } },
-          { assignedDate: { $gte: startOfToday, $lte: endOfToday } },
-          { dueDate: { $gte: startOfToday, $lte: endOfToday } }
-        ]
-      }),
-      Task.countDocuments({ ...taskFilter, status: { $in: ['Assigned', 'Pending'] } }),
-      Task.countDocuments({ ...taskFilter, status: 'In Progress' }),
-      Task.countDocuments({ ...taskFilter, status: 'Completed' }),
-      Task.countDocuments({ ...taskFilter, status: { $in: ["Can't Complete", 'On Hold', 'Waiting', 'Cancelled'] } }),
-      Task.countDocuments({ ...taskFilter, dueDate: { $lt: now }, status: { $nin: ['Completed', 'Cancelled'] } }),
-      (isSuperAdmin || isAdmin) ? Invoice.find().select('total paidAmount pendingAmount').lean() : Promise.resolve([]),
-      Task.find(recentTaskFilter)
-        .populate('client', 'clientName')
-        .populate('assignedEmployee', 'name role department')
+      Certification.countDocuments({ ...certFilter, status: 'Waiting For Certificate' }),
+      Task.find({ ...taskFilter, ...taskDateQuery })
+        .populate('client', 'clientName tradeName gstin pan phone email')
+        .populate('assignedEmployee', 'name email role department designation')
         .populate('assignedBy', 'name role')
-        .sort({ updatedAt: -1 })
-        .limit(6)
+        .sort({ dueDate: 1, createdAt: -1 })
+        .lean(),
+      Invoice.find({ ...invoiceFilter, ...invoiceDateQuery })
+        .populate('client', 'clientName tradeName gstin pan phone email')
+        .populate('assignedEmployee', 'name email role department')
+        .sort({ invoiceDate: -1 })
+        .lean(),
+      Client.find(clientFilter)
+        .populate('responsibleEmployee', 'name email department')
+        .sort({ createdAt: -1 })
+        .lean(),
+      Certification.find({ ...certFilter, status: 'Waiting For Certificate' })
+        .populate('client', 'clientName tradeName gstin pan phone')
+        .populate('assignedEmployee', 'name email department')
+        .sort({ createdAt: -1 })
         .lean()
     ]);
 
-    // Revenue Metrics
-    const totalRevenue = invoices.reduce((sum, inv) => sum + (inv.total || 0), 0);
-    const totalCollected = invoices.reduce((sum, inv) => sum + (inv.paidAmount || 0), 0);
-    const totalOutstanding = invoices.reduce((sum, inv) => sum + (inv.pendingAmount || 0), 0);
+    // Compute Task Process Counters from filtered tasks
+    const todaysTasks = allFilteredTasks.filter((t) => {
+      const created = new Date(t.createdAt);
+      const due = new Date(t.dueDate);
+      const isToday = (d) => d.toDateString() === now.toDateString();
+      return isToday(created) || isToday(due) || t.status === 'Assigned';
+    });
 
-    // Monthly Performance Data
-    const monthlyRevenue = [
-      { month: 'Mar', revenue: 145000, collected: 130000, tasks: 42 },
-      { month: 'Apr', revenue: 180000, collected: 175000, tasks: 58 },
-      { month: 'May', revenue: 210000, collected: 190000, tasks: 65 },
-      { month: 'Jun', revenue: 195000, collected: 185000, tasks: 60 },
-      { month: 'Jul', revenue: 240000, collected: 220000, tasks: 78 },
-      { month: 'Aug', revenue: totalRevenue, collected: totalCollected, tasks: completedTasksCount + pendingTasksCount }
-    ];
+    const inProgressTasks = allFilteredTasks.filter((t) => t.status === 'In Progress');
+    const completedTasks = allFilteredTasks.filter((t) => t.status === 'Completed');
+    const cantCompleteTasks = allFilteredTasks.filter((t) => t.status === "Can't Complete" || t.status === 'On Hold');
+    const overdueTasks = allFilteredTasks.filter((t) => new Date(t.dueDate) < now && t.status !== 'Completed' && t.status !== "Can't Complete");
+
+    // Billing Counters
+    const totalBillingValue = allFilteredInvoices.reduce((sum, inv) => sum + (inv.total || 0), 0);
+    const totalCollected = allFilteredInvoices.reduce((sum, inv) => sum + (inv.paidAmount || 0), 0);
+    const totalPending = allFilteredInvoices.reduce((sum, inv) => sum + (inv.pendingAmount || 0), 0);
 
     res.json({
       counters: {
         totalClients,
+        registeredClientsCount,
         activeClients,
-        inactiveClients,
-        pendingCertificates,
-        todaysTasksCount,
-        pendingTasksCount,
-        inProgressTasksCount,
-        completedTasksCount,
-        cantCompleteTasksCount,
-        overdueTasksCount,
-        totalRevenue,
+        pendingCertificatesCount,
+        todaysTasksCount: todaysTasks.length,
+        inProgressTasksCount: inProgressTasks.length,
+        completedTasksCount: completedTasks.length,
+        cantCompleteTasksCount: cantCompleteTasks.length,
+        overdueTasksCount: overdueTasks.length,
+        totalBillingValue,
         totalCollected,
-        totalOutstanding
+        totalPending
       },
-      monthlyRevenue,
-      recentTasks
+      details: {
+        todaysTasks,
+        inProgressTasks,
+        completedTasks,
+        cantCompleteTasks,
+        overdueTasks,
+        allFilteredTasks,
+        allFilteredInvoices,
+        allClientsList,
+        allPendingCertificates
+      }
     });
   } catch (error) {
     res.status(500).json({ message: error.message });
