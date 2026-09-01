@@ -25,6 +25,81 @@ const recalculateClientLedger = async (clientId) => {
   return running;
 };
 
+// Get Financial Summary for All Clients (Master Accounts Receivable)
+exports.getAllClientsLedgerSummary = async (req, res) => {
+  try {
+    const clients = await Client.find().sort({ clientName: 1 });
+    
+    // Group all ledgers by client
+    const ledgers = await Ledger.find().sort({ date: 1, createdAt: 1 });
+    
+    const clientLedgerMap = {};
+    for (const entry of ledgers) {
+      const cId = entry.client.toString();
+      if (!clientLedgerMap[cId]) {
+        clientLedgerMap[cId] = {
+          totalDebit: 0,
+          totalCredit: 0,
+          entriesCount: 0,
+          lastDate: entry.date
+        };
+      }
+      clientLedgerMap[cId].totalDebit += (entry.debit || 0);
+      clientLedgerMap[cId].totalCredit += (entry.credit || 0);
+      clientLedgerMap[cId].entriesCount += 1;
+      clientLedgerMap[cId].lastDate = entry.date;
+    }
+
+    let overallDebit = 0;
+    let overallCredit = 0;
+    let overallOutstanding = 0;
+
+    const summaryList = clients.map((client) => {
+      const stats = clientLedgerMap[client._id.toString()] || {
+        totalDebit: 0,
+        totalCredit: 0,
+        entriesCount: 0,
+        lastDate: null
+      };
+
+      const openingBal = client.openingBalance || 0;
+      const closingBal = openingBal + stats.totalDebit - stats.totalCredit;
+
+      overallDebit += stats.totalDebit;
+      overallCredit += stats.totalCredit;
+      overallOutstanding += closingBal;
+
+      return {
+        _id: client._id,
+        clientName: client.clientName,
+        tradeName: client.tradeName,
+        gstin: client.gstin,
+        pan: client.pan,
+        phone: client.phone,
+        email: client.email,
+        city: client.city,
+        state: client.state,
+        openingBalance: openingBal,
+        totalDebit: stats.totalDebit,
+        totalCredit: stats.totalCredit,
+        closingBalance: closingBal,
+        entriesCount: stats.entriesCount,
+        lastTransactionDate: stats.lastDate
+      };
+    });
+
+    res.json({
+      totalClients: clients.length,
+      overallDebit,
+      overallCredit,
+      overallOutstanding,
+      clients: summaryList
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 // Get Ledger Statement for a Client
 exports.getClientLedger = async (req, res) => {
   try {
@@ -53,10 +128,10 @@ exports.getClientLedger = async (req, res) => {
   }
 };
 
-// Record Manual Payment / Credit Note / Debit Note
+// Record Manual Payment / Credit Note / Debit Note (With Against-Invoice Support)
 exports.addLedgerTransaction = async (req, res) => {
   try {
-    const { client: clientId, transactionType, referenceNumber, amount, description, date } = req.body;
+    const { client: clientId, transactionType, referenceNumber, amount, description, date, invoiceId, paymentMode } = req.body;
 
     const client = await Client.findById(clientId);
     if (!client) {
@@ -68,7 +143,7 @@ exports.addLedgerTransaction = async (req, res) => {
       return res.status(400).json({ message: 'Amount must be greater than 0' });
     }
 
-    // 1. Duplicate Prevention: Check if identical transaction was created in the last 15 seconds (prevents rapid double-clicks)
+    // 1. Duplicate Prevention: Check if identical transaction was created in the last 15 seconds
     const fifteenSecsAgo = new Date(Date.now() - 15 * 1000);
     const recentDuplicate = await Ledger.findOne({
       client: clientId,
@@ -84,20 +159,6 @@ exports.addLedgerTransaction = async (req, res) => {
       });
     }
 
-    // 2. Duplicate Reference Number check: Check if same reference number exists for this client today
-    if (referenceNumber && referenceNumber.trim() && referenceNumber.trim().toLowerCase() !== 'upi' && referenceNumber.trim().toLowerCase() !== 'cash') {
-      const existingRef = await Ledger.findOne({
-        client: clientId,
-        referenceNumber: referenceNumber.trim(),
-        createdAt: { $gte: new Date(Date.now() - 24 * 60 * 60 * 1000) }
-      });
-      if (existingRef) {
-        return res.status(400).json({
-          message: `Duplicate Reference Error: Transaction with reference "${referenceNumber}" was already recorded for this client.`
-        });
-      }
-    }
-
     let debit = 0;
     let credit = 0;
 
@@ -107,20 +168,54 @@ exports.addLedgerTransaction = async (req, res) => {
       credit = numAmount;
     }
 
+    let linkedInvoice = null;
+    let refNo = referenceNumber ? referenceNumber.trim() : '';
+
+    // If Against Invoice Payment
+    if (invoiceId && transactionType === 'Payment Received') {
+      const Invoice = require('../models/Invoice');
+      linkedInvoice = await Invoice.findById(invoiceId);
+      if (linkedInvoice) {
+        linkedInvoice.paidAmount = (linkedInvoice.paidAmount || 0) + numAmount;
+        linkedInvoice.pendingAmount = Math.max(0, linkedInvoice.total - linkedInvoice.paidAmount);
+        if (linkedInvoice.paidAmount >= linkedInvoice.total) {
+          linkedInvoice.paymentStatus = 'Paid';
+        } else if (linkedInvoice.paidAmount > 0) {
+          linkedInvoice.paymentStatus = 'Partial';
+        }
+        if (paymentMode) {
+          linkedInvoice.paymentMode = paymentMode;
+        }
+        await linkedInvoice.save();
+
+        if (!refNo) {
+          refNo = linkedInvoice.invoiceNumber;
+        }
+      }
+    }
+
     const entry = await Ledger.create({
       client: clientId,
       date: date ? new Date(date) : new Date(),
       transactionType,
-      referenceNumber: referenceNumber ? referenceNumber.trim() : '',
+      referenceNumber: refNo,
       debit,
       credit,
       runningBalance: 0, // Calculated accurately below
-      description: description || ''
+      description: description || (linkedInvoice ? `Payment received against Invoice ${linkedInvoice.invoiceNumber}` : ''),
+      invoice: linkedInvoice ? linkedInvoice._id : undefined,
+      paymentMode: paymentMode || 'Bank Transfer'
     });
 
     const newClosingBalance = await recalculateClientLedger(clientId);
 
-    await logAudit(req.user, 'Ledger Transaction', 'Client Ledger', `Recorded ${transactionType} ₹${amount} for client ${client.clientName}`, req);
+    await logAudit(
+      req.user,
+      'Ledger Transaction',
+      'Client Ledger',
+      `Recorded ${transactionType} ₹${amount} for client ${client.clientName}${linkedInvoice ? ` against Invoice ${linkedInvoice.invoiceNumber}` : ''}`,
+      req
+    );
 
     res.status(201).json({ message: 'Ledger transaction saved', entry, closingBalance: newClosingBalance });
   } catch (error) {

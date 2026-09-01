@@ -13,7 +13,9 @@ const ledgerSchema = new mongoose.Schema(
     debit: { type: Number, default: 0 },
     credit: { type: Number, default: 0 },
     runningBalance: { type: Number, required: true },
-    description: { type: String }
+    description: { type: String },
+    invoice: { type: mongoose.Schema.Types.ObjectId, ref: 'Invoice' },
+    paymentMode: { type: String, default: 'Bank Transfer' }
   },
   { timestamps: true }
 );
