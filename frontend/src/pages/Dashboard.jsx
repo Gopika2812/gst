@@ -696,6 +696,9 @@ const Dashboard = () => {
         isOpen={!!cardModalData}
         onClose={() => setCardModalData(null)}
         modalData={cardModalData}
+        onRefresh={fetchDashboardData}
+        clients={clients}
+        employees={employees}
       />
 
       {/* Task & Client Modals for Super Admin / Admin */}

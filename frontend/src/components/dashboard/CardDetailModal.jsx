@@ -1,9 +1,33 @@
 import React, { useState } from 'react';
-import { X, Search, Download, CheckCircle2, Clock, AlertTriangle, XCircle, FileText, User, Building2 } from 'lucide-react';
+import { X, Search, Download, CheckCircle2, Clock, AlertTriangle, XCircle, FileText, User, Building2, Receipt } from 'lucide-react';
 import { exportToCSV } from '../../utils/exportUtils';
+import InvoiceModal from '../billing/InvoiceModal';
 
-const CardDetailModal = ({ isOpen, onClose, modalData }) => {
+const CardDetailModal = ({ isOpen, onClose, modalData, onRefresh, clients = [], employees = [] }) => {
   const [search, setSearch] = useState('');
+  const [isInvoiceModalOpen, setIsInvoiceModalOpen] = useState(false);
+  const [invoiceInitialData, setInvoiceInitialData] = useState(null);
+
+  const handleOpenInvoice = (task) => {
+    const clientId = task.client?._id || task.client || '';
+    setInvoiceInitialData({
+      client: clientId,
+      clientId: clientId,
+      clientObj: task.client,
+      serviceType: task.taskName || task.department || 'GST Filing GSTR-3B & GSTR-1',
+      department: task.department || 'GST',
+      taskName: task.taskName,
+      items: [
+        {
+          description: `${task.taskName || task.department || 'Professional Service'} Fee`,
+          amount: 5000
+        }
+      ],
+      remarks: task.remarks ? `Billing for completed task: ${task.taskName} - ${task.remarks}` : `Billing for completed task: ${task.taskName}`,
+      moveToTaskAssignment: false
+    });
+    setIsInvoiceModalOpen(true);
+  };
 
   if (!isOpen || !modalData) return null;
 
@@ -215,14 +239,27 @@ const CardDetailModal = ({ isOpen, onClose, modalData }) => {
                           </span>
                         </td>
                         <td className="p-3">
-                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
-                            item.status === 'Completed' ? 'bg-emerald-100 text-emerald-800' :
-                            item.status === 'In Progress' ? 'bg-blue-100 text-blue-800' :
-                            item.status === "Can't Complete" ? 'bg-rose-100 text-rose-800' :
-                            'bg-amber-100 text-amber-800'
-                          }`}>
-                            {item.status}
-                          </span>
+                          <div className="flex items-center space-x-2">
+                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
+                              item.status === 'Completed' ? 'bg-emerald-100 text-emerald-800' :
+                              item.status === 'In Progress' ? 'bg-blue-100 text-blue-800' :
+                              item.status === "Can't Complete" ? 'bg-rose-100 text-rose-800' :
+                              'bg-amber-100 text-amber-800'
+                            }`}>
+                              {item.status}
+                            </span>
+                            {item.status === 'Completed' && (
+                              <button
+                                type="button"
+                                onClick={() => handleOpenInvoice(item)}
+                                title={item.client?.clientName ? `Generate Bill / Invoice for ${item.client.clientName}` : 'Generate Bill / Invoice'}
+                                className="inline-flex items-center space-x-1 rounded-lg bg-gradient-to-r from-amber-500 to-[#C59B27] hover:from-amber-600 hover:to-[#A68018] text-white px-2 py-0.5 text-[10px] font-extrabold shadow-2xs hover:shadow-xs transition transform hover:scale-105 active:scale-95 cursor-pointer whitespace-nowrap"
+                              >
+                                <Receipt className="h-3 w-3" />
+                                <span>Make Bill</span>
+                              </button>
+                            )}
+                          </div>
                         </td>
                       </tr>
                     );
@@ -311,6 +348,23 @@ const CardDetailModal = ({ isOpen, onClose, modalData }) => {
           </button>
         </div>
       </div>
+
+      {/* Invoice Generation Modal */}
+      {isInvoiceModalOpen && (
+        <InvoiceModal
+          isOpen={isInvoiceModalOpen}
+          onClose={() => {
+            setIsInvoiceModalOpen(false);
+            setInvoiceInitialData(null);
+          }}
+          onRefresh={() => {
+            if (onRefresh) onRefresh();
+          }}
+          clients={clients}
+          employees={employees}
+          initialData={invoiceInitialData}
+        />
+      )}
     </div>
   );
 };
