@@ -1,10 +1,35 @@
 import React, { useState, useMemo } from 'react';
-import { Calendar, User, Clock, AlertTriangle, CheckCircle2, XCircle, ArrowRight, Building2, Trash2, UserPlus } from 'lucide-react';
+import { Calendar, User, Clock, AlertTriangle, CheckCircle2, XCircle, ArrowRight, Building2, Trash2, UserPlus, Receipt } from 'lucide-react';
 import Badge from '../common/Badge';
 import { SortableHeader, sortTableData } from '../common/SortableHeader';
+import InvoiceModal from '../billing/InvoiceModal';
 
-const TaskTable = ({ tasks = [], onStatusChange, onDeleteTask, onDelegateTask, currentUser }) => {
+const TaskTable = ({ tasks = [], onStatusChange, onDeleteTask, onDelegateTask, currentUser, onRefresh }) => {
   const [sortConfig, setSortConfig] = useState({ key: 'dueDate', direction: 'asc' });
+  const [isInvoiceModalOpen, setIsInvoiceModalOpen] = useState(false);
+  const [invoiceInitialData, setInvoiceInitialData] = useState(null);
+
+  const handleOpenInvoice = (task) => {
+    const clientId = task.client?._id || task.client || '';
+    setInvoiceInitialData({
+      client: clientId,
+      clientId: clientId,
+      clientObj: task.client,
+      serviceType: task.taskName || task.department || 'GST Filing GSTR-3B & GSTR-1',
+      department: task.department || 'GST',
+      taskName: task.taskName,
+      items: [
+        {
+          description: `${task.taskName || task.department || 'Professional Service'} Fee`,
+          amount: 5000
+        }
+      ],
+      remarks: task.remarks ? `Billing for completed task: ${task.taskName} - ${task.remarks}` : `Billing for completed task: ${task.taskName}`,
+      moveToTaskAssignment: false
+    });
+    setIsInvoiceModalOpen(true);
+  };
+
   const statusOptions = ['Assigned', 'In Progress', 'Completed', "Can't Complete"];
 
   const getStatusBadgeStyle = (status) => {
@@ -162,16 +187,29 @@ const TaskTable = ({ tasks = [], onStatusChange, onDeleteTask, onDelegateTask, c
 
                     {/* Interactive Status Selector */}
                     <td className="p-3.5 text-center">
-                      <select
-                        value={statusOptions.includes(task.status) ? task.status : (task.status === 'Pending' ? 'Assigned' : task.status)}
-                        onChange={(e) => onStatusChange && onStatusChange(task._id, e.target.value)}
-                        className={`rounded-xl border px-2.5 py-1.5 text-xs font-extrabold outline-none cursor-pointer shadow-xs transition ${getStatusBadgeStyle(task.status)}`}
-                      >
-                        <option value="Assigned">Assigned</option>
-                        <option value="In Progress">In Progress</option>
-                        <option value="Completed">Completed</option>
-                        <option value="Can't Complete">Can't Complete</option>
-                      </select>
+                      <div className="flex flex-col items-center space-y-1.5">
+                        <select
+                          value={statusOptions.includes(task.status) ? task.status : (task.status === 'Pending' ? 'Assigned' : task.status)}
+                          onChange={(e) => onStatusChange && onStatusChange(task._id, e.target.value)}
+                          className={`rounded-xl border px-2.5 py-1.5 text-xs font-extrabold outline-none cursor-pointer shadow-xs transition ${getStatusBadgeStyle(task.status)}`}
+                        >
+                          <option value="Assigned">Assigned</option>
+                          <option value="In Progress">In Progress</option>
+                          <option value="Completed">Completed</option>
+                          <option value="Can't Complete">Can't Complete</option>
+                        </select>
+                        {task.status === 'Completed' && (
+                          <button
+                            type="button"
+                            onClick={() => handleOpenInvoice(task)}
+                            title={task.client?.clientName ? `Generate Bill / Invoice for ${task.client.clientName}` : 'Generate Bill / Invoice'}
+                            className="inline-flex items-center space-x-1 rounded-lg bg-gradient-to-r from-amber-500 to-[#C59B27] hover:from-amber-600 hover:to-[#A68018] text-white px-2 py-0.5 text-[10px] font-extrabold shadow-2xs hover:shadow-xs transition transform hover:scale-105 active:scale-95 cursor-pointer whitespace-nowrap"
+                          >
+                            <Receipt className="h-3 w-3" />
+                            <span>Make Bill</span>
+                          </button>
+                        )}
+                      </div>
                     </td>
 
                     {/* Admin Delete Action */}
@@ -193,6 +231,21 @@ const TaskTable = ({ tasks = [], onStatusChange, onDeleteTask, onDelegateTask, c
           </tbody>
         </table>
       </div>
+
+      {/* Invoice Modal */}
+      {isInvoiceModalOpen && (
+        <InvoiceModal
+          isOpen={isInvoiceModalOpen}
+          onClose={() => {
+            setIsInvoiceModalOpen(false);
+            setInvoiceInitialData(null);
+          }}
+          onRefresh={() => {
+            if (onRefresh) onRefresh();
+          }}
+          initialData={invoiceInitialData}
+        />
+      )}
     </div>
   );
 };

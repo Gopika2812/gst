@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import GlacierCard from '../components/common/GlacierCard';
 import Badge from '../components/common/Badge';
 import { SortableHeader, sortTableData } from '../components/common/SortableHeader';
+import InvoiceModal from '../components/billing/InvoiceModal';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import {
@@ -16,7 +17,8 @@ import {
   User,
   Search,
   X,
-  Filter
+  Filter,
+  Receipt
 } from 'lucide-react';
 
 const GSTFilingPage = () => {
@@ -30,6 +32,29 @@ const GSTFilingPage = () => {
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedTaskForUpload, setSelectedTaskForUpload] = useState(null);
+  const [isInvoiceModalOpen, setIsInvoiceModalOpen] = useState(false);
+  const [invoiceInitialData, setInvoiceInitialData] = useState(null);
+
+  const handleOpenInvoice = (task) => {
+    const clientId = task.client?._id || task.client || '';
+    setInvoiceInitialData({
+      client: clientId,
+      clientId: clientId,
+      clientObj: task.client,
+      serviceType: task.taskName || 'GST Filing GSTR-3B & GSTR-1',
+      department: 'GST',
+      taskName: task.taskName || 'GST Filing',
+      items: [
+        {
+          description: `${task.taskName || 'GST Filing'} Fee`,
+          amount: 5000
+        }
+      ],
+      remarks: task.remarks ? `Billing for completed GST filing: ${task.remarks}` : `Billing for completed GST filing: ${task.taskName || ''}`,
+      moveToTaskAssignment: false
+    });
+    setIsInvoiceModalOpen(true);
+  };
 
   const [formData, setFormData] = useState({
     client: '',
@@ -328,9 +353,20 @@ const GSTFilingPage = () => {
                             <span>Upload Return</span>
                           </button>
                         ) : (
-                          <span className="inline-flex items-center text-[10px] font-bold text-emerald-700">
-                            <CheckCircle2 className="mr-1 h-3.5 w-3.5" /> Completed
-                          </span>
+                          <div className="flex items-center justify-center space-x-2">
+                            <span className="inline-flex items-center text-[10px] font-bold text-emerald-700">
+                              <CheckCircle2 className="mr-1 h-3.5 w-3.5" /> Completed
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => handleOpenInvoice(t)}
+                              title={t.client?.clientName ? `Generate Bill / Invoice for ${t.client.clientName}` : 'Generate Bill / Invoice'}
+                              className="inline-flex items-center space-x-1 rounded-lg bg-gradient-to-r from-amber-500 to-[#C59B27] hover:from-amber-600 hover:to-[#A68018] text-white px-2 py-0.5 text-[10px] font-extrabold shadow-2xs hover:shadow-xs transition transform hover:scale-105 active:scale-95 cursor-pointer whitespace-nowrap"
+                            >
+                              <Receipt className="h-3 w-3" />
+                              <span>Make Bill</span>
+                            </button>
+                          </div>
                         )}
                       </td>
                     </tr>
@@ -498,6 +534,19 @@ const GSTFilingPage = () => {
             </form>
           </div>
         </div>
+      )}
+      {/* Invoice Modal */}
+      {isInvoiceModalOpen && (
+        <InvoiceModal
+          isOpen={isInvoiceModalOpen}
+          onClose={() => {
+            setIsInvoiceModalOpen(false);
+            setInvoiceInitialData(null);
+          }}
+          onRefresh={fetchGSTWorkspaceData}
+          clients={clients}
+          initialData={invoiceInitialData}
+        />
       )}
     </div>
   );

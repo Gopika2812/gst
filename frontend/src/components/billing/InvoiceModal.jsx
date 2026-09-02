@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { X, Plus, Trash2, ArrowRight, ShieldCheck, CheckSquare } from 'lucide-react';
 import api from '../../services/api';
 
-const InvoiceModal = ({ isOpen, onClose, onRefresh, clients = [], employees = [], invoice = null }) => {
+const InvoiceModal = ({ isOpen, onClose, onRefresh, clients = [], employees = [], invoice = null, initialData = null }) => {
   const [selectedClient, setSelectedClient] = useState('');
   const [serviceType, setServiceType] = useState('GST Filing GSTR-3B & GSTR-1');
   const [billingCycle, setBillingCycle] = useState('Monthly');
@@ -25,12 +25,21 @@ const InvoiceModal = ({ isOpen, onClose, onRefresh, clients = [], employees = []
   const [taskPriority, setTaskPriority] = useState('High');
 
   const [localEmployees, setLocalEmployees] = useState(employees);
+  const [localClients, setLocalClients] = useState(clients);
+
+  useEffect(() => {
+    if (clients && clients.length > 0) {
+      setLocalClients(clients);
+    } else if (isOpen) {
+      api.get('/clients').then((res) => setLocalClients(res.data || [])).catch(console.error);
+    }
+  }, [isOpen, clients]);
 
   useEffect(() => {
     if (employees && employees.length > 0) {
       setLocalEmployees(employees);
     } else if (isOpen) {
-      api.get('/users').then((res) => setLocalEmployees(res.data)).catch(console.error);
+      api.get('/users').then((res) => setLocalEmployees(res.data || [])).catch(console.error);
     }
 
     if (isOpen) {
@@ -45,6 +54,24 @@ const InvoiceModal = ({ isOpen, onClose, onRefresh, clients = [], employees = []
         setPaymentMode(invoice.paymentMode || 'Bank Transfer');
         setRemarks(invoice.remarks || '');
         setMoveToTaskAssignment(false);
+      } else if (initialData) {
+        const cId = initialData.client?._id || initialData.client || initialData.clientId || '';
+        setSelectedClient(cId);
+        const sType = initialData.serviceType || initialData.taskName || 'GST Filing GSTR-3B & GSTR-1';
+        setServiceType(sType);
+        setBillingCycle(initialData.billingCycle || 'Monthly');
+        setItems(
+          initialData.items?.length
+            ? initialData.items
+            : [{ description: `${initialData.taskName || sType} Fee`, amount: initialData.amount || 5000 }]
+        );
+        setGstPercent(0);
+        setDiscount(initialData.discount || 0);
+        setPaidAmount(initialData.paidAmount || 0);
+        setPaymentMode(initialData.paymentMode || 'Bank Transfer');
+        setRemarks(initialData.remarks || (initialData.taskName ? `Billing for completed task: ${initialData.taskName}` : ''));
+        setMoveToTaskAssignment(false);
+        if (initialData.department) setAssignedGroup(initialData.department);
       } else {
         setSelectedClient('');
         setServiceType('GST Filing GSTR-3B & GSTR-1');
@@ -58,7 +85,7 @@ const InvoiceModal = ({ isOpen, onClose, onRefresh, clients = [], employees = []
         setMoveToTaskAssignment(true);
       }
     }
-  }, [isOpen, employees, invoice]);
+  }, [isOpen, employees, invoice, initialData]);
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -102,11 +129,11 @@ const InvoiceModal = ({ isOpen, onClose, onRefresh, clients = [], employees = []
     setItems(newItems);
   };
 
-  const currentClient = clients.find((c) => c._id === selectedClient);
+  const currentClient = localClients.find((c) => c._id === selectedClient) || (initialData?.client && typeof initialData.client === 'object' ? initialData.client : null);
 
   const handleClientChange = (clientId) => {
     setSelectedClient(clientId);
-    const clientObj = clients.find((c) => c._id === clientId);
+    const clientObj = localClients.find((c) => c._id === clientId) || (initialData?.client?._id === clientId ? initialData.client : null);
     if (clientObj) {
       if (clientObj.responsibleEmployee) {
         setAssignedEmployee(clientObj.responsibleEmployee._id || clientObj.responsibleEmployee);
@@ -204,8 +231,20 @@ const InvoiceModal = ({ isOpen, onClose, onRefresh, clients = [], employees = []
       <div className="relative w-full max-w-3xl rounded-2xl bg-white p-6 shadow-2xl max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between border-b border-slate-100 pb-4">
           <div>
-            <h3 className="text-lg font-bold text-[#0A1E3F]">{invoice ? `Edit Tax Invoice (${invoice.invoiceNumber})` : 'Generate Tax Invoice (Module 3)'}</h3>
-            <p className="text-xs text-slate-500">{invoice ? 'Update invoice amounts, payment plan, and status' : 'Auto-calculate balances, ledgers, and push to task workflow'}</p>
+            <h3 className="text-lg font-bold text-[#0A1E3F]">
+              {invoice
+                ? `Edit Tax Invoice (${invoice.invoiceNumber})`
+                : initialData
+                ? `Generate Bill / Tax Invoice`
+                : 'Generate Tax Invoice (Module 3)'}
+            </h3>
+            <p className="text-xs text-slate-500">
+              {invoice
+                ? 'Update invoice amounts, payment plan, and status'
+                : initialData
+                ? `Create bill invoice for client and record to ledger`
+                : 'Auto-calculate balances, ledgers, and push to task workflow'}
+            </p>
           </div>
           <button onClick={onClose} className="rounded-xl p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600">
             <X className="h-5 w-5" />
@@ -226,7 +265,12 @@ const InvoiceModal = ({ isOpen, onClose, onRefresh, clients = [], employees = []
                 className="mt-1 w-full rounded-xl border border-slate-200 p-2 text-xs outline-none focus:border-[#C59B27]"
               >
                 <option value="">-- Choose Client --</option>
-                {clients.map((c) => (
+                {selectedClient && !localClients.some((c) => c._id === selectedClient) && (
+                  <option value={selectedClient}>
+                    {initialData?.client?.clientName || 'Selected Client'}
+                  </option>
+                )}
+                {localClients.map((c) => (
                   <option key={c._id} value={c._id}>
                     {c.clientName} ({c.gstin || c.pan || 'Active'})
                   </option>
