@@ -34,12 +34,16 @@ exports.getCertifications = async (req, res) => {
 
     if (status) filter.status = status;
     if (certificateReceived) filter.certificateReceived = certificateReceived;
+    filter.noCertificateRequired = { $ne: true };
 
     const certs = await Certification.find(filter)
-      .populate('client', 'clientName tradeName pan gstin phone email status subscribedServices')
+      .populate('client', 'clientName tradeName pan gstin phone email status subscribedServices noCertificateRequired')
       .sort({ createdAt: -1 });
 
-    res.json(certs);
+    // Ensure clients with noCertificateRequired are completely filtered out of certification tracking
+    const activeCerts = certs.filter((c) => !c.noCertificateRequired && !c.client?.noCertificateRequired);
+
+    res.json(activeCerts);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

@@ -13,6 +13,7 @@ const clientSchema = new mongoose.Schema(
     
     // Registration Mode
     registrationCategory: { type: String, enum: ['New Client', 'Registered Client'], default: 'Registered Client' },
+    noCertificateRequired: { type: Boolean, default: false },
 
     // Business Information
     tradeName: { type: String, trim: true },

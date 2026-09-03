@@ -158,9 +158,12 @@ const CertificationPage = () => {
   };
 
   const filteredCerts = useMemo(() => {
-    if (!search.trim()) return certifications;
+    const active = certifications.filter(
+      (c) => !c.noCertificateRequired && !c.client?.noCertificateRequired
+    );
+    if (!search.trim()) return active;
     const q = search.toLowerCase();
-    return certifications.filter((c) =>
+    return active.filter((c) =>
       (c.client?.clientName && c.client.clientName.toLowerCase().includes(q)) ||
       (c.certificateType && c.certificateType.toLowerCase().includes(q)) ||
       (c.certificateNumber && c.certificateNumber.toLowerCase().includes(q)) ||

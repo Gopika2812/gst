@@ -9,6 +9,7 @@ const ClientModal = ({ isOpen, onClose, onRefresh, employees = [], client = null
 
   const [registrationCategory, setRegistrationCategory] = useState('New Client');
   const [existingClientId, setExistingClientId] = useState(null);
+  const [noCertificateRequired, setNoCertificateRequired] = useState(false);
 
   // Phone Lookup State for Option 2
   const [searchPhone, setSearchPhone] = useState('');
@@ -89,6 +90,7 @@ const ClientModal = ({ isOpen, onClose, onRefresh, employees = [], client = null
   const resetModalState = () => {
     setExistingClientId(null);
     setSearchPhone('');
+    setNoCertificateRequired(false);
     setLookupLoading(false);
     setLookupResultMsg('');
     setLookupStatus(null);
@@ -177,6 +179,7 @@ const ClientModal = ({ isOpen, onClose, onRefresh, employees = [], client = null
       if (client.subscribedServices && Array.isArray(client.subscribedServices)) {
         setSubscribedServices(client.subscribedServices);
       }
+      setNoCertificateRequired(Boolean(client.noCertificateRequired));
     } catch (err) {
       setExistingClientId(null);
       setLookupStatus('not_found');
@@ -260,6 +263,7 @@ const ClientModal = ({ isOpen, onClose, onRefresh, employees = [], client = null
         data.append(key, formData[key]);
       });
       data.append('registrationCategory', registrationCategory);
+      data.append('noCertificateRequired', noCertificateRequired);
       data.append('subscribedServices', JSON.stringify(subscribedServices));
 
       if (files.panDoc) data.append('panDoc', files.panDoc);
@@ -358,6 +362,45 @@ const ClientModal = ({ isOpen, onClose, onRefresh, employees = [], client = null
             )}
           </div>
         )}
+
+        {/* No Certificate Option (Skip Certificate Phase & Direct to Billing) */}
+        <div
+          onClick={() => setNoCertificateRequired(!noCertificateRequired)}
+          className={`mt-3 p-3 rounded-2xl border transition-all cursor-pointer select-none flex items-center justify-between ${
+            noCertificateRequired
+              ? 'bg-emerald-50/90 border-[#52A636] text-[#0F2B48] shadow-2xs'
+              : 'bg-slate-50/80 border-slate-200 text-slate-700 hover:bg-slate-100/80'
+          }`}
+        >
+          <div className="flex items-center space-x-3">
+            <input
+              type="checkbox"
+              id="noCertCheckbox"
+              checked={noCertificateRequired}
+              onChange={(e) => setNoCertificateRequired(e.target.checked)}
+              onClick={(e) => e.stopPropagation()}
+              className="h-4 w-4 rounded accent-[#52A636] cursor-pointer"
+            />
+            <div>
+              <label htmlFor="noCertCheckbox" className="text-xs font-extrabold text-[#0F2B48] cursor-pointer flex items-center space-x-2">
+                <span>No Certificate Option</span>
+                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${
+                  noCertificateRequired 
+                    ? 'bg-[#52A636] text-white border-[#52A636]' 
+                    : 'bg-white text-slate-500 border-slate-200'
+                }`}>
+                  Direct to Billing Phase
+                </span>
+              </label>
+              <p className="text-[11px] text-slate-500 font-medium mt-0.5">
+                Don't show in certificate tracking phase. Move this client directly into billing phase.
+              </p>
+            </div>
+          </div>
+          {noCertificateRequired && (
+            <CheckCircle2 className="h-5 w-5 text-[#52A636] shrink-0" />
+          )}
+        </div>
 
         <form onSubmit={handleSubmit} className="mt-4 space-y-5">
           {/* STEP 1: Basic Information */}

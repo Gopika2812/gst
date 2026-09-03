@@ -14,7 +14,8 @@ const certificationSchema = new mongoose.Schema(
     receivedDate: { type: Date },
     uploadedCertificate: { type: String },
     remarks: { type: String },
-    movedToBilling: { type: Boolean, default: false }
+    movedToBilling: { type: Boolean, default: false },
+    noCertificateRequired: { type: Boolean, default: false }
   },
   { timestamps: true }
 );

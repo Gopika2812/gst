@@ -140,9 +140,16 @@ const ClientsPage = () => {
                   <tr key={c._id} className="hover:bg-slate-50 transition">
                     <td className="p-3.5">
                       <p className="font-bold text-slate-800">{c.clientName}</p>
-                      <span className="text-[10px] font-semibold text-[#0A1E3F] bg-slate-100 px-1.5 py-0.5 rounded">
-                        {c.clientCode}
-                      </span>
+                      <div className="flex items-center space-x-1.5 mt-0.5">
+                        <span className="text-[10px] font-semibold text-[#0A1E3F] bg-slate-100 px-1.5 py-0.5 rounded">
+                          {c.clientCode}
+                        </span>
+                        {c.noCertificateRequired && (
+                          <span className="text-[9px] font-extrabold text-[#52A636] bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">
+                            Direct Billing
+                          </span>
+                        )}
+                      </div>
                     </td>
                     <td className="p-3.5">
                       <p className="font-medium text-slate-700">{c.tradeName || 'N/A'}</p>

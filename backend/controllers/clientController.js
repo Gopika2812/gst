@@ -101,43 +101,66 @@ exports.createClient = async (req, res) => {
       if (req.files.certificateDoc && req.files.certificateDoc[0]) clientData.certificateDoc = getFileUrl(req.files.certificateDoc[0]);
     }
 
+    const noCertificateRequired = req.body.noCertificateRequired === true || req.body.noCertificateRequired === 'true';
+    clientData.noCertificateRequired = noCertificateRequired;
+
     const client = await Client.create(clientData);
 
-    // Automatically create Certification Tracking Record (Module 2)
-    try {
-      let derivedCertificateType = 'GST Registration';
-      if (Array.isArray(clientData.subscribedServices) && clientData.subscribedServices.length > 0) {
-        const subNames = clientData.subscribedServices.map((s) => s.subServiceName || s.serviceName).filter(Boolean);
-        derivedCertificateType = subNames.join(', ');
-      } else if (clientData.gstin) {
-        derivedCertificateType = 'GST Registration';
-      }
+    // Automatically create Certification Tracking Record (Module 2) unless No Certificate option was chosen
+    if (!noCertificateRequired) {
+      try {
+        let derivedCertificateType = 'GST Registration';
+        if (Array.isArray(clientData.subscribedServices) && clientData.subscribedServices.length > 0) {
+          const subNames = clientData.subscribedServices.map((s) => s.subServiceName || s.serviceName).filter(Boolean);
+          derivedCertificateType = subNames.join(', ');
+        } else if (clientData.gstin) {
+          derivedCertificateType = 'GST Registration';
+        }
 
-      if (clientData.registrationCategory === 'New Client') {
+        if (clientData.registrationCategory === 'New Client') {
+          await Certification.create({
+            client: client._id,
+            certificateType: derivedCertificateType,
+            applicationDate: new Date(),
+            status: 'Waiting For Certificate',
+            certificateReceived: 'No',
+            movedToBilling: false,
+            noCertificateRequired: false,
+            remarks: 'New Client Registration - Pending Certificate Approval'
+          });
+        } else {
+          // Existing Client (Option 2): Already Has Certificate -> Auto-marked as Certificate Received & Ready for Billing
+          await Certification.create({
+            client: client._id,
+            certificateType: derivedCertificateType || (client.gstin ? 'GST Certificate' : 'PAN / Incorporation'),
+            applicationDate: new Date(),
+            certificateNumber: client.gstin || client.pan || 'EX-CERTIFIED',
+            status: 'Certificate Received',
+            certificateReceived: 'Yes',
+            movedToBilling: true,
+            noCertificateRequired: false,
+            remarks: 'Existing Client - Certificate Already Present (Ready for Billing)'
+          });
+        }
+      } catch (certError) {
+        console.error('Certification tracking creation notice:', certError.message);
+      }
+    } else {
+      // Client explicitly chose "No Certificate Option" -> Bypass certification tracking phase and directly move into billing phase
+      try {
         await Certification.create({
           client: client._id,
-          certificateType: derivedCertificateType,
+          certificateType: 'No Certificate Required',
           applicationDate: new Date(),
-          status: 'Waiting For Certificate',
-          certificateReceived: 'No',
-          movedToBilling: false,
-          remarks: 'New Client Registration - Pending Certificate Approval'
-        });
-      } else {
-        // Existing Client (Option 2): Already Has Certificate -> Auto-marked as Certificate Received & Ready for Billing
-        await Certification.create({
-          client: client._id,
-          certificateType: derivedCertificateType || (client.gstin ? 'GST Certificate' : 'PAN / Incorporation'),
-          applicationDate: new Date(),
-          certificateNumber: client.gstin || client.pan || 'EX-CERTIFIED',
           status: 'Certificate Received',
           certificateReceived: 'Yes',
           movedToBilling: true,
-          remarks: 'Existing Client - Certificate Already Present (Ready for Billing)'
+          noCertificateRequired: true,
+          remarks: 'No Certificate Required - Direct to Billing Phase'
         });
+      } catch (e) {
+        // silent
       }
-    } catch (certError) {
-      console.error('Certification tracking creation notice:', certError.message);
     }
 
     // Initial Ledger Opening Balance record
@@ -253,6 +276,10 @@ exports.updateClient = async (req, res) => {
       } else {
         updateData.registrationCategory = 'Registered Client';
       }
+    }
+
+    if (updateData.noCertificateRequired !== undefined) {
+      updateData.noCertificateRequired = updateData.noCertificateRequired === true || updateData.noCertificateRequired === 'true';
     }
 
     // Parse subscribedServices if sent as JSON string via FormData

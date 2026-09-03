@@ -48,6 +48,8 @@ exports.getDashboardSummary = async (req, res) => {
     let invoiceFilter = {};
     let certFilter = {};
 
+    certFilter.noCertificateRequired = { $ne: true };
+
     // Role-based baseline
     if (isSuperAdmin) {
       // Super Admin sees everything
