@@ -2,34 +2,36 @@ const User = require('../models/User');
 
 const seedOrgHierarchy = async () => {
   try {
-    // 1. Super Admin (Logunathan - Founder & Principal Auditor)
-    let logunathan = await User.findOne({ email: 'royallogu2020@gmail.com' });
-    if (!logunathan) {
-      logunathan = await User.create({
-        name: 'Logunathan',
-        email: 'royallogu2020@gmail.com',
-        phone: '+91 99943 60994',
+    // 1. Super Admin (Vigneshwaran CA - Founder & Principal Auditor)
+    let superAdmin = await User.findOne({ email: 'superadmin@vigneshassociates.com' });
+    if (!superAdmin) {
+      superAdmin = await User.create({
+        name: 'Vigneshwaran CA',
+        email: 'superadmin@vigneshassociates.com',
+        phone: '+91 98765 43210',
         password: 'admin123',
         role: 'Super Admin',
         department: 'Management',
-        designation: 'Founder & Principal Auditor',
+        designation: 'Principal Auditor & Founder',
         status: 'Approved'
       });
+      console.log('[Seed] Super Admin (superadmin@vigneshassociates.com) created.');
     } else {
-      logunathan.name = 'Logunathan';
-      logunathan.role = 'Super Admin';
-      logunathan.department = 'Management';
-      logunathan.designation = 'Founder & Principal Auditor';
-      logunathan.status = 'Approved';
-      await logunathan.save();
+      superAdmin.name = 'Vigneshwaran CA';
+      superAdmin.role = 'Super Admin';
+      superAdmin.department = 'Management';
+      superAdmin.designation = 'Principal Auditor & Founder';
+      superAdmin.status = 'Approved';
+      await superAdmin.save();
+      console.log('[Seed] Super Admin (superadmin@vigneshassociates.com) verified.');
     }
 
-    // Clean up any legacy admin emails if present
+    // Clean up any other project emails from this database
     await User.deleteMany({
-      email: { $in: ['sainath@vigneshassociates.com', 'superadmin@vigneshassociates.com'] }
+      email: { $in: ['royallogu2020@gmail.com', 'sainath@vigneshassociates.com'] }
     });
 
-    console.log('[Seed] Super Admin (Logunathan) verified successfully.');
+    console.log('[Seed] Vignesh Associates Super Admin verified successfully.');
 
     // 2. Seed Default Master Services & Sub-Services
     const ServiceMaster = require('../models/ServiceMaster');
@@ -54,7 +56,7 @@ const seedOrgHierarchy = async () => {
       }
     }
 
-    console.log('[Seed] Master Services verified for Royal Accounting.');
+    console.log('[Seed] Master Services verified for Vignesh Associates.');
   } catch (err) {
     console.error('[Seed Error] Failed to seed hierarchy:', err);
   }
