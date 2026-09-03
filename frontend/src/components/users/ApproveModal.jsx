@@ -142,7 +142,7 @@ const ApproveModal = ({ isOpen, onClose, user, onApproved, allUsers = [] }) => {
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <div>
               <label className="text-xs font-semibold text-slate-700">Department *</label>
-              <div className="mt-1 flex items-center rounded-xl border border-slate-200 bg-white px-3 py-2 focus-within:border-[#C59B27]">
+              <div className="mt-1 flex items-center rounded-xl border border-slate-200 bg-white px-3 py-2 focus-within:border-[#52A636]">
                 <Building2 className="mr-2 h-4 w-4 text-slate-400 shrink-0" />
                 <select
                   value={department}
@@ -161,7 +161,7 @@ const ApproveModal = ({ isOpen, onClose, user, onApproved, allUsers = [] }) => {
 
             <div>
               <label className="text-xs font-semibold text-slate-700">Role / Access Level *</label>
-              <div className="mt-1 flex items-center rounded-xl border border-slate-200 bg-white px-3 py-2 focus-within:border-[#C59B27]">
+              <div className="mt-1 flex items-center rounded-xl border border-slate-200 bg-white px-3 py-2 focus-within:border-[#52A636]">
                 <Shield className="mr-2 h-4 w-4 text-slate-400 shrink-0" />
                 <select
                   value={role}
@@ -182,7 +182,7 @@ const ApproveModal = ({ isOpen, onClose, user, onApproved, allUsers = [] }) => {
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <div>
               <label className="text-xs font-semibold text-slate-700">Designation / Official Title</label>
-              <div className="mt-1 flex items-center rounded-xl border border-slate-200 bg-white px-3 py-2 focus-within:border-[#C59B27]">
+              <div className="mt-1 flex items-center rounded-xl border border-slate-200 bg-white px-3 py-2 focus-within:border-[#52A636]">
                 <User className="mr-2 h-4 w-4 text-slate-400 shrink-0" />
                 <input
                   type="text"
@@ -196,7 +196,7 @@ const ApproveModal = ({ isOpen, onClose, user, onApproved, allUsers = [] }) => {
 
             <div>
               <label className="text-xs font-semibold text-slate-700">Reporting Admin Manager</label>
-              <div className="mt-1 flex items-center rounded-xl border border-slate-200 bg-white px-3 py-2 focus-within:border-[#C59B27]">
+              <div className="mt-1 flex items-center rounded-xl border border-slate-200 bg-white px-3 py-2 focus-within:border-[#52A636]">
                 <UserCheck className="mr-2 h-4 w-4 text-slate-400 shrink-0" />
                 <select
                   value={reportsTo}
@@ -226,7 +226,7 @@ const ApproveModal = ({ isOpen, onClose, user, onApproved, allUsers = [] }) => {
             <button
               type="submit"
               disabled={loading}
-              className="w-full sm:w-auto flex items-center justify-center space-x-1.5 rounded-xl bg-[#C59B27] px-5 py-2.5 text-xs font-extrabold text-white shadow-md hover:bg-[#A68018] transition"
+              className="w-full sm:w-auto flex items-center justify-center space-x-1.5 rounded-xl bg-[#52A636] px-5 py-2.5 text-xs font-extrabold text-white shadow-md hover:bg-[#438A2B] transition"
             >
               <CheckCircle2 className="h-4 w-4" />
               <span>{loading ? 'Approving...' : 'Approve & Save Access'}</span>

@@ -73,7 +73,7 @@ const ClientsPage = () => {
             setSelectedClientForEdit(null);
             setIsModalOpen(true);
           }}
-          className="flex items-center justify-center space-x-1.5 rounded-xl bg-[#C59B27] px-4 py-2.5 text-xs font-semibold text-white shadow-md transition hover:bg-[#A68018] w-full sm:w-auto cursor-pointer"
+          className="flex items-center justify-center space-x-1.5 rounded-xl bg-[#52A636] px-4 py-2.5 text-xs font-semibold text-white shadow-md transition hover:bg-[#438A2B] w-full sm:w-auto cursor-pointer"
         >
           <Plus className="h-4 w-4" />
           <span>Register New Client</span>
@@ -165,7 +165,7 @@ const ClientsPage = () => {
                     <td className="p-3.5 font-semibold text-slate-700">
                       ₹{c.creditLimit?.toLocaleString('en-IN')}
                     </td>
-                    <td className="p-3.5 font-bold text-[#C59B27]">
+                    <td className="p-3.5 font-bold text-[#52A636]">
                       ₹{c.closingBalance?.toLocaleString('en-IN')}
                     </td>
                     <td className="p-3.5">
@@ -179,7 +179,7 @@ const ClientsPage = () => {
                             setIsModalOpen(true);
                           }}
                           title="Edit Client Profile & Services"
-                          className="rounded-lg p-1.5 text-xs font-semibold text-slate-600 hover:bg-amber-50 hover:text-[#C59B27] transition cursor-pointer"
+                          className="rounded-lg p-1.5 text-xs font-semibold text-slate-600 hover:bg-amber-50 hover:text-[#52A636] transition cursor-pointer"
                         >
                           <Edit3 className="h-4 w-4" />
                         </button>

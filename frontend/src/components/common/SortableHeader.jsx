@@ -17,9 +17,9 @@ export const SortableHeader = ({ label, sortKey, currentSort, onSort, align = 'l
         <span className="shrink-0">
           {isSorted ? (
             direction === 'asc' ? (
-              <ArrowUp className="h-3.5 w-3.5 text-[#C59B27]" />
+              <ArrowUp className="h-3.5 w-3.5 text-[#52A636]" />
             ) : (
-              <ArrowDown className="h-3.5 w-3.5 text-[#C59B27]" />
+              <ArrowDown className="h-3.5 w-3.5 text-[#52A636]" />
             )
           ) : (
             <ArrowUpDown className="h-3 w-3 text-slate-400 opacity-60 group-hover:opacity-100 group-hover:text-amber-300" />

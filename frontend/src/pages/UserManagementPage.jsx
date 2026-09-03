@@ -154,13 +154,13 @@ const UserManagementPage = () => {
             onClick={() => setIsOrgChartOpen(true)}
             className="flex items-center justify-center space-x-1.5 rounded-xl bg-[#0A1E3F] px-3.5 py-2.5 text-xs font-semibold text-white shadow-md transition hover:bg-[#1A3A5E]"
           >
-            <Network className="h-4 w-4 text-[#C59B27]" />
+            <Network className="h-4 w-4 text-[#52A636]" />
             <span>Org Chart & Hierarchy</span>
           </button>
 
           <button
             onClick={handleCreateUser}
-            className="flex items-center justify-center space-x-1.5 rounded-xl bg-[#C59B27] px-4 py-2.5 text-xs font-semibold text-white shadow-md transition hover:bg-[#A68018]"
+            className="flex items-center justify-center space-x-1.5 rounded-xl bg-[#52A636] px-4 py-2.5 text-xs font-semibold text-white shadow-md transition hover:bg-[#438A2B]"
           >
             <UserPlus className="h-4 w-4" />
             <span>Add New User</span>
@@ -280,7 +280,7 @@ const UserManagementPage = () => {
                               onClick={() => handleOpenApproveModal(u)}
                               disabled={actionLoadingId === u._id}
                               title="Approve & Assign Department/Role"
-                              className="flex items-center space-x-1 rounded-lg bg-[#C59B27] px-2.5 py-1 text-white font-semibold text-[10px] hover:bg-[#A68018] transition shadow-xs disabled:opacity-50"
+                              className="flex items-center space-x-1 rounded-lg bg-[#52A636] px-2.5 py-1 text-white font-semibold text-[10px] hover:bg-[#438A2B] transition shadow-xs disabled:opacity-50"
                             >
                               {actionLoadingId === u._id ? (
                                 <Loader2 className="h-3 w-3 animate-spin" />

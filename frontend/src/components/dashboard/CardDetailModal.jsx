@@ -116,7 +116,7 @@ const CardDetailModal = ({ isOpen, onClose, modalData, onRefresh, clients = [], 
               onClick={handleExport}
               className="inline-flex items-center space-x-1.5 rounded-xl border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-bold text-slate-700 hover:bg-slate-100 transition cursor-pointer shadow-2xs"
             >
-              <Download className="h-3.5 w-3.5 text-[#C59B27]" />
+              <Download className="h-3.5 w-3.5 text-[#52A636]" />
               <span>Export CSV</span>
             </button>
             <button
@@ -253,7 +253,7 @@ const CardDetailModal = ({ isOpen, onClose, modalData, onRefresh, clients = [], 
                                 type="button"
                                 onClick={() => handleOpenInvoice(item)}
                                 title={item.client?.clientName ? `Generate Bill / Invoice for ${item.client.clientName}` : 'Generate Bill / Invoice'}
-                                className="inline-flex items-center space-x-1 rounded-lg bg-gradient-to-r from-amber-500 to-[#C59B27] hover:from-amber-600 hover:to-[#A68018] text-white px-2 py-0.5 text-[10px] font-extrabold shadow-2xs hover:shadow-xs transition transform hover:scale-105 active:scale-95 cursor-pointer whitespace-nowrap"
+                                className="inline-flex items-center space-x-1 rounded-lg bg-gradient-to-r from-amber-500 to-[#52A636] hover:from-amber-600 hover:to-[#438A2B] text-white px-2 py-0.5 text-[10px] font-extrabold shadow-2xs hover:shadow-xs transition transform hover:scale-105 active:scale-95 cursor-pointer whitespace-nowrap"
                               >
                                 <Receipt className="h-3 w-3" />
                                 <span>Make Bill</span>
@@ -271,7 +271,7 @@ const CardDetailModal = ({ isOpen, onClose, modalData, onRefresh, clients = [], 
                         <td className="p-3 font-mono font-bold text-[#0A1E3F]">{item.invoiceNumber}</td>
                         <td className="p-3 font-bold text-slate-800">{item.client?.clientName || 'Valued Client'}</td>
                         <td className="p-3 font-semibold text-slate-600">{item.serviceType}</td>
-                        <td className="p-3 font-extrabold text-[#C59B27]">₹{item.total?.toLocaleString('en-IN')}</td>
+                        <td className="p-3 font-extrabold text-[#52A636]">₹{item.total?.toLocaleString('en-IN')}</td>
                         <td className="p-3 font-semibold text-emerald-600">₹{item.paidAmount?.toLocaleString('en-IN')}</td>
                         <td className="p-3 font-semibold text-rose-600">₹{item.pendingAmount?.toLocaleString('en-IN')}</td>
                         <td className="p-3">

@@ -50,13 +50,13 @@ const OrgChartModal = ({ isOpen, onClose, users = [], onAssignTask }) => {
           
           {/* LEVEL 0: TOP SUPER ADMIN NODE */}
           <div className="flex flex-col items-center relative group">
-            <div className="relative overflow-hidden rounded-2xl bg-[#0A1E3F] p-4 text-white shadow-xl border-2 border-[#C59B27] w-64 text-center">
+            <div className="relative overflow-hidden rounded-2xl bg-[#0A1E3F] p-4 text-white shadow-xl border-2 border-[#52A636] w-64 text-center">
               <div className="absolute top-2 right-2">
-                <span className="rounded-full bg-[#C59B27] px-2 py-0.5 text-[9px] font-extrabold text-white uppercase shadow-xs">
+                <span className="rounded-full bg-[#52A636] px-2 py-0.5 text-[9px] font-extrabold text-white uppercase shadow-xs">
                   SUPER ADMIN
                 </span>
               </div>
-              <div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-2xl bg-[#C59B27] text-xl font-extrabold text-white shadow-md border border-white/30">
+              <div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-2xl bg-[#52A636] text-xl font-extrabold text-white shadow-md border border-white/30">
                 {superAdmin.name ? superAdmin.name[0] : 'S'}
               </div>
               <h3 className="text-base font-extrabold text-white leading-snug">{superAdmin.name}</h3>
@@ -65,7 +65,7 @@ const OrgChartModal = ({ isOpen, onClose, users = [], onAssignTask }) => {
               {onAssignTask && (
                 <button
                   onClick={() => onAssignTask(superAdmin)}
-                  className="mt-3 w-full flex items-center justify-center space-x-1 rounded-xl bg-[#C59B27] px-3 py-2 text-[11px] font-extrabold text-white shadow-sm hover:bg-[#A68018] transition cursor-pointer"
+                  className="mt-3 w-full flex items-center justify-center space-x-1 rounded-xl bg-[#52A636] px-3 py-2 text-[11px] font-extrabold text-white shadow-sm hover:bg-[#438A2B] transition cursor-pointer"
                 >
                   <Plus className="h-3.5 w-3.5" />
                   <span>Assign Task to Admin</span>
@@ -112,7 +112,7 @@ const OrgChartModal = ({ isOpen, onClose, users = [], onAssignTask }) => {
                         {onAssignTask && (
                           <button
                             onClick={() => onAssignTask(admin)}
-                            className="flex items-center space-x-1 rounded bg-[#C59B27] px-2 py-1 text-white font-bold hover:bg-[#A68018] transition"
+                            className="flex items-center space-x-1 rounded bg-[#52A636] px-2 py-1 text-white font-bold hover:bg-[#438A2B] transition"
                           >
                             <Plus className="h-3 w-3" />
                             <span>Assign</span>
@@ -133,7 +133,7 @@ const OrgChartModal = ({ isOpen, onClose, users = [], onAssignTask }) => {
                         >
                           <div>
                             <h5 className="text-xs font-bold text-slate-800">{staff.name}</h5>
-                            <p className="text-[10px] font-medium text-[#C59B27]">
+                            <p className="text-[10px] font-medium text-[#52A636]">
                               ({staff.designation || staff.role})
                             </p>
                           </div>
@@ -141,7 +141,7 @@ const OrgChartModal = ({ isOpen, onClose, users = [], onAssignTask }) => {
                             <button
                               onClick={() => onAssignTask(staff)}
                               title={`Assign task to ${staff.name}`}
-                              className="rounded-lg bg-slate-200/80 hover:bg-[#C59B27] hover:text-white p-1 text-slate-700 transition"
+                              className="rounded-lg bg-slate-200/80 hover:bg-[#52A636] hover:text-white p-1 text-slate-700 transition"
                             >
                               <Plus className="h-3.5 w-3.5" />
                             </button>
@@ -166,7 +166,7 @@ const OrgChartModal = ({ isOpen, onClose, users = [], onAssignTask }) => {
               <span>Super Admin assigns ➔ Admin</span>
             </div>
             <div className="flex items-center space-x-1">
-              <span className="h-2.5 w-2.5 rounded-full bg-[#C59B27]"></span>
+              <span className="h-2.5 w-2.5 rounded-full bg-[#52A636]"></span>
               <span>Admin assigns ➔ Executives (GST, IT, Accounts)</span>
             </div>
           </div>

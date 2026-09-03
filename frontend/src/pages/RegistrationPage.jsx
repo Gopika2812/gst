@@ -89,7 +89,7 @@ const RegistrationPage = () => {
                         <button
                           type="button"
                           onClick={() => handlePreviewDoc(f)}
-                          className="inline-flex items-center space-x-1 px-2.5 py-1 rounded-lg bg-emerald-50 text-[#C59B27] hover:bg-emerald-100 border border-emerald-200 text-[11px] font-bold transition shadow-2xs cursor-pointer"
+                          className="inline-flex items-center space-x-1 px-2.5 py-1 rounded-lg bg-emerald-50 text-[#52A636] hover:bg-emerald-100 border border-emerald-200 text-[11px] font-bold transition shadow-2xs cursor-pointer"
                         >
                           <Eye className="h-3.5 w-3.5" />
                           <span>Preview Doc</span>

@@ -110,7 +110,7 @@ const Register = () => {
             <CheckCircle2 className="h-6 w-6 text-emerald-600 mx-auto mb-1" />
             {successMsg}
             <div className="mt-3">
-              <Link to="/login" className="rounded-lg bg-[#0A1E3F] px-4 py-1.5 text-white text-xs font-medium border border-[#C59B27]/30">
+              <Link to="/login" className="rounded-lg bg-[#0A1E3F] px-4 py-1.5 text-white text-xs font-medium border border-[#52A636]/30">
                 Return to Login
               </Link>
             </div>
@@ -129,7 +129,7 @@ const Register = () => {
                 required
                 value={formData.name}
                 onChange={handleChange}
-                className="mt-1 w-full rounded-xl border border-slate-200 p-2 text-xs outline-none focus:border-[#C59B27] focus:ring-1 focus:ring-[#C59B27]"
+                className="mt-1 w-full rounded-xl border border-slate-200 p-2 text-xs outline-none focus:border-[#52A636] focus:ring-1 focus:ring-[#52A636]"
                 placeholder="e.g. Suresh Kumar"
               />
             </div>
@@ -141,7 +141,7 @@ const Register = () => {
                 required
                 value={formData.email}
                 onChange={handleChange}
-                className="mt-1 w-full rounded-xl border border-slate-200 p-2 text-xs outline-none focus:border-[#C59B27] focus:ring-1 focus:ring-[#C59B27]"
+                className="mt-1 w-full rounded-xl border border-slate-200 p-2 text-xs outline-none focus:border-[#52A636] focus:ring-1 focus:ring-[#52A636]"
                 placeholder="staff@royalaccounting.co.in"
               />
             </div>
@@ -152,7 +152,7 @@ const Register = () => {
                 name="phone"
                 value={formData.phone}
                 onChange={handleChange}
-                className="mt-1 w-full rounded-xl border border-slate-200 p-2 text-xs outline-none focus:border-[#C59B27] focus:ring-1 focus:ring-[#C59B27]"
+                className="mt-1 w-full rounded-xl border border-slate-200 p-2 text-xs outline-none focus:border-[#52A636] focus:ring-1 focus:ring-[#52A636]"
                 placeholder="+91 99943 60994"
               />
             </div>
@@ -163,7 +163,7 @@ const Register = () => {
                   name="department"
                   value={formData.department}
                   onChange={handleDepartmentSelect}
-                  className="mt-1 w-full rounded-xl border border-slate-200 p-2 text-xs font-semibold text-[#0A1E3F] outline-none focus:border-[#C59B27]"
+                  className="mt-1 w-full rounded-xl border border-slate-200 p-2 text-xs font-semibold text-[#0A1E3F] outline-none focus:border-[#52A636]"
                 >
                   <option value="GST">GST</option>
                   <option value="Income Tax">Income Tax</option>
@@ -179,7 +179,7 @@ const Register = () => {
                   name="role"
                   value={formData.role}
                   onChange={handleChange}
-                  className="mt-1 w-full rounded-xl border border-slate-200 p-2 text-xs font-semibold text-[#0A1E3F] outline-none focus:border-[#C59B27]"
+                  className="mt-1 w-full rounded-xl border border-slate-200 p-2 text-xs font-semibold text-[#0A1E3F] outline-none focus:border-[#52A636]"
                 >
                   {getRoleOptionsForDept(formData.department).map((opt) => (
                     <option key={opt.value} value={opt.value}>
@@ -191,7 +191,7 @@ const Register = () => {
             </div>
             <div>
               <label className="text-xs font-semibold text-slate-700">Password *</label>
-              <div className="mt-1 flex items-center rounded-xl border border-slate-200 bg-white p-2 text-xs focus-within:border-[#C59B27] focus-within:ring-1 focus-within:ring-[#C59B27]">
+              <div className="mt-1 flex items-center rounded-xl border border-slate-200 bg-white p-2 text-xs focus-within:border-[#52A636] focus-within:ring-1 focus-within:ring-[#52A636]">
                 <Lock className="mr-2 h-4 w-4 text-slate-400 shrink-0" />
                 <input
                   type={showPassword ? 'text' : 'password'}
@@ -219,7 +219,7 @@ const Register = () => {
             <button
               type="submit"
               disabled={loading}
-              className="w-full rounded-xl bg-gradient-to-r from-[#0A1E3F] to-[#0E2A59] py-3 text-xs font-bold text-white shadow-lg shadow-[#0A1E3F]/25 border border-[#C59B27]/30 transition hover:from-[#07152B] hover:to-[#0A1E3F]"
+              className="w-full rounded-xl bg-gradient-to-r from-[#0A1E3F] to-[#0E2A59] py-3 text-xs font-bold text-white shadow-lg shadow-[#0A1E3F]/25 border border-[#52A636]/30 transition hover:from-[#07152B] hover:to-[#0A1E3F]"
             >
               {loading ? 'Submitting Registration...' : 'Register Account'}
             </button>
@@ -228,7 +228,7 @@ const Register = () => {
 
         <p className="mt-5 text-center text-xs text-slate-500">
           Already registered?{' '}
-          <Link to="/login" className="font-semibold text-[#0A1E3F] hover:text-[#C59B27] hover:underline">
+          <Link to="/login" className="font-semibold text-[#0A1E3F] hover:text-[#52A636] hover:underline">
             Back to Sign In
           </Link>
         </p>

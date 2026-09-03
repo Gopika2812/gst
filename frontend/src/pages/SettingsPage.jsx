@@ -38,7 +38,7 @@ const SettingsPage = () => {
                 type="text"
                 value={firmInfo.firmName}
                 onChange={(e) => setFirmInfo({ ...firmInfo, firmName: e.target.value })}
-                className="mt-1 w-full rounded-xl border border-slate-200 p-2.5 text-xs outline-none focus:border-[#C59B27]"
+                className="mt-1 w-full rounded-xl border border-slate-200 p-2.5 text-xs outline-none focus:border-[#52A636]"
               />
             </div>
             <div>
@@ -47,7 +47,7 @@ const SettingsPage = () => {
                 type="text"
                 value={firmInfo.tagline}
                 onChange={(e) => setFirmInfo({ ...firmInfo, tagline: e.target.value })}
-                className="mt-1 w-full rounded-xl border border-slate-200 p-2.5 text-xs outline-none focus:border-[#C59B27]"
+                className="mt-1 w-full rounded-xl border border-slate-200 p-2.5 text-xs outline-none focus:border-[#52A636]"
               />
             </div>
             <div>
@@ -56,7 +56,7 @@ const SettingsPage = () => {
                 type="text"
                 value={firmInfo.phone}
                 onChange={(e) => setFirmInfo({ ...firmInfo, phone: e.target.value })}
-                className="mt-1 w-full rounded-xl border border-slate-200 p-2.5 text-xs outline-none focus:border-[#C59B27]"
+                className="mt-1 w-full rounded-xl border border-slate-200 p-2.5 text-xs outline-none focus:border-[#52A636]"
               />
             </div>
             <div>
@@ -65,7 +65,7 @@ const SettingsPage = () => {
                 type="email"
                 value={firmInfo.email}
                 onChange={(e) => setFirmInfo({ ...firmInfo, email: e.target.value })}
-                className="mt-1 w-full rounded-xl border border-slate-200 p-2.5 text-xs outline-none focus:border-[#C59B27]"
+                className="mt-1 w-full rounded-xl border border-slate-200 p-2.5 text-xs outline-none focus:border-[#52A636]"
               />
             </div>
           </div>
@@ -76,7 +76,7 @@ const SettingsPage = () => {
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mt-2 p-3 bg-slate-50 rounded-2xl border border-slate-200/80">
             <div>
               <h4 className="text-xs font-extrabold text-[#0A1E3F] flex items-center space-x-1.5">
-                <Layers className="h-4 w-4 text-[#C59B27]" />
+                <Layers className="h-4 w-4 text-[#52A636]" />
                 <span>Department Services, Start Days & Due Days Master</span>
               </h4>
               <p className="text-[11px] text-slate-500 mt-0.5">
@@ -89,7 +89,7 @@ const SettingsPage = () => {
               className="flex items-center justify-center space-x-1.5 rounded-xl bg-[#0A1E3F] px-4 py-2.5 text-xs font-bold text-white shadow-md hover:bg-[#16385C] transition shrink-0"
             >
               <span>Manage Services & Sub-Services</span>
-              <ArrowRight className="h-4 w-4 text-[#C59B27]" />
+              <ArrowRight className="h-4 w-4 text-[#52A636]" />
             </button>
           </div>
         </GlacierCard>
@@ -97,7 +97,7 @@ const SettingsPage = () => {
         <div className="flex justify-end">
           <button
             type="submit"
-            className="flex items-center justify-center space-x-1.5 rounded-xl bg-[#C59B27] px-5 py-2.5 text-xs font-semibold text-white shadow-md transition hover:bg-[#A68018] w-full sm:w-auto"
+            className="flex items-center justify-center space-x-1.5 rounded-xl bg-[#52A636] px-5 py-2.5 text-xs font-semibold text-white shadow-md transition hover:bg-[#438A2B] w-full sm:w-auto"
           >
             <Save className="h-4 w-4" />
             <span>Save System Settings</span>

@@ -3,7 +3,7 @@ import React from 'react';
 const StatCard = ({ title, value, icon: Icon, color = 'navy', trend, subtitle }) => {
   const colorMap = {
     navy: 'bg-[#0A1E3F] text-white',
-    green: 'bg-[#C59B27] text-white',
+    green: 'bg-[#52A636] text-white',
     amber: 'bg-amber-500 text-white',
     rose: 'bg-rose-500 text-white',
     blue: 'bg-blue-600 text-white'

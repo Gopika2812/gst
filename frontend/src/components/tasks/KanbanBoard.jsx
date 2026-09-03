@@ -86,7 +86,7 @@ const KanbanBoard = ({ tasks = [], onStatusChange }) => {
                           <span>Due: {new Date(task.dueDate).toLocaleDateString('en-IN', { month: 'short', day: 'numeric' })}</span>
                         </div>
                         <div className="flex items-center space-x-1">
-                          <User className="h-3 w-3 text-[#C59B27]" />
+                          <User className="h-3 w-3 text-[#52A636]" />
                           <span className="truncate max-w-[80px] font-semibold text-slate-700">{task.assignedEmployee?.name || 'Staff'}</span>
                         </div>
                       </div>
@@ -106,7 +106,7 @@ const KanbanBoard = ({ tasks = [], onStatusChange }) => {
                             onClick={() => onStatusChange(task._id, c.id)}
                             title={`Move to ${c.name}`}
                             className={`px-2 py-0.5 rounded text-[9px] font-bold transition ${
-                              task.status === c.id ? 'bg-[#C59B27] text-white shadow-xs' : 'bg-slate-200/80 text-slate-700 hover:bg-slate-300'
+                              task.status === c.id ? 'bg-[#52A636] text-white shadow-xs' : 'bg-slate-200/80 text-slate-700 hover:bg-slate-300'
                             }`}
                           >
                             {c.name[0]}

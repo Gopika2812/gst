@@ -36,7 +36,7 @@ const FilePreviewModal = ({
         {/* Modal Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-5 py-4 border-b border-slate-100 bg-slate-50/70">
           <div className="flex items-center space-x-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-emerald-100 text-[#C59B27] shrink-0 shadow-xs">
+            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-emerald-100 text-[#52A636] shrink-0 shadow-xs">
               {isImage ? <ImageIcon className="h-5 w-5" /> : <FileText className="h-5 w-5" />}
             </div>
             <div>
@@ -112,7 +112,7 @@ const FilePreviewModal = ({
             <a
               href={resolvedUrl}
               download={fileName || 'certificate'}
-              className="flex items-center space-x-1 px-3 py-1.5 rounded-xl bg-[#C59B27] text-xs font-semibold text-white hover:bg-[#A68018] shadow-2xs transition"
+              className="flex items-center space-x-1 px-3 py-1.5 rounded-xl bg-[#52A636] text-xs font-semibold text-white hover:bg-[#438A2B] shadow-2xs transition"
               title="Download File"
             >
               <Download className="h-3.5 w-3.5" />

@@ -120,7 +120,7 @@ const BillingPage = () => {
             setSelectedInvoiceForEdit(null);
             setIsModalOpen(true);
           }}
-          className="flex items-center justify-center space-x-1.5 rounded-xl bg-[#C59B27] px-4 py-2.5 text-xs font-semibold text-white shadow-md transition hover:bg-[#A68018] w-full sm:w-auto cursor-pointer"
+          className="flex items-center justify-center space-x-1.5 rounded-xl bg-[#52A636] px-4 py-2.5 text-xs font-semibold text-white shadow-md transition hover:bg-[#438A2B] w-full sm:w-auto cursor-pointer"
         >
           <Plus className="h-4 w-4" />
           <span>Generate Tax Invoice</span>
@@ -215,7 +215,7 @@ const BillingPage = () => {
                         ) : (
                           <button
                             onClick={() => handleOpenAssignModal(inv)}
-                            className="inline-flex items-center text-[11px] font-bold text-white bg-[#C59B27] hover:bg-[#A68018] px-3 py-1.5 rounded-xl shadow-xs transition transform active:scale-95 cursor-pointer"
+                            className="inline-flex items-center text-[11px] font-bold text-white bg-[#52A636] hover:bg-[#438A2B] px-3 py-1.5 rounded-xl shadow-xs transition transform active:scale-95 cursor-pointer"
                             title="Assign this client to executive & respective department"
                           >
                             <UserPlus className="mr-1.5 h-3.5 w-3.5" />
@@ -231,14 +231,14 @@ const BillingPage = () => {
                               setIsModalOpen(true);
                             }}
                             title="Edit Tax Invoice Details"
-                            className="rounded-lg p-1.5 text-amber-700 bg-amber-50 hover:bg-[#C59B27] hover:text-white transition shadow-2xs cursor-pointer"
+                            className="rounded-lg p-1.5 text-amber-700 bg-amber-50 hover:bg-[#52A636] hover:text-white transition shadow-2xs cursor-pointer"
                           >
                             <Edit3 className="h-4 w-4" />
                           </button>
                           <button
                             onClick={() => handleOpenAssignModal(inv)}
                             title="Assign Client to Department & Executive"
-                            className="rounded-lg p-1.5 text-emerald-700 bg-emerald-50 hover:bg-[#C59B27] hover:text-white transition shadow-2xs cursor-pointer"
+                            className="rounded-lg p-1.5 text-emerald-700 bg-emerald-50 hover:bg-[#52A636] hover:text-white transition shadow-2xs cursor-pointer"
                           >
                             <UserPlus className="h-4 w-4" />
                           </button>

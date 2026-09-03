@@ -187,13 +187,13 @@ const Dashboard = () => {
       <div className="relative z-20 overflow-visible rounded-3xl bg-gradient-to-r from-[#0A1E3F] via-[#16385C] to-[#07152B] p-4 sm:p-6 text-white shadow-xl border border-slate-700/50">
         <div className="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div className="flex items-center space-x-3 sm:space-x-4">
-            <div className="flex h-12 w-12 sm:h-14 sm:w-14 shrink-0 items-center justify-center rounded-2xl bg-[#C59B27] text-lg sm:text-xl font-bold text-white shadow-md border border-white/20">
+            <div className="flex h-12 w-12 sm:h-14 sm:w-14 shrink-0 items-center justify-center rounded-2xl bg-[#52A636] text-lg sm:text-xl font-bold text-white shadow-md border border-white/20">
               {user?.name ? user.name.split(' ').map((n) => n[0]).join('').substring(0, 2) : 'VA'}
             </div>
             <div>
               <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
                 <h1 className="text-lg sm:text-xl font-extrabold text-white">Welcome back, {user?.name || 'User'}</h1>
-                <span className="rounded-full bg-[#C59B27] px-2.5 py-0.5 text-[10px] font-extrabold uppercase text-white shadow-xs">
+                <span className="rounded-full bg-[#52A636] px-2.5 py-0.5 text-[10px] font-extrabold uppercase text-white shadow-xs">
                   {user?.role || 'Staff'}
                 </span>
               </div>
@@ -213,9 +213,9 @@ const Dashboard = () => {
                 onClick={() => setIsExportMenuOpen(!isExportMenuOpen)}
                 className="flex items-center space-x-1.5 rounded-xl bg-white/10 px-3.5 py-2.5 text-xs font-bold text-white backdrop-blur-md border border-white/20 transition hover:bg-white/20 cursor-pointer shadow-xs"
               >
-                <Download className="h-4 w-4 text-[#C59B27]" />
+                <Download className="h-4 w-4 text-[#52A636]" />
                 <span>Export Report</span>
-                <ChevronDown className={`h-3.5 w-3.5 opacity-70 transition-transform duration-150 ${isExportMenuOpen ? 'rotate-180 text-[#C59B27]' : ''}`} />
+                <ChevronDown className={`h-3.5 w-3.5 opacity-70 transition-transform duration-150 ${isExportMenuOpen ? 'rotate-180 text-[#52A636]' : ''}`} />
               </button>
 
               {isExportMenuOpen && (
@@ -225,7 +225,7 @@ const Dashboard = () => {
                     onClick={handleExportCSV}
                     className="flex w-full items-center space-x-2.5 rounded-xl px-3 py-2.5 text-xs font-bold text-slate-700 hover:bg-emerald-50 hover:text-emerald-800 transition cursor-pointer"
                   >
-                    <Download className="h-4 w-4 text-[#C59B27] shrink-0" />
+                    <Download className="h-4 w-4 text-[#52A636] shrink-0" />
                     <span>Export to Excel / CSV</span>
                   </button>
                   <button
@@ -252,7 +252,7 @@ const Dashboard = () => {
                 )}
                 <button
                   onClick={() => setIsTaskModalOpen(true)}
-                  className="flex items-center space-x-1.5 rounded-xl bg-[#C59B27] px-4 py-2.5 text-xs font-bold text-white shadow-md transition hover:bg-[#A68018] cursor-pointer"
+                  className="flex items-center space-x-1.5 rounded-xl bg-[#52A636] px-4 py-2.5 text-xs font-bold text-white shadow-md transition hover:bg-[#438A2B] cursor-pointer"
                 >
                   <span>Assign Task</span>
                 </button>
@@ -293,7 +293,7 @@ const Dashboard = () => {
                   setFromDate(e.target.value);
                   setDateFilter('Custom');
                 }}
-                className="bg-white border border-slate-200 rounded-lg px-2 py-0.5 text-xs font-semibold text-slate-800 outline-none focus:border-[#C59B27]"
+                className="bg-white border border-slate-200 rounded-lg px-2 py-0.5 text-xs font-semibold text-slate-800 outline-none focus:border-[#52A636]"
               />
             </div>
             <span className="text-xs text-slate-400 font-bold">➔</span>
@@ -306,7 +306,7 @@ const Dashboard = () => {
                   setToDate(e.target.value);
                   setDateFilter('Custom');
                 }}
-                className="bg-white border border-slate-200 rounded-lg px-2 py-0.5 text-xs font-semibold text-slate-800 outline-none focus:border-[#C59B27]"
+                className="bg-white border border-slate-200 rounded-lg px-2 py-0.5 text-xs font-semibold text-slate-800 outline-none focus:border-[#52A636]"
               />
             </div>
           </div>
@@ -473,7 +473,7 @@ const Dashboard = () => {
       {isSuperAdmin && (
         <div className="space-y-2">
           <div className="flex items-center space-x-2">
-            <Sparkles className="h-4 w-4 text-[#C59B27]" />
+            <Sparkles className="h-4 w-4 text-[#52A636]" />
             <h3 className="text-xs font-extrabold uppercase tracking-wider text-[#0A1E3F]">
               Executive Firm KPI Summary (Click any card to inspect records)
             </h3>
@@ -646,7 +646,7 @@ const Dashboard = () => {
                             {service.department}
                           </span>
                           <h4 className="text-xs font-bold text-slate-900 mt-1">{service.subServiceName}</h4>
-                          <p className="text-[11px] font-semibold text-[#C59B27]">{client.clientName}</p>
+                          <p className="text-[11px] font-semibold text-[#52A636]">{client.clientName}</p>
                         </div>
                         <span className="text-[10px] font-bold text-rose-600 bg-rose-50 px-2 py-0.5 rounded-full border border-rose-200">
                           Due: {dueDateStr}
@@ -677,7 +677,7 @@ const Dashboard = () => {
         <div className="space-y-3">
           <div className="flex items-center justify-between">
             <h3 className="text-sm font-extrabold text-[#0A1E3F] flex items-center space-x-2">
-              <CheckSquare className="h-4 w-4 text-[#C59B27]" />
+              <CheckSquare className="h-4 w-4 text-[#52A636]" />
               <span>My Daily Assigned Tasks</span>
             </h3>
             <span className="text-xs font-semibold text-slate-500">Showing {myTasks.length} tasks</span>

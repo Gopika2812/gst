@@ -24,7 +24,7 @@ const Navbar = ({ onSearchChange, globalSearch, onToggleMobileMenu, isSidebarCol
           aria-label="Toggle sidebar menu"
         >
           {isSidebarCollapsed ? (
-            <PanelLeftOpen className="h-5 w-5 hidden lg:block text-[#C59B27]" />
+            <PanelLeftOpen className="h-5 w-5 hidden lg:block text-[#52A636]" />
           ) : (
             <PanelLeftClose className="h-5 w-5 hidden lg:block text-slate-600" />
           )}
@@ -32,7 +32,7 @@ const Navbar = ({ onSearchChange, globalSearch, onToggleMobileMenu, isSidebarCol
         </button>
 
         {/* Global Search Bar */}
-        <div className="flex w-full max-w-[200px] xs:max-w-xs sm:max-w-none sm:w-72 md:w-96 items-center rounded-xl border border-slate-200 bg-slate-50/80 px-3 py-1.5 sm:py-2 transition focus-within:border-[#C59B27] focus-within:bg-white focus-within:ring-2 focus-within:ring-[#C59B27]/20">
+        <div className="flex w-full max-w-[200px] xs:max-w-xs sm:max-w-none sm:w-72 md:w-96 items-center rounded-xl border border-slate-200 bg-slate-50/80 px-3 py-1.5 sm:py-2 transition focus-within:border-[#52A636] focus-within:bg-white focus-within:ring-2 focus-within:ring-[#52A636]/20">
           <Search className="mr-2 h-4 w-4 shrink-0 text-slate-400" />
           <input
             type="text"
@@ -60,8 +60,8 @@ const Navbar = ({ onSearchChange, globalSearch, onToggleMobileMenu, isSidebarCol
           >
             <Bell className="h-5 w-5" />
             <span className="absolute top-1 right-1 flex h-2.5 w-2.5">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#C59B27] opacity-75"></span>
-              <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-[#C59B27]"></span>
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#52A636] opacity-75"></span>
+              <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-[#52A636]"></span>
             </span>
           </button>
 

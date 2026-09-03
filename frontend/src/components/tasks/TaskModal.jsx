@@ -148,7 +148,7 @@ const TaskModal = ({ isOpen, onClose, onRefresh, employees = [], clients = [], d
         <div className="flex items-center justify-between border-b border-slate-100 pb-4">
           <div>
             <div className="flex items-center space-x-2">
-              <span className="rounded bg-[#C59B27] px-2 py-0.5 text-[10px] font-extrabold text-white uppercase tracking-wider">
+              <span className="rounded bg-[#52A636] px-2 py-0.5 text-[10px] font-extrabold text-white uppercase tracking-wider">
                 {currentUser?.role === 'Super Admin' ? 'Super Admin' : 'Admin'} Task Assignment
               </span>
               <h3 className="text-lg font-bold text-[#0A1E3F]">Assign Task</h3>
@@ -177,7 +177,7 @@ const TaskModal = ({ isOpen, onClose, onRefresh, employees = [], clients = [], d
           {/* 1. Assigned Department */}
           <div>
             <label className="text-xs font-bold text-slate-700 flex items-center space-x-1.5 mb-2">
-              <Building2 className="h-4 w-4 text-[#C59B27]" />
+              <Building2 className="h-4 w-4 text-[#52A636]" />
               <span>Assigned Department *</span>
             </label>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
@@ -188,7 +188,7 @@ const TaskModal = ({ isOpen, onClose, onRefresh, employees = [], clients = [], d
                   onClick={() => setDepartment(d)}
                   className={`rounded-xl py-2.5 px-2 text-xs font-bold transition border ${
                     department === d
-                      ? 'bg-[#C59B27] text-white border-[#C59B27] shadow-sm'
+                      ? 'bg-[#52A636] text-white border-[#52A636] shadow-sm'
                       : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
                   }`}
                 >
@@ -224,7 +224,7 @@ const TaskModal = ({ isOpen, onClose, onRefresh, employees = [], clients = [], d
               onClick={() => setIsClientDropdownOpen(!isClientDropdownOpen)}
               className={`w-full rounded-xl border p-2.5 text-xs font-medium transition cursor-pointer flex items-center justify-between ${
                 isClientDropdownOpen
-                  ? 'border-[#C59B27] bg-white ring-2 ring-[#C59B27]/20'
+                  ? 'border-[#52A636] bg-white ring-2 ring-[#52A636]/20'
                   : 'border-slate-200 bg-slate-50/50 hover:bg-slate-50'
               }`}
             >
@@ -239,7 +239,7 @@ const TaskModal = ({ isOpen, onClose, onRefresh, employees = [], clients = [], d
                   <span className="text-slate-400">Select registered client or leave empty for general task...</span>
                 )}
               </div>
-              <ChevronDown className={`h-4 w-4 text-slate-400 shrink-0 transition-transform duration-200 ${isClientDropdownOpen ? 'rotate-180 text-[#C59B27]' : ''}`} />
+              <ChevronDown className={`h-4 w-4 text-slate-400 shrink-0 transition-transform duration-200 ${isClientDropdownOpen ? 'rotate-180 text-[#52A636]' : ''}`} />
             </div>
 
             {/* Search Dropdown Menu */}
@@ -255,7 +255,7 @@ const TaskModal = ({ isOpen, onClose, onRefresh, employees = [], clients = [], d
                       value={clientSearchQuery}
                       onChange={(e) => setClientSearchQuery(e.target.value)}
                       placeholder="Search client by name, trade name, or phone..."
-                      className="w-full rounded-lg border border-slate-200 bg-white py-1.5 pl-8 pr-3 text-xs text-slate-800 outline-none focus:border-[#C59B27]"
+                      className="w-full rounded-lg border border-slate-200 bg-white py-1.5 pl-8 pr-3 text-xs text-slate-800 outline-none focus:border-[#52A636]"
                     />
                     {clientSearchQuery && (
                       <button
@@ -275,11 +275,11 @@ const TaskModal = ({ isOpen, onClose, onRefresh, employees = [], clients = [], d
                   <div
                     onClick={() => handleSelectClient(null)}
                     className={`flex items-center justify-between rounded-xl px-3 py-2 text-xs transition cursor-pointer ${
-                      !selectedClient ? 'bg-amber-50 text-[#C59B27] font-bold' : 'text-slate-600 hover:bg-slate-50'
+                      !selectedClient ? 'bg-amber-50 text-[#52A636] font-bold' : 'text-slate-600 hover:bg-slate-50'
                     }`}
                   >
                     <span>No Client (Internal General Task)</span>
-                    {!selectedClient && <Check className="h-4 w-4 text-[#C59B27]" />}
+                    {!selectedClient && <Check className="h-4 w-4 text-[#52A636]" />}
                   </div>
 
                   {filteredClients.map((client) => {
@@ -299,7 +299,7 @@ const TaskModal = ({ isOpen, onClose, onRefresh, employees = [], clients = [], d
                             {client.phone && <span>{client.phone}</span>}
                           </div>
                         </div>
-                        {isSelected && <Check className="h-4 w-4 text-[#C59B27] shrink-0" />}
+                        {isSelected && <Check className="h-4 w-4 text-[#52A636] shrink-0" />}
                       </div>
                     );
                   })}
@@ -326,7 +326,7 @@ const TaskModal = ({ isOpen, onClose, onRefresh, employees = [], clients = [], d
               value={taskName}
               onChange={(e) => setTaskName(e.target.value)}
               placeholder="e.g. Monthly GST Return Filing or Audit Review"
-              className="w-full rounded-xl border border-slate-200 bg-slate-50/50 p-2.5 text-xs font-medium text-slate-800 outline-none transition focus:border-[#C59B27] focus:bg-white focus:ring-2 focus:ring-[#C59B27]/20"
+              className="w-full rounded-xl border border-slate-200 bg-slate-50/50 p-2.5 text-xs font-medium text-slate-800 outline-none transition focus:border-[#52A636] focus:bg-white focus:ring-2 focus:ring-[#52A636]/20"
             />
           </div>
 
@@ -341,7 +341,7 @@ const TaskModal = ({ isOpen, onClose, onRefresh, employees = [], clients = [], d
               value={remarks}
               onChange={(e) => setRemarks(e.target.value)}
               placeholder="Enter detailed task description or guidelines for the executive..."
-              className="w-full rounded-xl border border-slate-200 bg-slate-50/50 p-2.5 text-xs text-slate-800 outline-none transition focus:border-[#C59B27] focus:bg-white focus:ring-2 focus:ring-[#C59B27]/20"
+              className="w-full rounded-xl border border-slate-200 bg-slate-50/50 p-2.5 text-xs text-slate-800 outline-none transition focus:border-[#52A636] focus:bg-white focus:ring-2 focus:ring-[#52A636]/20"
             />
           </div>
 
@@ -357,7 +357,7 @@ const TaskModal = ({ isOpen, onClose, onRefresh, employees = [], clients = [], d
                 required
                 value={assignedEmployee}
                 onChange={(e) => setAssignedEmployee(e.target.value)}
-                className="w-full rounded-xl border border-slate-200 bg-slate-50/50 p-2.5 text-xs font-medium text-slate-800 outline-none transition focus:border-[#C59B27] focus:bg-white"
+                className="w-full rounded-xl border border-slate-200 bg-slate-50/50 p-2.5 text-xs font-medium text-slate-800 outline-none transition focus:border-[#52A636] focus:bg-white"
               >
                 <option value="">-- Select Person --</option>
                 <optgroup label="Department Admins & Managers">
@@ -390,7 +390,7 @@ const TaskModal = ({ isOpen, onClose, onRefresh, employees = [], clients = [], d
               <select
                 value={priority}
                 onChange={(e) => setPriority(e.target.value)}
-                className="w-full rounded-xl border border-slate-200 bg-slate-50/50 p-2.5 text-xs font-medium text-slate-800 outline-none transition focus:border-[#C59B27] focus:bg-white"
+                className="w-full rounded-xl border border-slate-200 bg-slate-50/50 p-2.5 text-xs font-medium text-slate-800 outline-none transition focus:border-[#52A636] focus:bg-white"
               >
                 <option value="Low">Low</option>
                 <option value="Medium">Medium</option>
@@ -410,7 +410,7 @@ const TaskModal = ({ isOpen, onClose, onRefresh, employees = [], clients = [], d
                 required
                 value={dueDate}
                 onChange={(e) => setDueDate(e.target.value)}
-                className="w-full rounded-xl border border-slate-200 bg-slate-50/50 p-2.5 text-xs font-medium text-slate-800 outline-none transition focus:border-[#C59B27] focus:bg-white"
+                className="w-full rounded-xl border border-slate-200 bg-slate-50/50 p-2.5 text-xs font-medium text-slate-800 outline-none transition focus:border-[#52A636] focus:bg-white"
               />
             </div>
           </div>
@@ -427,7 +427,7 @@ const TaskModal = ({ isOpen, onClose, onRefresh, employees = [], clients = [], d
             <button
               type="submit"
               disabled={loading}
-              className="rounded-xl bg-[#C59B27] px-5 py-2.5 text-xs font-extrabold text-white shadow-md transition hover:bg-[#A68018] disabled:opacity-50 cursor-pointer"
+              className="rounded-xl bg-[#52A636] px-5 py-2.5 text-xs font-extrabold text-white shadow-md transition hover:bg-[#438A2B] disabled:opacity-50 cursor-pointer"
             >
               {loading ? 'Assigning Task...' : 'Assign Task'}
             </button>

@@ -105,7 +105,7 @@ const PermissionMatrixModal = ({ isOpen, onClose }) => {
                         type="checkbox"
                         checked={modulesState[mod][act]}
                         onChange={() => handleToggle(mod, act)}
-                        className="h-4 w-4 rounded accent-[#C59B27] cursor-pointer"
+                        className="h-4 w-4 rounded accent-[#52A636] cursor-pointer"
                       />
                     </td>
                   ))}
@@ -127,7 +127,7 @@ const PermissionMatrixModal = ({ isOpen, onClose }) => {
             type="button"
             onClick={handleSave}
             disabled={loading}
-            className="flex items-center space-x-1.5 rounded-xl bg-[#C59B27] px-5 py-2 text-xs font-semibold text-white shadow-md transition hover:bg-[#A68018]"
+            className="flex items-center space-x-1.5 rounded-xl bg-[#52A636] px-5 py-2 text-xs font-semibold text-white shadow-md transition hover:bg-[#438A2B]"
           >
             <Save className="h-4 w-4" />
             <span>{loading ? 'Saving...' : 'Save Permission Grid'}</span>

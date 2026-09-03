@@ -102,7 +102,7 @@ const AssignTaskModal = ({ isOpen, onClose, invoice, onRefresh, employees = [] }
         {/* Header */}
         <div className="flex items-center justify-between border-b border-slate-100 pb-3.5">
           <div className="flex items-center space-x-2.5">
-            <div className="rounded-xl bg-emerald-100/80 p-2 text-[#C59B27]">
+            <div className="rounded-xl bg-emerald-100/80 p-2 text-[#52A636]">
               <UserPlus className="h-5 w-5" />
             </div>
             <div>
@@ -136,7 +136,7 @@ const AssignTaskModal = ({ isOpen, onClose, invoice, onRefresh, employees = [] }
             </div>
             <div className="flex items-center justify-between text-xs">
               <span className="font-semibold text-slate-500">Billing Amount:</span>
-              <span className="font-extrabold text-[#C59B27]">₹{invoice.total?.toLocaleString('en-IN')}</span>
+              <span className="font-extrabold text-[#52A636]">₹{invoice.total?.toLocaleString('en-IN')}</span>
             </div>
             <div className="flex items-center justify-between text-xs">
               <span className="font-semibold text-slate-500">Payment Status:</span>
@@ -157,7 +157,7 @@ const AssignTaskModal = ({ isOpen, onClose, invoice, onRefresh, employees = [] }
               required
               value={taskName}
               onChange={(e) => setTaskName(e.target.value)}
-              className="mt-1 w-full rounded-xl border border-slate-200 bg-white p-2.5 text-xs font-semibold text-slate-800 outline-none focus:border-[#C59B27]"
+              className="mt-1 w-full rounded-xl border border-slate-200 bg-white p-2.5 text-xs font-semibold text-slate-800 outline-none focus:border-[#52A636]"
               placeholder="e.g. GST Filing GSTR-3B & GSTR-1"
             />
           </div>
@@ -169,7 +169,7 @@ const AssignTaskModal = ({ isOpen, onClose, invoice, onRefresh, employees = [] }
               <select
                 value={department}
                 onChange={(e) => setDepartment(e.target.value)}
-                className="mt-1 w-full rounded-xl border border-slate-200 bg-white p-2.5 text-xs font-semibold text-slate-800 outline-none focus:border-[#C59B27]"
+                className="mt-1 w-full rounded-xl border border-slate-200 bg-white p-2.5 text-xs font-semibold text-slate-800 outline-none focus:border-[#52A636]"
               >
                 <option value="GST">GST Department</option>
                 <option value="Income Tax">Income Tax Department</option>
@@ -187,7 +187,7 @@ const AssignTaskModal = ({ isOpen, onClose, invoice, onRefresh, employees = [] }
                 required
                 value={assignedEmployee}
                 onChange={(e) => setAssignedEmployee(e.target.value)}
-                className="mt-1 w-full rounded-xl border border-slate-200 bg-white p-2.5 text-xs font-semibold text-slate-800 outline-none focus:border-[#C59B27]"
+                className="mt-1 w-full rounded-xl border border-slate-200 bg-white p-2.5 text-xs font-semibold text-slate-800 outline-none focus:border-[#52A636]"
               >
                 <option value="">-- Select Executive --</option>
                 {filteredEmployees.map((emp) => (
@@ -213,7 +213,7 @@ const AssignTaskModal = ({ isOpen, onClose, invoice, onRefresh, employees = [] }
                 required
                 value={dueDate}
                 onChange={(e) => setDueDate(e.target.value)}
-                className="mt-1 w-full rounded-xl border border-slate-200 bg-white p-2.5 text-xs font-semibold text-slate-800 outline-none focus:border-[#C59B27]"
+                className="mt-1 w-full rounded-xl border border-slate-200 bg-white p-2.5 text-xs font-semibold text-slate-800 outline-none focus:border-[#52A636]"
               />
             </div>
 
@@ -223,7 +223,7 @@ const AssignTaskModal = ({ isOpen, onClose, invoice, onRefresh, employees = [] }
               <select
                 value={priority}
                 onChange={(e) => setPriority(e.target.value)}
-                className="mt-1 w-full rounded-xl border border-slate-200 bg-white p-2.5 text-xs font-semibold text-slate-800 outline-none focus:border-[#C59B27]"
+                className="mt-1 w-full rounded-xl border border-slate-200 bg-white p-2.5 text-xs font-semibold text-slate-800 outline-none focus:border-[#52A636]"
               >
                 <option value="High">High Priority</option>
                 <option value="Critical">Critical (Immediate)</option>
@@ -241,7 +241,7 @@ const AssignTaskModal = ({ isOpen, onClose, invoice, onRefresh, employees = [] }
               value={remarks}
               onChange={(e) => setRemarks(e.target.value)}
               placeholder="e.g. Verify client bank statement before preparing ledger."
-              className="mt-1 w-full rounded-xl border border-slate-200 bg-white p-2.5 text-xs text-slate-800 outline-none focus:border-[#C59B27] resize-none"
+              className="mt-1 w-full rounded-xl border border-slate-200 bg-white p-2.5 text-xs text-slate-800 outline-none focus:border-[#52A636] resize-none"
             />
           </div>
 
@@ -257,7 +257,7 @@ const AssignTaskModal = ({ isOpen, onClose, invoice, onRefresh, employees = [] }
             <button
               type="submit"
               disabled={loading}
-              className="inline-flex items-center space-x-1.5 rounded-xl bg-[#C59B27] px-5 py-2 text-xs font-bold text-white shadow-md transition hover:bg-[#A68018] disabled:opacity-50 cursor-pointer"
+              className="inline-flex items-center space-x-1.5 rounded-xl bg-[#52A636] px-5 py-2 text-xs font-bold text-white shadow-md transition hover:bg-[#438A2B] disabled:opacity-50 cursor-pointer"
             >
               <UserCheck className="h-4 w-4" />
               <span>{loading ? 'Assigning...' : 'Assign to Executive'}</span>

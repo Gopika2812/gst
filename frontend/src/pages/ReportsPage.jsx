@@ -67,7 +67,7 @@ const ReportsPage = () => {
           </button>
           <button
             onClick={() => window.print()}
-            className="flex-1 sm:flex-none justify-center flex items-center space-x-1.5 rounded-xl bg-[#C59B27] px-3.5 py-2 text-xs font-semibold text-white shadow-md hover:bg-[#A68018]"
+            className="flex-1 sm:flex-none justify-center flex items-center space-x-1.5 rounded-xl bg-[#52A636] px-3.5 py-2 text-xs font-semibold text-white shadow-md hover:bg-[#438A2B]"
           >
             <Printer className="h-4 w-4" />
             <span>Print Report</span>
@@ -134,11 +134,11 @@ const ReportsPage = () => {
                       <div className="flex items-center justify-center space-x-2">
                         <div className="w-16 bg-slate-200 rounded-full h-2 overflow-hidden">
                           <div
-                            className="bg-[#C59B27] h-full"
+                            className="bg-[#52A636] h-full"
                             style={{ width: `${p.completionRate}%` }}
                           />
                         </div>
-                        <span className="font-extrabold text-[#C59B27] text-xs">{p.completionRate}%</span>
+                        <span className="font-extrabold text-[#52A636] text-xs">{p.completionRate}%</span>
                       </div>
                     </td>
                   </tr>

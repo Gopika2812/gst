@@ -402,7 +402,7 @@ const LedgerPage = () => {
             <select
               value={selectedClientId}
               onChange={(e) => setSelectedClientId(e.target.value)}
-              className="rounded-xl border border-slate-200 bg-white p-2 text-xs font-bold text-[#0A1E3F] shadow-xs outline-none focus:border-[#C59B27] cursor-pointer"
+              className="rounded-xl border border-slate-200 bg-white p-2 text-xs font-bold text-[#0A1E3F] shadow-xs outline-none focus:border-[#52A636] cursor-pointer"
             >
               {clients.map((c) => (
                 <option key={c._id} value={c._id}>
@@ -417,14 +417,14 @@ const LedgerPage = () => {
               onClick={() => handlePrintLedger()}
               className="flex items-center justify-center space-x-1.5 rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-bold text-[#0A1E3F] hover:bg-[#0A1E3F] hover:text-white transition shadow-2xs cursor-pointer"
             >
-              <Printer className="h-4 w-4 text-[#C59B27]" />
+              <Printer className="h-4 w-4 text-[#52A636]" />
               <span>Print Ledger</span>
             </button>
           )}
 
           <button
             onClick={() => handleOpenCreateModal()}
-            className="flex items-center justify-center space-x-1.5 rounded-xl bg-[#C59B27] px-4 py-2 text-xs font-semibold text-white shadow-md transition hover:bg-[#A68018] cursor-pointer"
+            className="flex items-center justify-center space-x-1.5 rounded-xl bg-[#52A636] px-4 py-2 text-xs font-semibold text-white shadow-md transition hover:bg-[#438A2B] cursor-pointer"
           >
             <Plus className="h-4 w-4" />
             <span>Record Payment</span>
@@ -480,7 +480,7 @@ const LedgerPage = () => {
                 <select
                   value={balanceFilter}
                   onChange={(e) => setBalanceFilter(e.target.value)}
-                  className="rounded-xl border border-slate-200 bg-white p-2 text-xs font-semibold text-slate-700 outline-none focus:border-[#C59B27] cursor-pointer"
+                  className="rounded-xl border border-slate-200 bg-white p-2 text-xs font-semibold text-slate-700 outline-none focus:border-[#52A636] cursor-pointer"
                 >
                   <option value="all">All Customer Accounts</option>
                   <option value="pending">With Outstanding Dues (Balance &gt; 0)</option>
@@ -660,12 +660,12 @@ const LedgerPage = () => {
                   onClick={() => handlePrintLedger()}
                   className="flex items-center justify-center space-x-1.5 rounded-lg bg-white border border-slate-200 px-3 py-1.5 text-xs font-bold text-[#0A1E3F] hover:bg-[#0A1E3F] hover:text-white transition shadow-2xs cursor-pointer"
                 >
-                  <Printer className="h-4 w-4 text-[#C59B27]" />
+                  <Printer className="h-4 w-4 text-[#52A636]" />
                   <span>Print Official Ledger</span>
                 </button>
                 <button
                   onClick={() => handleOpenCreateModal(selectedClientId)}
-                  className="flex items-center justify-center space-x-1 rounded-lg bg-[#C59B27] px-3 py-1.5 text-xs font-bold text-white hover:bg-[#A68018] transition shadow-2xs cursor-pointer"
+                  className="flex items-center justify-center space-x-1 rounded-lg bg-[#52A636] px-3 py-1.5 text-xs font-bold text-white hover:bg-[#438A2B] transition shadow-2xs cursor-pointer"
                 >
                   <Plus className="h-4 w-4" />
                   <span>Record Payment</span>
@@ -727,7 +727,7 @@ const LedgerPage = () => {
                             <button
                               onClick={() => handleOpenEditModal(e)}
                               title="Edit Transaction Entry"
-                              className="rounded-lg p-1.5 text-slate-600 hover:bg-amber-50 hover:text-[#C59B27] transition cursor-pointer"
+                              className="rounded-lg p-1.5 text-slate-600 hover:bg-amber-50 hover:text-[#52A636] transition cursor-pointer"
                             >
                               <Edit3 className="h-4 w-4" />
                             </button>
@@ -788,7 +788,7 @@ const LedgerPage = () => {
                   disabled={!!editingTransaction}
                   value={modalClientId}
                   onChange={(e) => handleModalClientChange(e.target.value)}
-                  className="mt-1 w-full rounded-xl border border-slate-200 p-2.5 font-semibold text-slate-800 outline-none focus:border-[#C59B27] cursor-pointer"
+                  className="mt-1 w-full rounded-xl border border-slate-200 p-2.5 font-semibold text-slate-800 outline-none focus:border-[#52A636] cursor-pointer"
                 >
                   <option value="">-- Choose Customer --</option>
                   {clients.map((c) => (
@@ -805,7 +805,7 @@ const LedgerPage = () => {
                 <select
                   value={txData.transactionType}
                   onChange={(e) => setTxData({ ...txData, transactionType: e.target.value })}
-                  className="mt-1 w-full rounded-xl border border-slate-200 p-2.5 font-semibold text-slate-800 outline-none focus:border-[#C59B27] cursor-pointer"
+                  className="mt-1 w-full rounded-xl border border-slate-200 p-2.5 font-semibold text-slate-800 outline-none focus:border-[#52A636] cursor-pointer"
                 >
                   <option value="Payment Received">Payment Received (Receipt / Credit)</option>
                   <option value="Credit Note">Credit Note (Credit to Customer)</option>
@@ -864,7 +864,7 @@ const LedgerPage = () => {
                         <select
                           value={selectedInvoiceId}
                           onChange={(e) => handleInvoiceSelect(e.target.value)}
-                          className="mt-1 w-full rounded-xl border border-blue-300 bg-white p-2.5 text-xs font-bold text-[#0A1E3F] outline-none focus:border-[#C59B27] cursor-pointer"
+                          className="mt-1 w-full rounded-xl border border-blue-300 bg-white p-2.5 text-xs font-bold text-[#0A1E3F] outline-none focus:border-[#52A636] cursor-pointer"
                         >
                           <option value="">-- Choose Invoice to Pay --</option>
                           {clientInvoices.map((inv) => (
@@ -889,7 +889,7 @@ const LedgerPage = () => {
                     value={txData.amount}
                     onChange={(e) => setTxData({ ...txData, amount: e.target.value })}
                     placeholder="e.g. 5000"
-                    className="mt-1 w-full rounded-xl border border-slate-200 p-2.5 text-xs font-bold text-slate-900 outline-none focus:border-[#C59B27]"
+                    className="mt-1 w-full rounded-xl border border-slate-200 p-2.5 text-xs font-bold text-slate-900 outline-none focus:border-[#52A636]"
                   />
                 </div>
 
@@ -898,7 +898,7 @@ const LedgerPage = () => {
                   <select
                     value={txData.paymentMode}
                     onChange={(e) => setTxData({ ...txData, paymentMode: e.target.value })}
-                    className="mt-1 w-full rounded-xl border border-slate-200 p-2.5 text-xs font-semibold text-slate-800 outline-none focus:border-[#C59B27] cursor-pointer"
+                    className="mt-1 w-full rounded-xl border border-slate-200 p-2.5 text-xs font-semibold text-slate-800 outline-none focus:border-[#52A636] cursor-pointer"
                   >
                     <option value="Bank Transfer">Bank Transfer / NEFT / IMPS</option>
                     <option value="UPI">UPI / GPay / PhonePe</option>
@@ -917,7 +917,7 @@ const LedgerPage = () => {
                     required
                     value={txData.date}
                     onChange={(e) => setTxData({ ...txData, date: e.target.value })}
-                    className="mt-1 w-full rounded-xl border border-slate-200 p-2.5 text-xs font-semibold text-slate-800 outline-none focus:border-[#C59B27]"
+                    className="mt-1 w-full rounded-xl border border-slate-200 p-2.5 text-xs font-semibold text-slate-800 outline-none focus:border-[#52A636]"
                   />
                 </div>
 
@@ -928,7 +928,7 @@ const LedgerPage = () => {
                     value={txData.referenceNumber}
                     onChange={(e) => setTxData({ ...txData, referenceNumber: e.target.value })}
                     placeholder="e.g. UPI Ref / Cheque # / INV00126"
-                    className="mt-1 w-full rounded-xl border border-slate-200 p-2.5 text-xs font-semibold text-slate-800 outline-none focus:border-[#C59B27]"
+                    className="mt-1 w-full rounded-xl border border-slate-200 p-2.5 text-xs font-semibold text-slate-800 outline-none focus:border-[#52A636]"
                   />
                 </div>
               </div>
@@ -941,7 +941,7 @@ const LedgerPage = () => {
                   value={txData.description}
                   onChange={(e) => setTxData({ ...txData, description: e.target.value })}
                   placeholder="Optional details or payment notes..."
-                  className="mt-1 w-full rounded-xl border border-slate-200 p-2.5 text-xs outline-none focus:border-[#C59B27]"
+                  className="mt-1 w-full rounded-xl border border-slate-200 p-2.5 text-xs outline-none focus:border-[#52A636]"
                 />
               </div>
 
@@ -957,7 +957,7 @@ const LedgerPage = () => {
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="rounded-xl bg-[#C59B27] px-5 py-2 font-bold text-white hover:bg-[#A68018] cursor-pointer disabled:opacity-50 shadow-md transition"
+                  className="rounded-xl bg-[#52A636] px-5 py-2 font-bold text-white hover:bg-[#438A2B] cursor-pointer disabled:opacity-50 shadow-md transition"
                 >
                   {submitting ? 'Saving...' : editingTransaction ? 'Update Entry' : 'Save Payment Receipt'}
                 </button>

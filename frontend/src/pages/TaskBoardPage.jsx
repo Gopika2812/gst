@@ -110,7 +110,7 @@ const TaskBoardPage = () => {
         </div>
         <button
           onClick={() => setIsTaskModalOpen(true)}
-          className="flex items-center justify-center space-x-1.5 rounded-xl bg-[#C59B27] px-4 py-2.5 text-xs font-extrabold text-white shadow-md transition hover:bg-[#A68018] cursor-pointer"
+          className="flex items-center justify-center space-x-1.5 rounded-xl bg-[#52A636] px-4 py-2.5 text-xs font-extrabold text-white shadow-md transition hover:bg-[#438A2B] cursor-pointer"
         >
           <Plus className="h-4 w-4" />
           <span>Assign New Task</span>
@@ -143,7 +143,7 @@ const TaskBoardPage = () => {
             <select
               value={departmentFilter}
               onChange={(e) => setDepartmentFilter(e.target.value)}
-              className="rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-[#0A1E3F] outline-none cursor-pointer focus:border-[#C59B27]"
+              className="rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-[#0A1E3F] outline-none cursor-pointer focus:border-[#52A636]"
             >
               <option value="">All Departments</option>
               <option value="GST">GST</option>
@@ -156,7 +156,7 @@ const TaskBoardPage = () => {
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-[#0A1E3F] outline-none cursor-pointer focus:border-[#C59B27]"
+              className="rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-[#0A1E3F] outline-none cursor-pointer focus:border-[#52A636]"
             >
               <option value="">All Statuses</option>
               <option value="Assigned">Assigned</option>
@@ -171,7 +171,7 @@ const TaskBoardPage = () => {
                 type="checkbox"
                 checked={myTasksOnly}
                 onChange={(e) => setMyTasksOnly(e.target.checked)}
-                className="h-3.5 w-3.5 rounded accent-[#C59B27]"
+                className="h-3.5 w-3.5 rounded accent-[#52A636]"
               />
               <span>My Assigned Only</span>
             </label>

@@ -70,14 +70,14 @@ const DelegateModal = ({ isOpen, onClose, task, employees = [], onDelegated, cur
           <div className="rounded-2xl bg-slate-50 p-3 border border-slate-200/80">
             <h4 className="text-xs font-extrabold text-[#0A1E3F]">{task.taskName}</h4>
             <p className="text-[11px] text-slate-500 mt-0.5">
-              Dept: <strong className="text-slate-700">{task.department}</strong> • Currently Assigned To: <strong className="text-[#C59B27]">{task.assignedEmployee?.name || 'Unassigned'}</strong>
+              Dept: <strong className="text-slate-700">{task.department}</strong> • Currently Assigned To: <strong className="text-[#52A636]">{task.assignedEmployee?.name || 'Unassigned'}</strong>
             </p>
           </div>
 
           {/* Select Junior Executive */}
           <div>
             <label className="text-xs font-bold text-slate-700 block mb-1">Select Junior Executive / Staff *</label>
-            <div className="flex items-center rounded-xl border border-slate-200 bg-white px-3 py-2 focus-within:border-[#C59B27]">
+            <div className="flex items-center rounded-xl border border-slate-200 bg-white px-3 py-2 focus-within:border-[#52A636]">
               <User className="mr-2 h-4 w-4 text-slate-400 shrink-0" />
               <select
                 required
@@ -114,7 +114,7 @@ const DelegateModal = ({ isOpen, onClose, task, employees = [], onDelegated, cur
               value={remarks}
               onChange={(e) => setRemarks(e.target.value)}
               placeholder="e.g. Please verify customer documents before filing GSTR1..."
-              className="mt-1 w-full rounded-xl border border-slate-200 p-2 text-xs outline-none focus:border-[#C59B27]"
+              className="mt-1 w-full rounded-xl border border-slate-200 p-2 text-xs outline-none focus:border-[#52A636]"
             />
           </div>
 
@@ -130,7 +130,7 @@ const DelegateModal = ({ isOpen, onClose, task, employees = [], onDelegated, cur
             <button
               type="submit"
               disabled={loading}
-              className="flex items-center space-x-1.5 rounded-xl bg-[#C59B27] px-5 py-2 text-xs font-extrabold text-white shadow-md hover:bg-[#A68018] transition"
+              className="flex items-center space-x-1.5 rounded-xl bg-[#52A636] px-5 py-2 text-xs font-extrabold text-white shadow-md hover:bg-[#438A2B] transition"
             >
               <UserPlus className="h-4 w-4" />
               <span>{loading ? 'Delegating...' : 'Delegate Task'}</span>

@@ -66,9 +66,9 @@ export const printExecutiveReport = ({
         <style>
           @page { size: A4 portrait; margin: 15mm; }
           body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: #1e293b; margin: 0; padding: 10px; font-size: 11px; }
-          .header { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #C59B27; padding-bottom: 12px; margin-bottom: 14px; }
+          .header { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #52A636; padding-bottom: 12px; margin-bottom: 14px; }
           .firm-title { font-size: 18px; font-weight: 800; color: #0A1E3F; margin: 0; }
-          .firm-sub { font-size: 10px; color: #C59B27; font-weight: 700; text-transform: uppercase; margin-top: 2px; }
+          .firm-sub { font-size: 10px; color: #52A636; font-weight: 700; text-transform: uppercase; margin-top: 2px; }
           .meta { text-align: right; font-size: 10px; color: #64748b; }
           .filter-bar { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 8px 12px; margin-bottom: 14px; display: flex; gap: 16px; font-size: 10px; }
           .filter-item { font-weight: 600; }
@@ -260,7 +260,7 @@ export const printClientLedger = ({ ledgerData = {}, client = null, user = {} })
             height: 58px;
             object-fit: cover;
             border-radius: 50%;
-            border: 2px solid #C59B27;
+            border: 2px solid #52A636;
           }
           .company-cell {
             vertical-align: top;
@@ -277,7 +277,7 @@ export const printClientLedger = ({ ledgerData = {}, client = null, user = {} })
           .company-tagline {
             font-size: 10px;
             font-weight: 700;
-            color: #C59B27;
+            color: #52A636;
             text-transform: uppercase;
             letter-spacing: 0.8px;
             margin-top: 1px;
@@ -371,7 +371,7 @@ export const printClientLedger = ({ ledgerData = {}, client = null, user = {} })
             color: #64748b;
           }
           .metric-card.closing .metric-title {
-            color: #C59B27;
+            color: #52A636;
           }
           .metric-value {
             font-size: 13px;

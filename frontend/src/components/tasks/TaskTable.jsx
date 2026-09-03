@@ -154,7 +154,7 @@ const TaskTable = ({ tasks = [], onStatusChange, onDeleteTask, onDelegateTask, c
                       <div className="flex items-center space-x-1 text-[11px]">
                         <span className="font-semibold text-slate-700">{task.assignedBy?.name || 'Super Admin'}</span>
                         <ArrowRight className="h-3 w-3 text-slate-400 shrink-0" />
-                        <span className="font-extrabold text-[#C59B27]">{task.assignedEmployee?.name || 'Staff'}</span>
+                        <span className="font-extrabold text-[#52A636]">{task.assignedEmployee?.name || 'Staff'}</span>
                       </div>
                       <span className="text-[10px] text-slate-400 block mt-0.5">
                         ({task.assignedEmployee?.designation || task.assignedEmployee?.role || 'Executive'})
@@ -203,7 +203,7 @@ const TaskTable = ({ tasks = [], onStatusChange, onDeleteTask, onDelegateTask, c
                             type="button"
                             onClick={() => handleOpenInvoice(task)}
                             title={task.client?.clientName ? `Generate Bill / Invoice for ${task.client.clientName}` : 'Generate Bill / Invoice'}
-                            className="inline-flex items-center space-x-1 rounded-lg bg-gradient-to-r from-amber-500 to-[#C59B27] hover:from-amber-600 hover:to-[#A68018] text-white px-2 py-0.5 text-[10px] font-extrabold shadow-2xs hover:shadow-xs transition transform hover:scale-105 active:scale-95 cursor-pointer whitespace-nowrap"
+                            className="inline-flex items-center space-x-1 rounded-lg bg-gradient-to-r from-amber-500 to-[#52A636] hover:from-amber-600 hover:to-[#438A2B] text-white px-2 py-0.5 text-[10px] font-extrabold shadow-2xs hover:shadow-xs transition transform hover:scale-105 active:scale-95 cursor-pointer whitespace-nowrap"
                           >
                             <Receipt className="h-3 w-3" />
                             <span>Make Bill</span>
