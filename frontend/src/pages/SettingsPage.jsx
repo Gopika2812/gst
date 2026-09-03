@@ -5,10 +5,10 @@ import { Settings, Save, ShieldCheck, Mail, Bell, Building, Layers, ArrowRight }
 
 const SettingsPage = () => {
   const [firmInfo, setFirmInfo] = useState({
-    firmName: 'Royal Accounting',
+    firmName: 'Vignesh Associates',
     tagline: 'Chartered Accountants & Tax Consultants',
     phone: '+91 98765 43210',
-    email: 'contact@royalaccounting.co.in',
+    email: 'contact@vigneshassociates.com',
     address: 'No. 45, Mount Road, Guindy, Chennai - 600032',
     defaultGstRate: 18
   });
@@ -23,8 +23,8 @@ const SettingsPage = () => {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-lg sm:text-xl font-bold text-[#0A1E3F]">ERP System Settings</h1>
-        <p className="text-xs text-slate-500">Configure Royal Accounting firm profile, tax defaults & master services</p>
+        <h1 className="text-lg sm:text-xl font-bold text-[#0F2B48]">ERP System Settings</h1>
+        <p className="text-xs text-slate-500">Configure Vignesh Associates firm profile, tax defaults & master services</p>
       </div>
 
       {msg && <div className="rounded-xl bg-emerald-50 p-3 text-xs font-semibold text-emerald-700 border border-emerald-200">{msg}</div>}

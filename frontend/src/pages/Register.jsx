@@ -94,12 +94,12 @@ const Register = () => {
       <div className="absolute inset-0 bg-[#07152B]/75 backdrop-blur-xs"></div>
       <div className="relative z-10 w-full max-w-md rounded-3xl bg-white/95 p-8 shadow-2xl backdrop-blur-xl border border-white/60">
         <div className="text-center">
-          <div className="mx-auto mb-3 flex h-20 w-20 items-center justify-center rounded-2xl bg-white p-1 shadow-md overflow-hidden border border-[#C59B27]/40">
-            <img src="/logo_royal.jpeg" alt="Royal Accounting Logo" className="h-full w-full object-contain rounded-xl" />
+          <div className="mx-auto mb-3 flex h-20 w-20 items-center justify-center rounded-2xl bg-white p-1 shadow-md overflow-hidden border border-slate-200">
+            <img src="/logo.jpg" alt="Vignesh Associates Logo" className="h-full w-full object-contain rounded-xl" />
           </div>
           <div className="flex items-center justify-center space-x-1.5">
-            <span className="rounded bg-[#0A1E3F] px-2.5 py-0.5 font-extrabold text-sm text-white tracking-wide">ROYAL</span>
-            <span className="rounded bg-[#C59B27] px-2.5 py-0.5 font-extrabold text-sm text-white tracking-wide">ACCOUNTING</span>
+            <span className="rounded bg-[#0F2B48] px-2.5 py-0.5 font-extrabold text-sm text-white tracking-wide">Vignesh</span>
+            <span className="rounded bg-[#52A636] px-2.5 py-0.5 font-extrabold text-sm text-white tracking-wide">Associates</span>
           </div>
           <h2 className="mt-2 text-xl font-bold text-slate-800">Staff Account Registration</h2>
           <p className="mt-1 text-xs text-slate-500">Requires Admin approval before login access</p>

@@ -68,15 +68,15 @@ const Sidebar = ({ isOpen, onClose, isCollapsed, onToggleCollapse }) => {
         <div className={`flex h-20 items-center border-b border-slate-700/60 px-4 ${isCollapsed ? 'justify-center lg:justify-center' : 'justify-between'}`}>
           <div className="flex items-center space-x-3 overflow-hidden">
             {/* Logo Graphic */}
-            <div className="relative flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white p-0.5 shadow-md overflow-hidden border border-[#C59B27]/50">
-              <img src="/logo_royal.jpeg" alt="Royal Accounting Logo" className="h-full w-full object-contain rounded-lg" />
+            <div className="relative flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white p-0.5 shadow-md overflow-hidden border border-slate-700">
+              <img src="/logo.jpg" alt="Vignesh Associates Logo" className="h-full w-full object-contain rounded-lg" />
             </div>
             <div className={`transition-opacity duration-200 ${isCollapsed ? 'lg:hidden' : 'block'}`}>
               <div className="flex items-center space-x-1">
-                <span className="rounded bg-[#07152B] px-1.5 py-0.5 font-extrabold text-xs text-white border border-slate-700">Royal</span>
-                <span className="rounded bg-[#C59B27] px-1.5 py-0.5 font-extrabold text-xs text-[#07152B]">Accounting</span>
+                <span className="rounded bg-[#07152B] px-1.5 py-0.5 font-extrabold text-xs text-white border border-slate-700">Vignesh</span>
+                <span className="rounded bg-[#52A636] px-1.5 py-0.5 font-extrabold text-xs text-white">Associates</span>
               </div>
-              <p className="mt-0.5 text-[10px] tracking-wider text-[#DFB135] font-semibold uppercase whitespace-nowrap">GST & Auditor ERP</p>
+              <p className="mt-0.5 text-[10px] tracking-wider text-[#52A636] font-semibold uppercase whitespace-nowrap">AUDITOR ERP SYSTEM</p>
             </div>
           </div>
 

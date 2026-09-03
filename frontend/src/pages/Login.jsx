@@ -30,15 +30,15 @@ const Login = () => {
       <div className="relative z-10 w-full max-w-md rounded-3xl bg-white/95 p-8 shadow-2xl backdrop-blur-xl border border-white/60 transition-all">
         {/* Brand Header */}
         <div className="text-center">
-          <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-2xl bg-white p-1 shadow-lg overflow-hidden border border-[#C59B27]/40">
-            <img src="/logo_royal.jpeg" alt="Royal Accounting Logo" className="h-full w-full object-contain rounded-xl" />
+          <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-2xl bg-white p-1 shadow-lg overflow-hidden border border-slate-200">
+            <img src="/logo.jpg" alt="Vignesh Associates Logo" className="h-full w-full object-contain rounded-xl" />
           </div>
           <div className="mt-3 flex items-center justify-center space-x-1.5">
-            <span className="rounded bg-[#0A1E3F] px-2.5 py-0.5 font-extrabold text-sm text-white tracking-wide">ROYAL</span>
-            <span className="rounded bg-[#C59B27] px-2.5 py-0.5 font-extrabold text-sm text-white tracking-wide">ACCOUNTING</span>
+            <span className="rounded bg-[#0F2B48] px-2.5 py-0.5 font-extrabold text-sm text-white tracking-wide">Vignesh</span>
+            <span className="rounded bg-[#52A636] px-2.5 py-0.5 font-extrabold text-sm text-white tracking-wide">Associates</span>
           </div>
-          <h2 className="mt-2 text-xl font-extrabold text-[#0A1E3F]">Auditor ERP Portal</h2>
-          <p className="mt-1 text-xs font-medium text-slate-500">Your Trusted Partner in Tax & Business Solutions</p>
+          <h2 className="mt-2 text-xl font-extrabold text-[#0F2B48]">Auditor ERP Portal</h2>
+          <p className="mt-1 text-xs font-medium text-slate-500">Sign in to manage GST, Audit, Ledger & Client Tasks</p>
         </div>
 
         {error && (
@@ -50,7 +50,7 @@ const Login = () => {
         <form onSubmit={handleSubmit} className="mt-6 space-y-4">
           <div>
             <label className="text-xs font-bold text-slate-700">Email Address</label>
-            <div className="mt-1.5 flex items-center rounded-xl border border-slate-200 bg-white/80 p-3 shadow-xs transition focus-within:border-[#C59B27] focus-within:bg-white focus-within:ring-2 focus-within:ring-[#C59B27]/20">
+            <div className="mt-1.5 flex items-center rounded-xl border border-slate-200 bg-white/80 p-3 shadow-xs transition focus-within:border-[#52A636] focus-within:bg-white focus-within:ring-2 focus-within:ring-[#52A636]/20">
               <Mail className="mr-2 h-4 w-4 text-slate-400 shrink-0" />
               <input
                 type="email"
@@ -58,7 +58,7 @@ const Login = () => {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="w-full bg-transparent text-xs text-slate-800 outline-none font-medium"
-                placeholder="enter your email address..."
+                placeholder="superadmin@vigneshassociates.com"
               />
             </div>
           </div>
@@ -66,11 +66,11 @@ const Login = () => {
           <div>
             <div className="flex items-center justify-between mb-1.5">
               <label className="text-xs font-bold text-slate-700">Password</label>
-              <Link to="/forgot-password" className="text-xs font-semibold text-[#C59B27] hover:underline">
+              <Link to="/forgot-password" className="text-xs font-semibold text-[#52A636] hover:underline">
                 Forgot password?
               </Link>
             </div>
-            <div className="flex items-center rounded-xl border border-slate-200 bg-white/80 p-3 shadow-xs transition focus-within:border-[#C59B27] focus-within:bg-white focus-within:ring-2 focus-within:ring-[#C59B27]/20">
+            <div className="flex items-center rounded-xl border border-slate-200 bg-white/80 p-3 shadow-xs transition focus-within:border-[#52A636] focus-within:bg-white focus-within:ring-2 focus-within:ring-[#52A636]/20">
               <Lock className="mr-2 h-4 w-4 text-slate-400 shrink-0" />
               <input
                 type={showPassword ? 'text' : 'password'}
@@ -98,16 +98,16 @@ const Login = () => {
           <button
             type="submit"
             disabled={loading}
-            className="flex w-full items-center justify-center space-x-2 rounded-xl bg-gradient-to-r from-[#0A1E3F] to-[#0E2A59] py-3 text-xs font-bold text-white shadow-lg shadow-[#0A1E3F]/25 border border-[#C59B27]/30 transition hover:from-[#07152B] hover:to-[#0A1E3F] hover:shadow-xl active:scale-[0.99] disabled:opacity-50"
+            className="flex w-full items-center justify-center space-x-2 rounded-xl bg-[#52A636] py-3 text-xs font-bold text-white shadow-lg shadow-[#52A636]/25 transition hover:bg-[#438A2B] hover:shadow-xl active:scale-[0.99] disabled:opacity-50"
           >
             <span>{loading ? 'Authenticating...' : 'Sign In to ERP Portal'}</span>
-            <ArrowRight className="h-4 w-4 text-[#DFB135]" />
+            <ArrowRight className="h-4 w-4 text-white" />
           </button>
         </form>
 
         <p className="mt-6 text-center text-xs font-medium text-slate-500">
           Need an ERP account?{' '}
-          <Link to="/register" className="font-bold text-[#0A1E3F] hover:text-[#C59B27] hover:underline">
+          <Link to="/register" className="font-bold text-[#0F2B48] hover:text-[#52A636] hover:underline">
             Register Here
           </Link>
         </p>
