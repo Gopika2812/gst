@@ -43,7 +43,9 @@ exports.approveUser = async (req, res) => {
     if (role) user.role = role;
     if (department) user.department = department;
     if (designation !== undefined) user.designation = designation;
-    if (reportsTo !== undefined) user.reportsTo = reportsTo;
+    if (reportsTo !== undefined) {
+      user.reportsTo = reportsTo && typeof reportsTo === 'string' && reportsTo.trim() ? reportsTo : (typeof reportsTo === 'object' && reportsTo ? reportsTo : null);
+    }
     user.approvedBy = req.user._id;
     user.approvedAt = new Date();
     await user.save();
@@ -107,7 +109,9 @@ exports.updateUserRole = async (req, res) => {
     user.role = role || user.role;
     user.department = department || user.department;
     if (designation !== undefined) user.designation = designation;
-    if (reportsTo !== undefined) user.reportsTo = reportsTo;
+    if (reportsTo !== undefined) {
+      user.reportsTo = reportsTo && typeof reportsTo === 'string' && reportsTo.trim() ? reportsTo : (typeof reportsTo === 'object' && reportsTo ? reportsTo : null);
+    }
     await user.save();
 
     await logAudit(req.user, 'Update User Role', 'User Management', `Updated role of ${user.email} to ${user.role}`, req);
@@ -127,6 +131,8 @@ exports.createUser = async (req, res) => {
       return res.status(400).json({ message: 'User with this email already exists' });
     }
 
+    const sanitizedReportsTo = reportsTo && typeof reportsTo === 'string' && reportsTo.trim() ? reportsTo : (typeof reportsTo === 'object' && reportsTo ? reportsTo : null);
+
     const user = await User.create({
       name,
       email,
@@ -135,7 +141,7 @@ exports.createUser = async (req, res) => {
       role: role || 'GST Executive',
       department: department || 'GST',
       designation: designation || '',
-      reportsTo: reportsTo || null,
+      reportsTo: sanitizedReportsTo,
       status: status || 'Approved'
     });
 
@@ -163,7 +169,9 @@ exports.updateUser = async (req, res) => {
     if (status) user.status = status;
     if (department) user.department = department;
     if (designation !== undefined) user.designation = designation;
-    if (reportsTo !== undefined) user.reportsTo = reportsTo;
+    if (reportsTo !== undefined) {
+      user.reportsTo = reportsTo && typeof reportsTo === 'string' && reportsTo.trim() ? reportsTo : (typeof reportsTo === 'object' && reportsTo ? reportsTo : null);
+    }
     if (password && password.trim().length > 0) {
       user.password = password;
     }

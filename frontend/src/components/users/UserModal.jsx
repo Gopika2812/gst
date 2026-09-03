@@ -57,10 +57,18 @@ const UserModal = ({ isOpen, onClose, user, onSave, allUsers = [] }) => {
     setError('');
 
     try {
+      const payload = {
+        ...formData,
+        reportsTo: formData.reportsTo && typeof formData.reportsTo === 'string' && formData.reportsTo.trim() ? formData.reportsTo : null
+      };
+      if (!payload.password || !payload.password.trim()) {
+        delete payload.password;
+      }
+
       if (isEdit) {
-        await api.put(`/users/${user._id}`, formData);
+        await api.put(`/users/${user._id}`, payload);
       } else {
-        await api.post('/users', formData);
+        await api.post('/users', payload);
       }
       onSave();
       onClose();
