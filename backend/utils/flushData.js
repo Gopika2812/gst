@@ -16,7 +16,7 @@ const ServiceMaster = require('../models/ServiceMaster');
 
 const flushDB = async () => {
   try {
-    const mongoUri = process.env.MONGO_URI || 'mongodb+srv://gopikap2812_db_user:DWLr4pJB4wBwdvUo@gstdb.jggkrfo.mongodb.net/auditor_erp';
+    const mongoUri = process.env.MONGO_URI || 'mongodb+srv://gopikap2812_db_user:jHF533ziNSkvVALA@vigneshassociates.syznwar.mongodb.net/auditor_erp?retryWrites=true&w=majority';
     await mongoose.connect(mongoUri);
     console.log('[Flush] Connected to MongoDB');
 
