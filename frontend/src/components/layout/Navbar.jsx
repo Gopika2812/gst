@@ -94,13 +94,13 @@ const Navbar = ({ onSearchChange, globalSearch, onToggleMobileMenu, isSidebarCol
             onClick={() => setShowProfileMenu(!showProfileMenu)}
             className="flex items-center space-x-3 rounded-xl border border-slate-200 bg-slate-50/80 p-1.5 pr-3 transition hover:bg-slate-100"
           >
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#0A1E3F] border border-[#C59B27]/40 font-bold text-xs text-[#DFB135] shadow-sm">
-              {user?.name ? user.name.split(' ').map((n) => n[0]).join('').substring(0, 2) : 'RA'}
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#0F2B48] font-bold text-xs text-white shadow-sm">
+              {user?.name ? user.name.split(' ').map((n) => n[0]).join('').substring(0, 2) : 'VA'}
             </div>
             <div className="hidden text-left sm:block">
-              <p className="text-xs font-semibold text-slate-800 leading-tight">{user?.name || 'Logunathan'}</p>
+              <p className="text-xs font-semibold text-slate-800 leading-tight">{user?.name || 'Vigneshwaran CA'}</p>
               <div className="flex items-center space-x-1">
-                <ShieldCheck className="h-3 w-3 text-[#C59B27]" />
+                <ShieldCheck className="h-3 w-3 text-[#52A636]" />
                 <span className="text-[10px] font-medium text-slate-500">{user?.role || 'Super Admin'}</span>
               </div>
             </div>
@@ -111,13 +111,13 @@ const Navbar = ({ onSearchChange, globalSearch, onToggleMobileMenu, isSidebarCol
           {showProfileMenu && (
             <div className="absolute right-0 mt-2 w-56 rounded-2xl border border-slate-200 bg-white p-2 shadow-xl ring-1 ring-black/5 z-50">
               <div className="border-b border-slate-100 px-3 py-2.5">
-                <p className="text-xs font-semibold text-slate-800">{user?.name || 'Logunathan'}</p>
-                <p className="text-[11px] text-slate-500 truncate">{user?.email || 'royallogu2020@gmail.com'}</p>
+                <p className="text-xs font-semibold text-slate-800">{user?.name || 'Vigneshwaran CA'}</p>
+                <p className="text-[11px] text-slate-500 truncate">{user?.email || 'superadmin@vigneshassociates.com'}</p>
               </div>
               <div className="py-1">
                 <div className="px-3 py-1.5 text-xs text-slate-600 flex justify-between items-center">
                   <span>Department</span>
-                  <span className="font-semibold text-[#0A1E3F]">{user?.department || 'Management'}</span>
+                  <span className="font-semibold text-[#0F2B48]">{user?.department || 'Management'}</span>
                 </div>
               </div>
               <div className="border-t border-slate-100 pt-1">

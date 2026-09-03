@@ -109,7 +109,7 @@ const Sidebar = ({ isOpen, onClose, isCollapsed, onToggleCollapse }) => {
               return (
                 <React.Fragment key={idx}>
                   <div
-                    className={`pt-4 pb-1 px-3 text-[10px] font-bold tracking-wider text-[#C59B27]/80 uppercase ${
+                    className={`pt-4 pb-1 px-3 text-[10px] font-bold tracking-wider text-[#52A636] uppercase ${
                       isCollapsed ? 'lg:hidden' : 'block'
                     }`}
                   >
@@ -143,7 +143,7 @@ const Sidebar = ({ isOpen, onClose, isCollapsed, onToggleCollapse }) => {
                     isCollapsed ? 'px-3 lg:justify-center' : 'px-3.5 space-x-3'
                   } ${
                     isActive
-                      ? 'bg-gradient-to-r from-[#C59B27] to-[#DFB135] text-[#07152B] font-bold shadow-md shadow-[#C59B27]/30'
+                      ? 'bg-[#52A636] text-white font-bold shadow-md shadow-[#52A636]/30'
                       : 'text-slate-300 hover:bg-white/10 hover:text-white'
                   }`
                 }
@@ -164,10 +164,10 @@ const Sidebar = ({ isOpen, onClose, isCollapsed, onToggleCollapse }) => {
             title="Live API Server v1.0"
           >
             <div className="flex items-center space-x-2">
-              <span className="h-2 w-2 rounded-full bg-[#C59B27] animate-pulse shrink-0"></span>
+              <span className="h-2 w-2 rounded-full bg-[#52A636] animate-pulse shrink-0"></span>
               <span className={`font-medium text-slate-300 ${isCollapsed ? 'lg:hidden' : 'block'}`}>Live API Server</span>
             </div>
-            <span className={`rounded bg-slate-800 px-1.5 py-0.5 text-[10px] font-semibold text-[#DFB135] ${isCollapsed ? 'lg:hidden' : 'block'}`}>
+            <span className={`rounded bg-slate-800 px-1.5 py-0.5 text-[10px] font-semibold text-[#52A636] ${isCollapsed ? 'lg:hidden' : 'block'}`}>
               v1.0
             </span>
           </div>
