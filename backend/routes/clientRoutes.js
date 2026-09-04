@@ -6,7 +6,8 @@ const {
   getClients,
   getClientById,
   updateClient,
-  toggleClientStatus
+  toggleClientStatus,
+  deleteClient
 } = require('../controllers/clientController');
 const { protect } = require('../middleware/authMiddleware');
 const { checkPermission } = require('../middleware/rbacMiddleware');
@@ -25,5 +26,6 @@ router.get('/', protect, checkPermission('Clients', 'view'), getClients);
 router.get('/:id', protect, checkPermission('Clients', 'view'), getClientById);
 router.put('/:id', protect, checkPermission('Clients', 'edit'), upload.fields(clientFields), updateClient);
 router.put('/:id/toggle-status', protect, checkPermission('Clients', 'edit'), toggleClientStatus);
+router.delete('/:id', protect, checkPermission('Clients', 'delete'), deleteClient);
 
 module.exports = router;

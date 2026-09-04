@@ -1,6 +1,8 @@
 const Client = require('../models/Client');
 const Ledger = require('../models/Ledger');
 const Certification = require('../models/Certification');
+const Task = require('../models/Task');
+const Invoice = require('../models/Invoice');
 const { logAudit } = require('../middleware/auditLogger');
 const { getFileUrl } = require('../middleware/uploadMiddleware');
 
@@ -344,3 +346,39 @@ exports.toggleClientStatus = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+// Delete Client & Clean Up Associated Records
+exports.deleteClient = async (req, res) => {
+  try {
+    const client = await Client.findById(req.params.id);
+    if (!client) {
+      return res.status(404).json({ message: 'Client not found' });
+    }
+
+    const clientId = client._id;
+    const clientName = client.clientName;
+    const clientCode = client.clientCode;
+
+    // Delete associated Certifications, Ledgers, Tasks, and Invoices
+    await Certification.deleteMany({ client: clientId });
+    await Ledger.deleteMany({ client: clientId });
+    await Task.deleteMany({ client: clientId });
+    await Invoice.deleteMany({ client: clientId });
+
+    // Delete Client
+    await client.deleteOne();
+
+    await logAudit(
+      req.user,
+      'Client Deleted',
+      'Clients',
+      `Permanently deleted client: ${clientName} (${clientCode}) and all associated records`,
+      req
+    );
+
+    res.json({ message: `Client ${clientName} (${clientCode}) deleted successfully` });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+

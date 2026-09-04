@@ -4,16 +4,18 @@ import Badge from '../components/common/Badge';
 import ClientModal from '../components/clients/ClientModal';
 import { SortableHeader, sortTableData } from '../components/common/SortableHeader';
 import api from '../services/api';
-import { Plus, Search, Filter, ShieldAlert, FileText, Phone, Mail, Edit3, Power } from 'lucide-react';
+import { Plus, Search, Filter, ShieldAlert, FileText, Phone, Mail, Edit3, Power, Trash2, Loader2 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 const ClientsPage = () => {
-  const { user } = useAuth();
+  const { user, hasPermission } = useAuth();
   const isSuperAdmin = user?.role === 'Super Admin';
+  const canDeleteClient = isSuperAdmin || (hasPermission && hasPermission('Clients', 'delete'));
 
   const [clients, setClients] = useState([]);
   const [employees, setEmployees] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [deletingId, setDeletingId] = useState(null);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [sortConfig, setSortConfig] = useState({ key: 'clientName', direction: 'asc' });
@@ -46,6 +48,21 @@ const ClientsPage = () => {
       fetchClients();
     } catch (err) {
       alert('Failed to update client status');
+    }
+  };
+
+  const handleDeleteClient = async (clientId, clientName, clientCode) => {
+    const confirmMsg = `Are you sure you want to permanently delete client "${clientName}" (${clientCode || 'N/A'})?\n\nThis will also delete all associated certifications, ledgers, and task records for this client. This action cannot be undone.`;
+    if (!window.confirm(confirmMsg)) return;
+
+    setDeletingId(clientId);
+    try {
+      await api.delete(`/clients/${clientId}`);
+      fetchClients();
+    } catch (err) {
+      alert(err.response?.data?.message || 'Failed to delete client');
+    } finally {
+      setDeletingId(null);
     }
   };
 
@@ -192,6 +209,20 @@ const ClientsPage = () => {
                         >
                           <Power className="h-4 w-4" />
                         </button>
+                        {canDeleteClient && (
+                          <button
+                            onClick={() => handleDeleteClient(c._id, c.clientName, c.clientCode)}
+                            disabled={deletingId === c._id}
+                            title="Delete Client Record Permanently"
+                            className="rounded-lg p-1.5 text-xs font-semibold text-rose-600 hover:bg-rose-50 transition cursor-pointer disabled:opacity-50"
+                          >
+                            {deletingId === c._id ? (
+                              <Loader2 className="h-4 w-4 animate-spin text-rose-600" />
+                            ) : (
+                              <Trash2 className="h-4 w-4" />
+                            )}
+                          </button>
+                        )}
                       </div>
                     </td>
                   </tr>

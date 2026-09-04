@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { X, Building, CreditCard, ShieldCheck, Search, CheckCircle2, AlertCircle, PhoneCall, Layers, CheckSquare, Square } from 'lucide-react';
+import { X, Building, CreditCard, ShieldCheck, Search, CheckCircle2, AlertCircle, PhoneCall, Layers, CheckSquare, Square, Trash2 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import api from '../../services/api';
 
 const ClientModal = ({ isOpen, onClose, onRefresh, employees = [], client = null }) => {
-  const { user } = useAuth();
+  const { user, hasPermission } = useAuth();
   const isSuperAdmin = user?.role === 'Super Admin';
+  const canDeleteClient = isSuperAdmin || (hasPermission && hasPermission('Clients', 'delete'));
 
   const [registrationCategory, setRegistrationCategory] = useState('New Client');
   const [existingClientId, setExistingClientId] = useState(null);
@@ -694,21 +695,51 @@ const ClientModal = ({ isOpen, onClose, onRefresh, employees = [], client = null
           </div>
 
           {/* Footer Action Buttons */}
-          <div className="flex items-center justify-end space-x-3 pt-3 border-t border-slate-100">
-            <button
-              type="button"
-              onClick={onClose}
-              className="rounded-xl border border-slate-200 px-4 py-2 text-xs font-bold text-slate-600 hover:bg-slate-50 transition"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={loading}
-              className="rounded-xl bg-[#52A636] px-5 py-2 text-xs font-bold text-white shadow-md hover:bg-[#438A2B] transition"
-            >
-              {loading ? 'Saving...' : existingClientId ? 'Update Client' : 'Register Client'}
-            </button>
+          <div className="flex items-center justify-between pt-3 border-t border-slate-100">
+            <div>
+              {existingClientId && canDeleteClient && (
+                <button
+                  type="button"
+                  onClick={async () => {
+                    const confirmMsg = `Are you sure you want to permanently delete "${formData.clientName}"?\n\nThis will also delete all associated certifications, ledgers, and tasks. This action cannot be undone.`;
+                    if (!window.confirm(confirmMsg)) return;
+
+                    setLoading(true);
+                    try {
+                      await api.delete(`/clients/${existingClientId}`);
+                      onRefresh && onRefresh();
+                      onClose();
+                    } catch (err) {
+                      setError(err.response?.data?.message || 'Failed to delete client');
+                    } finally {
+                      setLoading(false);
+                    }
+                  }}
+                  disabled={loading}
+                  className="flex items-center space-x-1.5 rounded-xl border border-rose-200 bg-rose-50 px-3.5 py-2 text-xs font-bold text-rose-600 hover:bg-rose-100 transition cursor-pointer disabled:opacity-50"
+                >
+                  <Trash2 className="h-4 w-4" />
+                  <span>Delete Client</span>
+                </button>
+              )}
+            </div>
+
+            <div className="flex items-center space-x-3">
+              <button
+                type="button"
+                onClick={onClose}
+                className="rounded-xl border border-slate-200 px-4 py-2 text-xs font-bold text-slate-600 hover:bg-slate-50 transition cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={loading}
+                className="rounded-xl bg-[#52A636] px-5 py-2 text-xs font-bold text-white shadow-md hover:bg-[#438A2B] transition cursor-pointer disabled:opacity-50"
+              >
+                {loading ? 'Saving...' : existingClientId ? 'Update Client' : 'Register Client'}
+              </button>
+            </div>
           </div>
         </form>
       </div>
