@@ -10,7 +10,8 @@ const {
   toggleUserStatus,
   updateUserRole,
   getPermissions,
-  updatePermissions
+  updatePermissions,
+  resetUserPermissions
 } = require('../controllers/userController');
 const { protect } = require('../middleware/authMiddleware');
 const { checkPermission, requireSuperAdmin } = require('../middleware/rbacMiddleware');
@@ -27,6 +28,6 @@ router.put('/:id/role', protect, checkPermission('User Management', 'edit'), upd
 
 router.get('/permissions', protect, getPermissions);
 router.put('/permissions', protect, requireSuperAdmin, updatePermissions);
+router.delete('/permissions/user/:userId', protect, requireSuperAdmin, resetUserPermissions);
 
 module.exports = router;
-

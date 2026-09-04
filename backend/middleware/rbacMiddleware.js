@@ -12,19 +12,39 @@ const checkPermission = (moduleName, action = 'view') => {
         return next();
       }
 
-      const perm = await Permission.findOne({ role: req.user.role });
+      // 1. Check for User-Specific permission override first
+      let perm = await Permission.findOne({ targetType: 'user', user: req.user._id });
+
+      // 2. If no user-specific override, fallback to Role-level permission
       if (!perm) {
-        // Default permission fallback
-        return next();
+        perm = await Permission.findOne({ $or: [{ targetType: 'role', role: req.user.role }, { role: req.user.role }] });
       }
 
-      const modulePerm = perm.modules ? perm.modules.get(moduleName) : null;
+      if (!perm) {
+        // Default permission fallback: allow view for non-sensitive pages
+        if (action === 'view' && !['User Management', 'Settings', 'Audit Logs'].includes(moduleName)) {
+          return next();
+        }
+        return res.status(403).json({
+          message: `Permission denied for action '${action}' on module '${moduleName}'`
+        });
+      }
+
+      let modulePerm = null;
+      if (perm.modules) {
+        if (typeof perm.modules.get === 'function') {
+          modulePerm = perm.modules.get(moduleName);
+        } else {
+          modulePerm = perm.modules[moduleName];
+        }
+      }
+
       if (modulePerm && modulePerm[action] === true) {
         return next();
       }
 
-      // If no explicit permission entry, allow view for non-sensitive pages
-      if (action === 'view' && !['User Management', 'Settings'].includes(moduleName)) {
+      // If no explicit module configuration exists, allow view for non-sensitive pages
+      if (action === 'view' && !['User Management', 'Settings', 'Audit Logs'].includes(moduleName) && (!modulePerm || modulePerm[action] !== false)) {
         return next();
       }
 
@@ -32,7 +52,7 @@ const checkPermission = (moduleName, action = 'view') => {
         message: `Permission denied for action '${action}' on module '${moduleName}'`
       });
     } catch (error) {
-      console.error(error);
+      console.error('Permission check error:', error);
       return res.status(500).json({ message: 'Permission check error' });
     }
   };

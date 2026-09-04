@@ -2,18 +2,18 @@ const mongoose = require('mongoose');
 
 const permissionSchema = new mongoose.Schema(
   {
+    targetType: {
+      type: String,
+      enum: ['role', 'user'],
+      default: 'role'
+    },
     role: {
       type: String,
-      required: true,
-      unique: true,
-      enum: [
-        'Super Admin',
-        'Admin',
-        'Registration Team',
-        'GST Team',
-        'Book Keeping Team',
-        'IT Filing Team'
-      ]
+      trim: true
+    },
+    user: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User'
     },
     modules: {
       type: Map,
@@ -29,5 +29,9 @@ const permissionSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
+
+// Compound index to ensure uniqueness per role or per user
+permissionSchema.index({ targetType: 1, role: 1 }, { unique: true, partialFilterExpression: { role: { $type: 'string' } } });
+permissionSchema.index({ targetType: 1, user: 1 }, { unique: true, partialFilterExpression: { user: { $exists: true } } });
 
 module.exports = mongoose.model('Permission', permissionSchema);

@@ -209,7 +209,9 @@ exports.deleteUser = async (req, res) => {
 // Get Permission Matrix
 exports.getPermissions = async (req, res) => {
   try {
-    const permissions = await Permission.find();
+    const permissions = await Permission.find()
+      .populate('user', 'name email role department designation')
+      .lean();
     res.json(permissions);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -219,20 +221,54 @@ exports.getPermissions = async (req, res) => {
 // Update Permission Matrix (Super Admin only)
 exports.updatePermissions = async (req, res) => {
   try {
-    const { role, modules } = req.body;
-    let perm = await Permission.findOne({ role });
-    if (!perm) {
-      perm = new Permission({ role, modules });
+    const { targetType = 'role', role, userId, modules } = req.body;
+    let perm;
+
+    if (targetType === 'user' && userId) {
+      perm = await Permission.findOne({ targetType: 'user', user: userId });
+      if (!perm) {
+        perm = new Permission({ targetType: 'user', user: userId, modules });
+      } else {
+        perm.modules = modules;
+      }
+      await perm.save();
+
+      const targetUser = await User.findById(userId);
+      await logAudit(req.user, 'Update User Permissions', 'Settings', `Updated user-specific permissions for: ${targetUser ? targetUser.name : userId}`, req);
+      return res.json({ message: `Permissions updated successfully for user ${targetUser?.name || userId}`, perm });
     } else {
-      perm.modules = modules;
+      // Role-based
+      perm = await Permission.findOne({ $or: [{ targetType: 'role', role }, { role }] });
+      if (!perm) {
+        perm = new Permission({ targetType: 'role', role, modules });
+      } else {
+        perm.targetType = 'role';
+        perm.role = role;
+        perm.modules = modules;
+      }
+      await perm.save();
+
+      await logAudit(req.user, 'Update Role Permissions', 'Settings', `Updated role permissions for: ${role}`, req);
+      return res.json({ message: `Permissions updated successfully for role ${role}`, perm });
     }
-    await perm.save();
-
-    await logAudit(req.user, 'Update Permissions', 'Settings', `Updated permission matrix for role: ${role}`, req);
-
-    res.json({ message: `Permissions updated for role ${role}`, perm });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
+
+// Reset User Permissions back to Role Defaults (Super Admin only)
+exports.resetUserPermissions = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    await Permission.findOneAndDelete({ targetType: 'user', user: userId });
+
+    const targetUser = await User.findById(userId);
+    await logAudit(req.user, 'Reset User Permissions', 'Settings', `Reset permissions to role defaults for: ${targetUser ? targetUser.name : userId}`, req);
+
+    res.json({ message: `Permissions for ${targetUser?.name || 'User'} have been reset to role defaults` });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 

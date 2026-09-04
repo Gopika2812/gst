@@ -23,6 +23,7 @@ const UserManagementPage = () => {
   const [statusFilter, setStatusFilter] = useState('');
   const [sortConfig, setSortConfig] = useState({ key: 'name', direction: 'asc' });
   const [isPermModalOpen, setIsPermModalOpen] = useState(false);
+  const [selectedPermUserId, setSelectedPermUserId] = useState(null);
   const [isUserModalOpen, setIsUserModalOpen] = useState(false);
   const [isOrgChartOpen, setIsOrgChartOpen] = useState(false);
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
@@ -269,10 +270,23 @@ const UserManagementPage = () => {
                         <button
                           onClick={() => handleEditUser(u)}
                           title="Edit User Role, Department & Details"
-                          className="rounded-lg p-1.5 font-semibold text-xs text-blue-600 hover:bg-blue-50 transition"
+                          className="rounded-lg p-1.5 font-semibold text-xs text-blue-600 hover:bg-blue-50 transition cursor-pointer"
                         >
                           <Pencil className="h-4 w-4" />
                         </button>
+
+                        {isSuperAdmin && u.role !== 'Super Admin' && u.status === 'Approved' && (
+                          <button
+                            onClick={() => {
+                              setSelectedPermUserId(u._id);
+                              setIsPermModalOpen(true);
+                            }}
+                            title={`Configure Page Permissions for ${u.name}`}
+                            className="rounded-lg p-1.5 font-semibold text-xs text-emerald-600 hover:bg-emerald-50 transition cursor-pointer"
+                          >
+                            <ShieldCheck className="h-4 w-4" />
+                          </button>
+                        )}
 
                         {u.status === 'Pending Approval' ? (
                           <>
@@ -280,7 +294,7 @@ const UserManagementPage = () => {
                               onClick={() => handleOpenApproveModal(u)}
                               disabled={actionLoadingId === u._id}
                               title="Approve & Assign Department/Role"
-                              className="flex items-center space-x-1 rounded-lg bg-[#52A636] px-2.5 py-1 text-white font-semibold text-[10px] hover:bg-[#438A2B] transition shadow-xs disabled:opacity-50"
+                              className="flex items-center space-x-1 rounded-lg bg-[#52A636] px-2.5 py-1 text-white font-semibold text-[10px] hover:bg-[#438A2B] transition shadow-xs disabled:opacity-50 cursor-pointer"
                             >
                               {actionLoadingId === u._id ? (
                                 <Loader2 className="h-3 w-3 animate-spin" />
@@ -293,7 +307,7 @@ const UserManagementPage = () => {
                               onClick={() => handleReject(u._id)}
                               disabled={actionLoadingId === u._id}
                               title="Reject User Registration"
-                              className="flex items-center space-x-1 rounded-lg bg-rose-600 px-2 py-1 text-white font-semibold text-[10px] hover:bg-rose-700 transition disabled:opacity-50"
+                              className="flex items-center space-x-1 rounded-lg bg-rose-600 px-2 py-1 text-white font-semibold text-[10px] hover:bg-rose-700 transition disabled:opacity-50 cursor-pointer"
                             >
                               <XCircle className="h-3 w-3" />
                               <span>Reject</span>
@@ -304,7 +318,7 @@ const UserManagementPage = () => {
                             onClick={() => handleToggleStatus(u._id)}
                             disabled={actionLoadingId === u._id}
                             title={u.status === 'Deactivated' ? 'Reactivate Staff' : 'Deactivate Staff (Prevents login)'}
-                            className={`rounded-lg p-1.5 font-semibold text-xs ${
+                            className={`rounded-lg p-1.5 font-semibold text-xs cursor-pointer ${
                               u.status === 'Deactivated' ? 'text-emerald-600 hover:bg-emerald-50' : 'text-amber-600 hover:bg-amber-50'
                             }`}
                           >
@@ -317,7 +331,7 @@ const UserManagementPage = () => {
                             onClick={() => handleDeleteUser(u._id, u.name)}
                             disabled={actionLoadingId === u._id}
                             title="Delete User Account"
-                            className="rounded-lg p-1.5 font-semibold text-xs text-rose-600 hover:bg-rose-50 transition disabled:opacity-50"
+                            className="rounded-lg p-1.5 font-semibold text-xs text-rose-600 hover:bg-rose-50 transition disabled:opacity-50 cursor-pointer"
                           >
                             <Trash2 className="h-4 w-4" />
                           </button>
@@ -374,7 +388,12 @@ const UserManagementPage = () => {
 
       <PermissionMatrixModal
         isOpen={isPermModalOpen}
-        onClose={() => setIsPermModalOpen(false)}
+        onClose={() => {
+          setIsPermModalOpen(false);
+          setSelectedPermUserId(null);
+        }}
+        users={users}
+        defaultUserId={selectedPermUserId}
       />
     </div>
   );
