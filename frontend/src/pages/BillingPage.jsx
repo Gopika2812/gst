@@ -5,7 +5,8 @@ import InvoiceModal from '../components/billing/InvoiceModal';
 import AssignTaskModal from '../components/billing/AssignTaskModal';
 import { SortableHeader, sortTableData } from '../components/common/SortableHeader';
 import api from '../services/api';
-import { Plus, Download, Mail, Share2, Printer, Search, CheckCircle2, RefreshCw, UserPlus, UserCheck, Edit3 } from 'lucide-react';
+import { Plus, Download, Mail, Share2, Printer, Search, CheckCircle2, RefreshCw, UserPlus, UserCheck, Edit3, Trash2, Loader2 } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 
 const formatInvoiceNumber = (num) => {
   if (!num) return 'INV00126';
@@ -20,10 +21,15 @@ const formatInvoiceNumber = (num) => {
 };
 
 const BillingPage = () => {
+  const { user, hasPermission } = useAuth();
+  const isSuperAdmin = user?.role === 'Super Admin';
+  const canDeleteInvoice = isSuperAdmin || (hasPermission && hasPermission('Billing', 'delete'));
+
   const [invoices, setInvoices] = useState([]);
   const [clients, setClients] = useState([]);
   const [employees, setEmployees] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [deletingId, setDeletingId] = useState(null);
   const [search, setSearch] = useState('');
   const [sortConfig, setSortConfig] = useState({ key: 'invoiceDate', direction: 'desc' });
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -52,6 +58,21 @@ const BillingPage = () => {
   useEffect(() => {
     fetchBillingData();
   }, [search]);
+
+  const handleDeleteInvoice = async (invoiceId, invoiceNumber, clientName) => {
+    const confirmMsg = `Are you sure you want to permanently delete Invoice "${invoiceNumber || ''}" for ${clientName || 'Client'}?\n\nThis will also remove associated ledger transactions and update client balances. This action cannot be undone.`;
+    if (!window.confirm(confirmMsg)) return;
+
+    setDeletingId(invoiceId);
+    try {
+      await api.delete(`/invoices/${invoiceId}`);
+      fetchBillingData();
+    } catch (err) {
+      alert(err.response?.data?.message || 'Failed to delete invoice');
+    } finally {
+      setDeletingId(null);
+    }
+  };
 
   const handleSort = (key) => {
     setSortConfig((prev) => ({
@@ -256,6 +277,20 @@ const BillingPage = () => {
                           >
                             <Share2 className="h-4 w-4" />
                           </button>
+                          {canDeleteInvoice && (
+                            <button
+                              onClick={() => handleDeleteInvoice(inv._id, displayInvNo, inv.client?.clientName)}
+                              disabled={deletingId === inv._id}
+                              title="Delete Invoice Permanently"
+                              className="rounded-lg p-1.5 text-rose-600 bg-rose-50 hover:bg-rose-600 hover:text-white transition shadow-2xs cursor-pointer disabled:opacity-50"
+                            >
+                              {deletingId === inv._id ? (
+                                <Loader2 className="h-4 w-4 animate-spin text-rose-600" />
+                              ) : (
+                                <Trash2 className="h-4 w-4" />
+                              )}
+                            </button>
+                          )}
                         </div>
                       </td>
                     </tr>

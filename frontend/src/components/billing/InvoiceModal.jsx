@@ -1,8 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { X, Plus, Trash2, ArrowRight, ShieldCheck, CheckSquare } from 'lucide-react';
+import { useAuth } from '../../context/AuthContext';
 import api from '../../services/api';
 
 const InvoiceModal = ({ isOpen, onClose, onRefresh, clients = [], employees = [], invoice = null, initialData = null }) => {
+  const { user, hasPermission } = useAuth();
+  const isSuperAdmin = user?.role === 'Super Admin';
+  const canDeleteInvoice = isSuperAdmin || (hasPermission && hasPermission('Billing', 'delete'));
   const [selectedClient, setSelectedClient] = useState('');
   const [serviceType, setServiceType] = useState('GST Filing GSTR-3B & GSTR-1');
   const [billingCycle, setBillingCycle] = useState('Monthly');
@@ -529,21 +533,51 @@ const InvoiceModal = ({ isOpen, onClose, onRefresh, clients = [], employees = []
             )}
           </div>
 
-          <div className="flex items-center justify-end space-x-3 border-t border-slate-100 pt-3">
-            <button
-              type="button"
-              onClick={onClose}
-              className="rounded-xl border border-slate-200 px-4 py-2 text-xs font-medium text-slate-600 hover:bg-slate-50"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={loading}
-              className="rounded-xl bg-[#52A636] px-5 py-2 text-xs font-semibold text-white shadow-md transition hover:bg-[#438A2B] cursor-pointer disabled:opacity-50"
-            >
-              {loading ? (invoice ? 'Saving Changes...' : 'Generating...') : (invoice ? 'Update Tax Invoice' : 'Generate Tax Invoice')}
-            </button>
+          <div className="flex items-center justify-between border-t border-slate-100 pt-3">
+            <div>
+              {invoice && canDeleteInvoice && (
+                <button
+                  type="button"
+                  onClick={async () => {
+                    const confirmMsg = `Are you sure you want to permanently delete this Invoice (${invoice.invoiceNumber || ''})?\n\nThis will also remove associated ledger transactions and update client balances. This action cannot be undone.`;
+                    if (!window.confirm(confirmMsg)) return;
+
+                    setLoading(true);
+                    try {
+                      await api.delete(`/invoices/${invoice._id}`);
+                      onRefresh && onRefresh();
+                      onClose();
+                    } catch (err) {
+                      setError(err.response?.data?.message || 'Failed to delete invoice');
+                    } finally {
+                      setLoading(false);
+                    }
+                  }}
+                  disabled={loading}
+                  className="flex items-center space-x-1.5 rounded-xl border border-rose-200 bg-rose-50 px-3.5 py-2 text-xs font-bold text-rose-600 hover:bg-rose-100 transition cursor-pointer disabled:opacity-50"
+                >
+                  <Trash2 className="h-4 w-4" />
+                  <span>Delete Invoice</span>
+                </button>
+              )}
+            </div>
+
+            <div className="flex items-center space-x-3">
+              <button
+                type="button"
+                onClick={onClose}
+                className="rounded-xl border border-slate-200 px-4 py-2 text-xs font-medium text-slate-600 hover:bg-slate-50 cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={loading}
+                className="rounded-xl bg-[#52A636] px-5 py-2 text-xs font-semibold text-white shadow-md transition hover:bg-[#438A2B] cursor-pointer disabled:opacity-50"
+              >
+                {loading ? (invoice ? 'Saving Changes...' : 'Generating...') : (invoice ? 'Update Tax Invoice' : 'Generate Tax Invoice')}
+              </button>
+            </div>
           </div>
         </form>
       </div>
