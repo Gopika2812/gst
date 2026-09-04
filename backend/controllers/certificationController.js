@@ -84,3 +84,27 @@ exports.updateCertification = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+// Delete Certification Record
+exports.deleteCertification = async (req, res) => {
+  try {
+    const cert = await Certification.findById(req.params.id);
+    if (!cert) {
+      return res.status(404).json({ message: 'Certification record not found' });
+    }
+
+    await cert.deleteOne();
+    await logAudit(
+      req.user,
+      'Certification Deleted',
+      'Certification',
+      `Deleted certificate tracking record ID: ${req.params.id} for client: ${cert.client}`,
+      req
+    );
+
+    res.json({ message: 'Certification tracking record deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+

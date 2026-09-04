@@ -4,12 +4,18 @@ import Badge from '../components/common/Badge';
 import FilePreviewModal from '../components/common/FilePreviewModal';
 import { SortableHeader, sortTableData } from '../components/common/SortableHeader';
 import api from '../services/api';
-import { Award, CheckCircle2, Clock, Upload, ArrowRight, ShieldCheck, Eye, FileText, Image as ImageIcon, X, Trash2, Search } from 'lucide-react';
+import { Award, CheckCircle2, Clock, Upload, ArrowRight, ShieldCheck, Eye, FileText, Image as ImageIcon, X, Trash2, Search, Loader2 } from 'lucide-react';
 import { formatFileSize, isImageFile, isPdfFile } from '../utils/fileUtils';
+import { useAuth } from '../context/AuthContext';
 
 const CertificationPage = () => {
+  const { user, hasPermission } = useAuth();
+  const isSuperAdmin = user?.role === 'Super Admin';
+  const canDeleteCert = isSuperAdmin || (hasPermission && hasPermission('Certification', 'delete'));
+
   const [certifications, setCertifications] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [deletingId, setDeletingId] = useState(null);
   const [search, setSearch] = useState('');
   const [sortConfig, setSortConfig] = useState({ key: 'applicationDate', direction: 'desc' });
   const [selectedCert, setSelectedCert] = useState(null);
@@ -50,6 +56,21 @@ const CertificationPage = () => {
   useEffect(() => {
     fetchCertifications();
   }, []);
+
+  const handleDeleteCert = async (certId, clientName, certType) => {
+    const confirmMsg = `Are you sure you want to permanently delete this certificate tracking record for "${clientName || 'Client'}" (${certType || 'Certificate'})?\n\nThis action cannot be undone.`;
+    if (!window.confirm(confirmMsg)) return;
+
+    setDeletingId(certId);
+    try {
+      await api.delete(`/certifications/${certId}`);
+      fetchCertifications();
+    } catch (err) {
+      alert(err.response?.data?.message || 'Failed to delete certification record');
+    } finally {
+      setDeletingId(null);
+    }
+  };
 
   // Cleanup object URL when unmounting or modal closes
   useEffect(() => {
@@ -299,18 +320,34 @@ const CertificationPage = () => {
                       )}
                     </td>
                     <td className="p-3.5 text-center">
-                      {c.status === 'Certificate Received' || c.movedToBilling ? (
-                        <span className="inline-flex items-center text-[11px] font-extrabold text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200">
-                          <CheckCircle2 className="mr-1 h-3.5 w-3.5 text-[#52A636]" /> Moved to Billing Phase
-                        </span>
-                      ) : (
-                        <button
-                          onClick={() => handleOpenUpdate(c)}
-                          className="rounded-lg bg-[#52A636] px-3 py-1 text-xs font-bold text-white hover:bg-[#438A2B] shadow-xs transition cursor-pointer"
-                        >
-                          Update Status
-                        </button>
-                      )}
+                      <div className="flex items-center justify-center space-x-2">
+                        {c.status === 'Certificate Received' || c.movedToBilling ? (
+                          <span className="inline-flex items-center text-[11px] font-extrabold text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200">
+                            <CheckCircle2 className="mr-1 h-3.5 w-3.5 text-[#52A636]" /> Moved to Billing Phase
+                          </span>
+                        ) : (
+                          <button
+                            onClick={() => handleOpenUpdate(c)}
+                            className="rounded-lg bg-[#52A636] px-3 py-1 text-xs font-bold text-white hover:bg-[#438A2B] shadow-xs transition cursor-pointer"
+                          >
+                            Update Status
+                          </button>
+                        )}
+                        {canDeleteCert && (
+                          <button
+                            onClick={() => handleDeleteCert(c._id, c.client?.clientName, getDisplayCertType(c))}
+                            disabled={deletingId === c._id}
+                            title="Delete Certification Tracking Record"
+                            className="rounded-lg p-1.5 text-xs font-semibold text-rose-600 hover:bg-rose-50 transition cursor-pointer disabled:opacity-50"
+                          >
+                            {deletingId === c._id ? (
+                              <Loader2 className="h-4 w-4 animate-spin text-rose-600" />
+                            ) : (
+                              <Trash2 className="h-4 w-4" />
+                            )}
+                          </button>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 ))
