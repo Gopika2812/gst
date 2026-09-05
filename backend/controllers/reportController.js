@@ -43,63 +43,85 @@ exports.getDashboardSummary = async (req, res) => {
     }
 
     // 2. Build Filters
-    let taskFilter = {};
+    const taskAndConditions = [];
     let clientFilter = {};
     let invoiceFilter = {};
     let certFilter = {};
 
     certFilter.noCertificateRequired = { $ne: true };
 
-    // Role-based baseline
-    if (isSuperAdmin) {
-      // Super Admin sees everything
+    const isFirmAdmin = isAdmin && (userDept === 'Administration' || userDept === 'Management');
+
+    // Role-based baseline for tasks
+    if (isSuperAdmin || isFirmAdmin) {
+      // Super Admin and Firm Admins (Administration/Management) have full firm visibility across departments
     } else if (isAdmin) {
-      taskFilter.department = userDept;
-      certFilter.department = userDept;
+      const deptList = userDept === 'IT Filing' || userDept === 'Income Tax' ? ['IT Filing', 'Income Tax'] : [userDept];
+      taskAndConditions.push({
+        $or: [
+          { department: { $in: deptList } },
+          { assignedEmployee: userId },
+          { assignedBy: userId }
+        ]
+      });
+      certFilter.department = { $in: deptList };
     } else {
-      taskFilter.assignedEmployee = userId;
+      // Staff / Executive
+      const deptList = userDept === 'IT Filing' || userDept === 'Income Tax' ? ['IT Filing', 'Income Tax'] : (userDept ? [userDept] : []);
+      taskAndConditions.push({
+        $or: [
+          { assignedEmployee: userId },
+          ...(deptList.length > 0 ? [{ department: { $in: deptList } }] : [])
+        ]
+      });
       certFilter.assignedEmployee = userId;
       invoiceFilter.assignedEmployee = userId;
     }
 
     // Department Filter
     if (department && department !== 'All') {
-      taskFilter.department = department;
-      certFilter.department = department;
+      const targetDepts = department === 'Income Tax' || department === 'IT Filing' ? ['Income Tax', 'IT Filing'] : [department];
+      taskAndConditions.push({ department: { $in: targetDepts } });
+      certFilter.department = { $in: targetDepts };
     }
 
     // Employee Filter
     if (employeeId && employeeId !== 'All') {
-      taskFilter.assignedEmployee = employeeId;
+      taskAndConditions.push({ assignedEmployee: employeeId });
       invoiceFilter.assignedEmployee = employeeId;
       clientFilter.responsibleEmployee = employeeId;
     }
 
     // Date Filters
-    let taskDateQuery = {};
     let clientDateQuery = {};
     let invoiceDateQuery = {};
 
     if (startRange && endRange) {
       if (dateFilter === 'Today') {
-        taskDateQuery = {
+        taskAndConditions.push({
           $or: [
             { dueDate: { $gte: startRange, $lte: endRange } },
             { createdAt: { $gte: startRange, $lte: endRange } },
             { status: { $in: ['Assigned', 'In Progress'] } }
           ]
-        };
+        });
       } else {
-        taskDateQuery = {
+        taskAndConditions.push({
           $or: [
             { dueDate: { $gte: startRange, $lte: endRange } },
             { createdAt: { $gte: startRange, $lte: endRange } }
           ]
-        };
+        });
       }
       clientDateQuery = { createdAt: { $gte: startRange, $lte: endRange } };
       invoiceDateQuery = { invoiceDate: { $gte: startRange, $lte: endRange } };
     }
+
+    const finalTaskFilter = taskAndConditions.length === 0
+      ? {}
+      : taskAndConditions.length === 1
+        ? taskAndConditions[0]
+        : { $and: taskAndConditions };
 
     // Parallelize all queries safely
     const [
@@ -116,7 +138,7 @@ exports.getDashboardSummary = async (req, res) => {
       Client.countDocuments(startRange && endRange ? { ...clientFilter, ...clientDateQuery } : clientFilter).catch(() => 0),
       Client.countDocuments({ ...clientFilter, status: 'Active' }).catch(() => 0),
       Certification.countDocuments({ ...certFilter, status: 'Waiting For Certificate' }).catch(() => 0),
-      Task.find({ ...taskFilter, ...taskDateQuery })
+      Task.find(finalTaskFilter)
         .populate('client', 'clientName tradeName gstin pan phone email')
         .populate('assignedEmployee', 'name email role department designation')
         .populate('assignedBy', 'name role')

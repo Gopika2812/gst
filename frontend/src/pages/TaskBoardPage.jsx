@@ -91,7 +91,7 @@ const TaskBoardPage = () => {
       (t.remarks && t.remarks.toLowerCase().includes(q)) ||
       (t.department && t.department.toLowerCase().includes(q)) ||
       (t.client?.clientName && t.client.clientName.toLowerCase().includes(q)) ||
-      (t.assignedTo?.name && t.assignedTo.name.toLowerCase().includes(q)) ||
+      (t.assignedEmployee?.name && t.assignedEmployee.name.toLowerCase().includes(q)) ||
       (t.assignedBy?.name && t.assignedBy.name.toLowerCase().includes(q)) ||
       (t.priority && t.priority.toLowerCase().includes(q)) ||
       (t.status && t.status.toLowerCase().includes(q))

@@ -72,7 +72,7 @@ const TaskTable = ({ tasks = [], onStatusChange, onDeleteTask, onDelegateTask, c
               <SortableHeader label="Task Title & Details" sortKey="taskName" currentSort={sortConfig} onSort={handleSort} />
               <SortableHeader label="Type & Department" sortKey="department" currentSort={sortConfig} onSort={handleSort} />
               <SortableHeader label="Client Context" sortKey="client.clientName" currentSort={sortConfig} onSort={handleSort} />
-              <SortableHeader label="Hierarchy Flow (Assigned By ➔ To)" sortKey="assignedTo.name" currentSort={sortConfig} onSort={handleSort} />
+              <SortableHeader label="Hierarchy Flow (Assigned By ➔ To)" sortKey="assignedEmployee.name" currentSort={sortConfig} onSort={handleSort} />
               <SortableHeader label="Priority" sortKey="priority" currentSort={sortConfig} onSort={handleSort} />
               <SortableHeader label="Deadline" sortKey="dueDate" currentSort={sortConfig} onSort={handleSort} />
               <SortableHeader label="Status Update" sortKey="status" currentSort={sortConfig} onSort={handleSort} align="center" />

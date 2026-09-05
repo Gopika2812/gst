@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useAuth } from '../context/AuthContext';
 import GlacierCard from '../components/common/GlacierCard';
 import StatCard from '../components/common/StatCard';
@@ -58,6 +58,7 @@ const Dashboard = () => {
   const [clients, setClients] = useState([]);
   const [employees, setEmployees] = useState([]);
   const [myTasks, setMyTasks] = useState([]);
+  const [taskTab, setTaskTab] = useState('my'); // 'my' | 'all'
 
   const isSuperAdmin = user?.role === 'Super Admin';
   const isAdmin = user?.role && user.role.includes('Admin') && !isSuperAdmin;
@@ -89,7 +90,12 @@ const Dashboard = () => {
         }),
         isSuperAdmin || isAdmin ? api.get('/clients') : Promise.resolve({ data: [] }),
         isSuperAdmin || isAdmin ? api.get('/users') : Promise.resolve({ data: [] }),
-        api.get('/tasks', { params: { myTasksOnly: isExecutive ? true : false } })
+        api.get('/tasks', {
+          params: {
+            department: selectedDept !== 'All' ? selectedDept : undefined,
+            assignedEmployee: selectedEmployee !== 'All' ? selectedEmployee : undefined
+          }
+        })
       ]);
       setSummary(sumRes.data);
       setClients(clientRes.data);
@@ -180,6 +186,14 @@ const Dashboard = () => {
       user
     });
   };
+
+  const userAssignedTasks = useMemo(() => {
+    return myTasks.filter(
+      (t) => String(t.assignedEmployee?._id || t.assignedEmployee) === String(user?._id)
+    );
+  }, [myTasks, user]);
+
+  const displayedTasks = isExecutive || taskTab === 'my' ? userAssignedTasks : myTasks;
 
   return (
     <div className="space-y-6">
@@ -672,24 +686,54 @@ const Dashboard = () => {
         </div>
       </GlacierCard>
 
-      {/* EXECUTIVE / STAFF TAILORED WORKFLOW TABLE */}
-      {isExecutive ? (
-        <div className="space-y-3">
-          <div className="flex items-center justify-between">
-            <h3 className="text-sm font-extrabold text-[#0A1E3F] flex items-center space-x-2">
-              <CheckSquare className="h-4 w-4 text-[#52A636]" />
-              <span>My Daily Assigned Tasks</span>
+      {/* ASSIGNED TASK WORKFLOW & OPERATIONS TABLE (VISIBLE TO ALL USERS: STAFF, ADMINS, SUPER ADMIN) */}
+      <div className="space-y-3">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+          <div className="flex items-center space-x-2">
+            <CheckSquare className="h-4 w-4 text-[#52A636]" />
+            <h3 className="text-sm font-extrabold text-[#0A1E3F]">
+              {isExecutive ? 'My Daily Assigned Tasks' : 'Task Operations & Assigned Work'}
             </h3>
-            <span className="text-xs font-semibold text-slate-500">Showing {myTasks.length} tasks</span>
+            <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-extrabold text-slate-700">
+              {displayedTasks.length} {displayedTasks.length === 1 ? 'task' : 'tasks'}
+            </span>
           </div>
 
-          <TaskTable
-            tasks={myTasks}
-            onStatusChange={handleTaskStatusChange}
-            currentUser={user}
-          />
+          {(isSuperAdmin || isAdmin) && (
+            <div className="flex items-center space-x-1 rounded-xl bg-slate-100 p-1 border border-slate-200/80">
+              <button
+                type="button"
+                onClick={() => setTaskTab('my')}
+                className={`rounded-lg px-3 py-1 text-xs font-bold transition cursor-pointer ${
+                  taskTab === 'my'
+                    ? 'bg-[#0A1E3F] text-white shadow-xs'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                Tasks Assigned To Me ({userAssignedTasks.length})
+              </button>
+              <button
+                type="button"
+                onClick={() => setTaskTab('all')}
+                className={`rounded-lg px-3 py-1 text-xs font-bold transition cursor-pointer ${
+                  taskTab === 'all'
+                    ? 'bg-[#0A1E3F] text-white shadow-xs'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                All Team Tasks ({myTasks.length})
+              </button>
+            </div>
+          )}
         </div>
-      ) : null}
+
+        <TaskTable
+          tasks={displayedTasks}
+          onStatusChange={handleTaskStatusChange}
+          currentUser={user}
+          onRefresh={fetchDashboardData}
+        />
+      </div>
 
       {/* CARD DETAIL POPUP MODAL (Shows client name, service, executive & status upon clicking any card) */}
       <CardDetailModal

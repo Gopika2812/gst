@@ -78,85 +78,94 @@ exports.getTasks = async (req, res) => {
       search
     } = req.query;
 
-    let filter = {};
-
     const isSuperAdmin = req.user.role === 'Super Admin';
     const isAdmin = req.user.role.includes('Admin') && !isSuperAdmin;
+    const isFirmAdmin = isAdmin && (req.user.department === 'Administration' || req.user.department === 'Management');
+
+    const andConditions = [];
 
     // Role & Hierarchy based task visibility rules
-    if (isSuperAdmin) {
+    if (isSuperAdmin || isFirmAdmin) {
       if (myTasksOnly === 'true') {
-        filter.assignedEmployee = req.user._id;
+        andConditions.push({ assignedEmployee: req.user._id });
       } else if (assignedEmployee) {
-        filter.assignedEmployee = assignedEmployee;
+        andConditions.push({ assignedEmployee });
       }
     } else if (isAdmin) {
       if (myTasksOnly === 'true') {
-        filter.assignedEmployee = req.user._id;
+        andConditions.push({ assignedEmployee: req.user._id });
       } else if (assignedEmployee) {
-        filter.assignedEmployee = assignedEmployee;
+        andConditions.push({ assignedEmployee });
       } else {
-        // Admin sees their assigned tasks + created tasks + department tasks
-        filter.$or = [
-          { department: req.user.department },
-          { assignedEmployee: req.user._id },
-          { assignedBy: req.user._id }
-        ];
+        const deptList = req.user.department === 'IT Filing' || req.user.department === 'Income Tax' ? ['IT Filing', 'Income Tax'] : [req.user.department];
+        andConditions.push({
+          $or: [
+            { department: { $in: deptList } },
+            { assignedEmployee: req.user._id },
+            { assignedBy: req.user._id }
+          ]
+        });
       }
     } else {
-      // Junior Executive / Staff sees their assigned tasks or tasks in their department
-      filter.$or = [
-        { assignedEmployee: req.user._id },
-        { department: req.user.department }
-      ];
+      // Junior Executive / Staff
+      if (myTasksOnly === 'true') {
+        andConditions.push({ assignedEmployee: req.user._id });
+      } else if (assignedEmployee) {
+        andConditions.push({ assignedEmployee });
+      } else {
+        const deptList = req.user.department === 'IT Filing' || req.user.department === 'Income Tax' ? ['IT Filing', 'Income Tax'] : (req.user.department ? [req.user.department] : []);
+        andConditions.push({
+          $or: [
+            { assignedEmployee: req.user._id },
+            ...(deptList.length > 0 ? [{ department: { $in: deptList } }] : [])
+          ]
+        });
+      }
     }
 
-    if (department) filter.department = department;
-    if (status) filter.status = status;
-    if (priority) filter.priority = priority;
-    if (client) filter.client = client;
-    if (taskType) filter.taskType = taskType;
+    if (department && department !== 'All') {
+      const targetDepts = department === 'Income Tax' || department === 'IT Filing' ? ['Income Tax', 'IT Filing'] : [department];
+      andConditions.push({ department: { $in: targetDepts } });
+    }
+    if (status) andConditions.push({ status });
+    if (priority) andConditions.push({ priority });
+    if (client) andConditions.push({ client });
+    if (taskType) andConditions.push({ taskType });
 
     // Date Filters
     const now = new Date();
     if (dateFilter === 'today') {
       const start = new Date(now.getFullYear(), now.getMonth(), now.getDate());
       const end = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59);
-      filter.dueDate = { $gte: start, $lte: end };
+      andConditions.push({ dueDate: { $gte: start, $lte: end } });
     } else if (dateFilter === 'thisWeek') {
       const first = now.getDate() - now.getDay();
       const start = new Date(now.setDate(first));
       const end = new Date(now.setDate(first + 6));
-      filter.dueDate = { $gte: start, $lte: end };
+      andConditions.push({ dueDate: { $gte: start, $lte: end } });
     } else if (dateFilter === 'thisMonth') {
       const start = new Date(now.getFullYear(), now.getMonth(), 1);
       const end = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
-      filter.dueDate = { $gte: start, $lte: end };
+      andConditions.push({ dueDate: { $gte: start, $lte: end } });
     } else if (dateFilter === 'overdue') {
-      filter.dueDate = { $lt: now };
-      filter.status = { $nin: ['Completed', 'Cancelled'] };
+      andConditions.push({ dueDate: { $lt: now }, status: { $nin: ['Completed', 'Cancelled'] } });
     } else if (startDate && endDate) {
-      filter.dueDate = { $gte: new Date(startDate), $lte: new Date(endDate) };
+      andConditions.push({ dueDate: { $gte: new Date(startDate), $lte: new Date(endDate) } });
     }
 
     if (search) {
       const searchRegex = { $regex: search, $options: 'i' };
-      if (filter.$or) {
-        filter = {
-          $and: [
-            { $or: filter.$or },
-            { $or: [{ taskName: searchRegex }, { remarks: searchRegex }] }
-          ]
-        };
-      } else {
-        filter.$or = [
+      andConditions.push({
+        $or: [
           { taskName: searchRegex },
           { remarks: searchRegex }
-        ];
-      }
+        ]
+      });
     }
 
-    const tasks = await Task.find(filter)
+    const finalFilter = andConditions.length === 0 ? {} : andConditions.length === 1 ? andConditions[0] : { $and: andConditions };
+
+    const tasks = await Task.find(finalFilter)
       .populate('client', 'clientName tradeName pan gstin phone status')
       .populate('assignedEmployee', 'name email role department designation')
       .populate('assignedBy', 'name email role department designation')
