@@ -6,16 +6,52 @@ const AuthContext = createContext();
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(() => {
     const savedUser = localStorage.getItem('auditor_user');
-    return savedUser ? JSON.parse(savedUser) : null;
+    if (!savedUser) return null;
+    try {
+      const parsed = JSON.parse(savedUser);
+      return {
+        ...parsed,
+        _id: parsed._id || parsed.id,
+        id: parsed.id || parsed._id
+      };
+    } catch {
+      return null;
+    }
   });
   const [token, setToken] = useState(() => localStorage.getItem('auditor_token') || null);
   const [loading, setLoading] = useState(false);
+
+  // Sync latest user profile on load if token exists
+  useEffect(() => {
+    if (token) {
+      api.get('/auth/profile')
+        .then((res) => {
+          if (res.data) {
+            const userData = {
+              ...res.data,
+              _id: res.data._id || res.data.id,
+              id: res.data._id || res.data.id
+            };
+            setUser(userData);
+            localStorage.setItem('auditor_user', JSON.stringify(userData));
+          }
+        })
+        .catch((err) => {
+          console.error('Failed to sync user profile:', err);
+        });
+    }
+  }, [token]);
 
   const login = async (email, password) => {
     setLoading(true);
     try {
       const res = await api.post('/auth/login', { email, password });
-      const { token: jwtToken, user: userData } = res.data;
+      const { token: jwtToken, user: rawUser } = res.data;
+      const userData = {
+        ...rawUser,
+        _id: rawUser._id || rawUser.id,
+        id: rawUser.id || rawUser._id
+      };
       
       localStorage.setItem('auditor_token', jwtToken);
       localStorage.setItem('auditor_user', JSON.stringify(userData));

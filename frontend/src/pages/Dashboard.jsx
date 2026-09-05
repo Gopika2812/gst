@@ -187,11 +187,13 @@ const Dashboard = () => {
     });
   };
 
+  const currentUserId = String(user?._id || user?.id || '');
   const userAssignedTasks = useMemo(() => {
-    return myTasks.filter(
-      (t) => String(t.assignedEmployee?._id || t.assignedEmployee) === String(user?._id)
-    );
-  }, [myTasks, user]);
+    return myTasks.filter((t) => {
+      const empId = String(t.assignedEmployee?._id || t.assignedEmployee?.id || t.assignedEmployee || '');
+      return currentUserId && empId && currentUserId === empId;
+    });
+  }, [myTasks, currentUserId]);
 
   const displayedTasks = isExecutive || taskTab === 'my' ? userAssignedTasks : myTasks;
 
