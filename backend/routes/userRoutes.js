@@ -16,6 +16,11 @@ const {
 const { protect } = require('../middleware/authMiddleware');
 const { checkPermission, requireSuperAdmin } = require('../middleware/rbacMiddleware');
 
+// Specific routes first to avoid :id param collision
+router.get('/permissions', protect, getPermissions);
+router.put('/permissions', protect, requireSuperAdmin, updatePermissions);
+router.delete('/permissions/user/:userId', protect, requireSuperAdmin, resetUserPermissions);
+
 router.get('/', protect, checkPermission('User Management', 'view'), getUsers);
 router.post('/', protect, checkPermission('User Management', 'create'), createUser);
 router.put('/:id', protect, checkPermission('User Management', 'edit'), updateUser);
@@ -25,9 +30,5 @@ router.put('/:id/approve', protect, checkPermission('User Management', 'approve'
 router.put('/:id/reject', protect, checkPermission('User Management', 'approve'), rejectUser);
 router.put('/:id/toggle-status', protect, checkPermission('User Management', 'edit'), toggleUserStatus);
 router.put('/:id/role', protect, checkPermission('User Management', 'edit'), updateUserRole);
-
-router.get('/permissions', protect, getPermissions);
-router.put('/permissions', protect, requireSuperAdmin, updatePermissions);
-router.delete('/permissions/user/:userId', protect, requireSuperAdmin, resetUserPermissions);
 
 module.exports = router;
