@@ -21,6 +21,11 @@ const checkPermission = (moduleName, action = 'view') => {
       }
 
       if (!perm) {
+        // Default permission fallback: Admins have general access to manage modules
+        if (req.user.role === 'Admin' || (req.user.role && req.user.role.includes('Admin'))) {
+          return next();
+        }
+
         // Default permission fallback: allow view for non-sensitive pages
         if (action === 'view' && !['User Management', 'Settings', 'Audit Logs'].includes(moduleName)) {
           return next();

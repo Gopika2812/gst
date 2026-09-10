@@ -27,12 +27,15 @@ const ClientsPage = () => {
     try {
       const [clientRes, userRes] = await Promise.all([
         api.get('/clients', { params: { search, status: statusFilter } }),
-        api.get('/users')
+        api.get('/users').catch((err) => {
+          console.warn('Could not load users in ClientsPage:', err);
+          return { data: [] };
+        })
       ]);
-      setClients(clientRes.data);
-      setEmployees(userRes.data);
+      setClients(clientRes?.data || []);
+      setEmployees(userRes?.data || []);
     } catch (err) {
-      console.error(err);
+      console.error('Failed to load clients:', err);
     } finally {
       setLoading(false);
     }

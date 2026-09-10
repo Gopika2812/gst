@@ -37,12 +37,12 @@ const UserManagementPage = () => {
     try {
       const [userRes, clientRes] = await Promise.all([
         api.get('/users', { params: { search, status: statusFilter } }),
-        api.get('/clients')
+        api.get('/clients').catch(() => ({ data: [] }))
       ]);
-      setUsers(userRes.data);
-      setClients(clientRes.data);
+      setUsers(userRes?.data || []);
+      setClients(clientRes?.data || []);
     } catch (err) {
-      console.error(err);
+      console.error('Failed to load users:', err);
     } finally {
       setLoading(false);
     }

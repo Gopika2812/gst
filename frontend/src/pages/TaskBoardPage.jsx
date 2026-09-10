@@ -35,14 +35,20 @@ const TaskBoardPage = () => {
             myTasksOnly
           }
         }),
-        api.get('/clients'),
-        api.get('/users')
+        api.get('/clients').catch((err) => {
+          console.warn('Could not load clients:', err);
+          return { data: [] };
+        }),
+        api.get('/users').catch((err) => {
+          console.warn('Could not load users:', err);
+          return { data: [] };
+        })
       ]);
-      setTasks(taskRes.data);
-      setClients(clientRes.data);
-      setEmployees(userRes.data);
+      setTasks(taskRes?.data || []);
+      setClients(clientRes?.data || []);
+      setEmployees(userRes?.data || []);
     } catch (err) {
-      console.error(err);
+      console.error('Failed to load tasks:', err);
     } finally {
       setLoading(false);
     }

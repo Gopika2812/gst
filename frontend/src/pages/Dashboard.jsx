@@ -88,21 +88,21 @@ const Dashboard = () => {
             employeeId: selectedEmployee !== 'All' ? selectedEmployee : undefined
           }
         }),
-        isSuperAdmin || isAdmin ? api.get('/clients') : Promise.resolve({ data: [] }),
-        isSuperAdmin || isAdmin ? api.get('/users') : Promise.resolve({ data: [] }),
+        (isSuperAdmin || isAdmin ? api.get('/clients') : Promise.resolve({ data: [] })).catch(() => ({ data: [] })),
+        (isSuperAdmin || isAdmin ? api.get('/users') : Promise.resolve({ data: [] })).catch(() => ({ data: [] })),
         api.get('/tasks', {
           params: {
             department: selectedDept !== 'All' ? selectedDept : undefined,
             assignedEmployee: selectedEmployee !== 'All' ? selectedEmployee : undefined
           }
-        })
+        }).catch(() => ({ data: [] }))
       ]);
-      setSummary(sumRes.data);
-      setClients(clientRes.data);
-      setEmployees(userRes.data);
-      setMyTasks(taskRes.data);
+      setSummary(sumRes?.data || null);
+      setClients(clientRes?.data || []);
+      setEmployees(userRes?.data || []);
+      setMyTasks(taskRes?.data || []);
     } catch (err) {
-      console.error(err);
+      console.error('Dashboard data fetch error:', err);
     } finally {
       setLoading(false);
     }

@@ -42,14 +42,14 @@ const BillingPage = () => {
     try {
       const [invRes, clientRes, userRes] = await Promise.all([
         api.get('/invoices', { params: { search } }),
-        api.get('/clients'),
-        api.get('/users')
+        api.get('/clients').catch(() => ({ data: [] })),
+        api.get('/users').catch(() => ({ data: [] }))
       ]);
-      setInvoices(invRes.data);
-      setClients(clientRes.data);
-      setEmployees(userRes.data);
+      setInvoices(invRes?.data || []);
+      setClients(clientRes?.data || []);
+      setEmployees(userRes?.data || []);
     } catch (err) {
-      console.error(err);
+      console.error('Failed to load invoices:', err);
     } finally {
       setLoading(false);
     }

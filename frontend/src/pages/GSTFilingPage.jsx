@@ -69,15 +69,15 @@ const GSTFilingPage = () => {
     setLoading(true);
     try {
       const [taskRes, filRes, clientRes] = await Promise.all([
-        api.get('/tasks', { params: { department: 'GST' } }),
-        api.get('/filings', { params: { department: 'GST' } }),
-        api.get('/clients')
+        api.get('/tasks', { params: { department: 'GST' } }).catch(() => ({ data: [] })),
+        api.get('/filings', { params: { department: 'GST' } }).catch(() => ({ data: [] })),
+        api.get('/clients').catch(() => ({ data: [] }))
       ]);
-      setTasks(taskRes.data);
-      setFilings(filRes.data);
-      setClients(clientRes.data);
+      setTasks(taskRes?.data || []);
+      setFilings(filRes?.data || []);
+      setClients(clientRes?.data || []);
     } catch (err) {
-      console.error(err);
+      console.error('Failed to load GST workspace:', err);
     } finally {
       setLoading(false);
     }

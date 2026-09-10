@@ -21,7 +21,7 @@ router.get('/permissions', protect, getPermissions);
 router.put('/permissions', protect, requireSuperAdmin, updatePermissions);
 router.delete('/permissions/user/:userId', protect, requireSuperAdmin, resetUserPermissions);
 
-router.get('/', protect, checkPermission('User Management', 'view'), getUsers);
+router.get('/', protect, getUsers);
 router.post('/', protect, checkPermission('User Management', 'create'), createUser);
 router.put('/:id', protect, checkPermission('User Management', 'edit'), updateUser);
 router.delete('/:id', protect, checkPermission('User Management', 'delete'), deleteUser);
