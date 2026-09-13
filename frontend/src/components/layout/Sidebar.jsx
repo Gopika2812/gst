@@ -8,6 +8,7 @@ import {
   Receipt,
   BookOpen,
   KanbanSquare,
+  Contact2,
   FileCheck,
   Calculator,
   FileSpreadsheet,
@@ -28,6 +29,7 @@ const Sidebar = ({ isOpen, onClose, isCollapsed, onToggleCollapse }) => {
 
   const navItems = [
     { name: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
+    { name: 'Enquiries', path: '/enquiries', icon: Contact2 },
     { name: 'Task Board', path: '/tasks', icon: KanbanSquare },
     { name: 'Clients', path: '/clients', icon: Users, requireAdmin: true },
     { name: 'Certification Status', path: '/certification', icon: Award, requireAdmin: true },

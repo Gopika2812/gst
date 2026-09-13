@@ -15,6 +15,7 @@ import ClientsPage from './pages/ClientsPage';
 import CertificationPage from './pages/CertificationPage';
 import BillingPage from './pages/BillingPage';
 import LedgerPage from './pages/LedgerPage';
+import EnquiriesPage from './pages/EnquiriesPage';
 import TaskBoardPage from './pages/TaskBoardPage';
 import GSTFilingPage from './pages/GSTFilingPage';
 import BookKeepingPage from './pages/BookKeepingPage';
@@ -83,6 +84,7 @@ const MainLayout = () => {
         <main className="flex-1 p-3 sm:p-6 overflow-y-auto">
           <Routes>
             <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/enquiries" element={<EnquiriesPage />} />
             <Route path="/clients" element={<ClientsPage />} />
             <Route path="/certification" element={<CertificationPage />} />
             <Route path="/billing" element={<BillingPage />} />
