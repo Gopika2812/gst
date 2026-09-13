@@ -440,25 +440,37 @@ const EnquiriesPage = () => {
                       <td className="py-3.5 px-4 text-right whitespace-nowrap">
                         <div className="flex items-center justify-end space-x-2">
                           
-                          {/* CONVERT TO TASK BUTTON */}
+                          {/* CONVERT TO TASK & LINKED CLIENT BUTTONS */}
                           {!isConverted ? (
                             <button
                               onClick={() => handleOpenConvertModal(enquiry)}
                               className="flex items-center space-x-1 rounded-xl bg-[#52A636] px-3 py-1.5 text-xs font-extrabold text-white shadow-xs hover:bg-[#438A2B] transition cursor-pointer"
-                              title="Convert this enquiry to a new task on the Task Board"
+                              title="Convert this enquiry to a new task on the Task Board and optionally register as client"
                             >
                               <ArrowRightCircle className="h-3.5 w-3.5" />
                               <span>Convert to Task</span>
                             </button>
                           ) : (
-                            <button
-                              onClick={() => navigate('/tasks')}
-                              className="flex items-center space-x-1 rounded-xl bg-emerald-50 border border-emerald-200 px-2.5 py-1 text-[11px] font-bold text-emerald-700 hover:bg-emerald-100 transition cursor-pointer"
-                              title="View linked task on Task Board"
-                            >
-                              <KanbanSquare className="h-3 w-3 text-[#52A636]" />
-                              <span>Task Created ✓</span>
-                            </button>
+                            <div className="flex items-center space-x-1.5">
+                              {enquiry.convertedClient && (
+                                <button
+                                  onClick={() => navigate('/clients')}
+                                  className="flex items-center space-x-1 rounded-xl bg-blue-50 border border-blue-200 px-2 py-1 text-[11px] font-bold text-blue-700 hover:bg-blue-100 transition cursor-pointer"
+                                  title={`View Client: ${enquiry.convertedClient.clientName || 'Client'}`}
+                                >
+                                  <User className="h-3 w-3 text-blue-600" />
+                                  <span>{enquiry.convertedClient.clientCode || 'Client Registered'}</span>
+                                </button>
+                              )}
+                              <button
+                                onClick={() => navigate('/tasks')}
+                                className="flex items-center space-x-1 rounded-xl bg-emerald-50 border border-emerald-200 px-2.5 py-1 text-[11px] font-bold text-emerald-700 hover:bg-emerald-100 transition cursor-pointer"
+                                title="View linked task on Task Board"
+                              >
+                                <KanbanSquare className="h-3 w-3 text-[#52A636]" />
+                                <span>Task Created ✓</span>
+                              </button>
+                            </div>
                           )}
 
                           {/* Edit Button */}
