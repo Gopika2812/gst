@@ -280,14 +280,23 @@ const CardDetailModal = ({ isOpen, onClose, modalData, onRefresh, clients = [], 
                           </span>
                         </td>
                         <td className="p-3">
-                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
-                            item.status === 'Converted' ? 'bg-emerald-100 text-emerald-800' :
-                            item.status === 'In Discussion' || item.status === 'In Progress' ? 'bg-amber-100 text-amber-800' :
-                            item.status === 'Closed' || item.status === 'Completed' ? 'bg-slate-100 text-slate-800' :
-                            'bg-blue-100 text-blue-800'
-                          }`}>
-                            {item.status || 'New'}
-                          </span>
+                          {(() => {
+                            const isCompleted = item.convertedTask?.status === 'Completed' || item.status === 'Closed' || item.status === 'Completed';
+                            const isInProgress = !isCompleted && (item.convertedTask?.status === 'In Progress' || item.status === 'In Discussion' || item.status === 'In Progress');
+                            const isConverted = !isCompleted && !isInProgress && (item.status === 'Converted' || Boolean(item.convertedTask));
+                            const displayStatus = isCompleted ? 'Completed' : isInProgress ? 'In Progress' : isConverted ? 'Converted' : (item.status || 'New');
+
+                            return (
+                              <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
+                                isCompleted ? 'bg-emerald-100 text-emerald-800' :
+                                isInProgress ? 'bg-blue-100 text-blue-800' :
+                                isConverted ? 'bg-purple-100 text-purple-800' :
+                                'bg-slate-100 text-slate-800'
+                              }`}>
+                                {displayStatus}
+                              </span>
+                            );
+                          })()}
                         </td>
                         <td className="p-3">
                           <span className="font-semibold text-slate-700 block">
@@ -299,9 +308,20 @@ const CardDetailModal = ({ isOpen, onClose, modalData, onRefresh, clients = [], 
                         </td>
                         <td className="p-3">
                           {item.convertedTask ? (
-                            <div className="flex items-center space-x-1 text-[11px] font-bold text-emerald-700">
-                              <CheckSquare className="h-3.5 w-3.5" />
-                              <span>Task Created</span>
+                            <div className="space-y-0.5">
+                              <div className={`inline-flex items-center space-x-1 text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                                item.convertedTask.status === 'Completed' ? 'bg-emerald-100 text-emerald-800' :
+                                item.convertedTask.status === 'In Progress' ? 'bg-blue-100 text-blue-800' :
+                                'bg-slate-100 text-slate-700'
+                              }`}>
+                                <CheckSquare className="h-3 w-3" />
+                                <span>Task: {item.convertedTask.status || 'Created'}</span>
+                              </div>
+                              {item.convertedTask.taskName && (
+                                <span className="block text-[10px] text-slate-500 font-medium truncate max-w-[150px]" title={item.convertedTask.taskName}>
+                                  {item.convertedTask.taskName}
+                                </span>
+                              )}
                             </div>
                           ) : (
                             <span className="text-slate-500 text-[11px] font-medium">

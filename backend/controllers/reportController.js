@@ -180,15 +180,35 @@ exports.getDashboardSummary = async (req, res) => {
     });
 
     // Compute Enquiries Counters (Today, In Progress, Converted, Completed)
+    // 1. Completed Enquiries: Enquiry is 'Closed' / 'Completed' OR converted task status is 'Completed'
+    const completedEnquiries = enquiriesList.filter((e) => {
+      if (!e) return false;
+      const taskStatus = e.convertedTask?.status;
+      return e.status === 'Closed' || e.status === 'Completed' || taskStatus === 'Completed';
+    });
+
+    // 2. In Progress Enquiries: Enquiry is 'In Discussion' / 'In Progress' OR converted task status is 'In Progress' (not completed)
+    const inProgressEnquiries = enquiriesList.filter((e) => {
+      if (!e) return false;
+      const isCompleted = e.status === 'Closed' || e.status === 'Completed' || e.convertedTask?.status === 'Completed';
+      if (isCompleted) return false;
+      const taskStatus = e.convertedTask?.status;
+      return e.status === 'In Discussion' || e.status === 'In Progress' || taskStatus === 'In Progress';
+    });
+
+    // 3. Converted Enquiries: Converted into task
+    const convertedEnquiries = enquiriesList.filter((e) => {
+      if (!e) return false;
+      return Boolean(e.convertedTask) || e.status === 'Converted';
+    });
+
+    // 4. Today's Enquiries: Created today or status 'New'
     const todaysEnquiries = enquiriesList.filter((e) => {
       if (!e) return false;
       const created = e.createdAt ? new Date(e.createdAt) : null;
       const isToday = (d) => d && !isNaN(d.getTime()) && d.toDateString() === now.toDateString();
       return isToday(created) || e.status === 'New';
     });
-    const inProgressEnquiries = enquiriesList.filter((e) => e && (e.status === 'In Discussion' || e.status === 'In Progress'));
-    const convertedEnquiries = enquiriesList.filter((e) => e && (e.status === 'Converted' || Boolean(e.convertedTask)));
-    const completedEnquiries = enquiriesList.filter((e) => e && (e.status === 'Closed' || e.status === 'Completed'));
 
     // Billing Counters
     const totalBillingValue = invoicesList.reduce((sum, inv) => sum + (Number(inv.total) || 0), 0);
