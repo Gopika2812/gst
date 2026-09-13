@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import ReactDOM from 'react-dom';
 import {
   X,
   User,
@@ -140,9 +141,9 @@ const EnquiryModal = ({ isOpen, onClose, onSuccess, enquiry = null, employees = 
     }
   };
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 p-3 sm:p-4 backdrop-blur-sm overflow-y-auto">
-      <div className="relative w-full max-w-2xl rounded-3xl bg-white p-5 sm:p-7 shadow-2xl border border-slate-100 max-h-[92vh] overflow-y-auto">
+  return ReactDOM.createPortal(
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-950/70 p-3 sm:p-4 backdrop-blur-sm overflow-y-auto">
+      <div className="relative w-full max-w-2xl rounded-3xl bg-white p-5 sm:p-7 shadow-2xl border border-slate-100 max-h-[92vh] overflow-y-auto my-auto">
         
         {/* Header */}
         <div className="flex items-center justify-between border-b border-slate-100 pb-4">
@@ -408,7 +409,8 @@ const EnquiryModal = ({ isOpen, onClose, onSuccess, enquiry = null, employees = 
           </div>
         </form>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };
 

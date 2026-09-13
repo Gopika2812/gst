@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import ReactDOM from 'react-dom';
 import { X, UserPlus, ArrowRight, ShieldCheck, User } from 'lucide-react';
 import api from '../../services/api';
 
@@ -41,8 +42,8 @@ const DelegateModal = ({ isOpen, onClose, task, employees = [], onDelegated, cur
     }
   };
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-sm overflow-y-auto">
+  return ReactDOM.createPortal(
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-950/70 p-4 backdrop-blur-sm overflow-y-auto">
       <div className="relative w-full max-w-md rounded-3xl bg-white p-6 shadow-2xl border border-slate-100">
         <div className="flex items-center justify-between border-b border-slate-100 pb-4">
           <div className="flex items-center space-x-2">
@@ -138,7 +139,8 @@ const DelegateModal = ({ isOpen, onClose, task, employees = [], onDelegated, cur
           </div>
         </form>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };
 

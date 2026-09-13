@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import GlacierCard from '../components/common/GlacierCard';
 import StatCard from '../components/common/StatCard';
@@ -33,11 +34,13 @@ import {
   ArrowRight,
   TrendingUp,
   RefreshCw,
-  Eye
+  Eye,
+  MessageSquare
 } from 'lucide-react';
 
 const Dashboard = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [summary, setSummary] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -368,6 +371,109 @@ const Dashboard = () => {
           </div>
         </div>
       </GlacierCard>
+
+      {/* ENQUIRIES STATUS ROW (ABOVE FIRM TASK PROCESS OVERVIEW) */}
+      <div className="space-y-2">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-2">
+            <h2 className="text-xs sm:text-sm font-extrabold text-[#0A1E3F] uppercase tracking-wider">
+              Enquiries & Lead Status (Click card to inspect records)
+            </h2>
+            <span className="rounded-full bg-[#0A1E3F] text-white text-[10px] font-bold px-2 py-0.5">
+              {counters.totalEnquiriesCount ?? (details.allEnquiries?.length || 0)} Total
+            </span>
+          </div>
+          <button
+            onClick={() => navigate('/enquiries')}
+            className="inline-flex items-center space-x-1 text-xs font-bold text-[#52A636] hover:text-[#438A2B] transition cursor-pointer"
+          >
+            <span>Manage Enquiries</span>
+            <ArrowRight className="h-3.5 w-3.5" />
+          </button>
+        </div>
+
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <div
+            onClick={() =>
+              handleCardClick(
+                "Today's Enquiries",
+                'Enquiries created today or awaiting initial contact',
+                'enquiries',
+                details.todaysEnquiries
+              )
+            }
+            className="cursor-pointer transition-transform hover:-translate-y-0.5 active:scale-95"
+          >
+            <StatCard
+              title="Today's Enquiries"
+              value={counters.todaysEnquiriesCount || 0}
+              subtitle="New leads & today's enquiries"
+              icon={Calendar}
+              color="navy"
+            />
+          </div>
+
+          <div
+            onClick={() =>
+              handleCardClick(
+                'In Progress Enquiries',
+                'Enquiries under follow-up & active discussion',
+                'enquiries',
+                details.inProgressEnquiries
+              )
+            }
+            className="cursor-pointer transition-transform hover:-translate-y-0.5 active:scale-95"
+          >
+            <StatCard
+              title="In Progress"
+              value={counters.inProgressEnquiriesCount || 0}
+              subtitle="Under follow-up & discussion"
+              icon={Clock}
+              color="blue"
+            />
+          </div>
+
+          <div
+            onClick={() =>
+              handleCardClick(
+                'Converted to Task',
+                'Qualified enquiries converted to client tasks',
+                'enquiries',
+                details.convertedEnquiries
+              )
+            }
+            className="cursor-pointer transition-transform hover:-translate-y-0.5 active:scale-95"
+          >
+            <StatCard
+              title="Convert to Task"
+              value={counters.convertedEnquiriesCount || 0}
+              subtitle="Converted into firm tasks"
+              icon={CheckSquare}
+              color="green"
+            />
+          </div>
+
+          <div
+            onClick={() =>
+              handleCardClick(
+                'Completed Enquiries',
+                'Enquiries successfully completed or closed',
+                'enquiries',
+                details.completedEnquiries
+              )
+            }
+            className="cursor-pointer transition-transform hover:-translate-y-0.5 active:scale-95"
+          >
+            <StatCard
+              title="Completed"
+              value={counters.completedEnquiriesCount || 0}
+              subtitle="Successfully closed enquiries"
+              icon={CheckCircle2}
+              color="emerald"
+            />
+          </div>
+        </div>
+      </div>
 
       {/* 1st ROW: FIRM TASK PROCESS OVERVIEW (SHOW IN 1ST AS REQUESTED) */}
       <div className="space-y-2">

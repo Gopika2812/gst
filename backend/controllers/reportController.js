@@ -3,6 +3,7 @@ const Invoice = require('../models/Invoice');
 const Task = require('../models/Task');
 const User = require('../models/User');
 const Certification = require('../models/Certification');
+const Enquiry = require('../models/Enquiry');
 
 // Executive Dashboard Counters & Summary (with Date, Department & User Filtration)
 exports.getDashboardSummary = async (req, res) => {
@@ -74,47 +75,30 @@ exports.getDashboardSummary = async (req, res) => {
           ...(deptList.length > 0 ? [{ department: { $in: deptList } }] : [])
         ]
       });
-      certFilter.assignedEmployee = userId;
-      invoiceFilter.assignedEmployee = userId;
+      certFilter.responsibleEmployee = userId;
     }
 
-    // Department Filter
+    // Apply explicit Department Filter from UI
     if (department && department !== 'All') {
       const targetDepts = department === 'Income Tax' || department === 'IT Filing' ? ['Income Tax', 'IT Filing'] : [department];
       taskAndConditions.push({ department: { $in: targetDepts } });
       certFilter.department = { $in: targetDepts };
     }
 
-    // Employee Filter
+    // Apply explicit Employee Filter from UI
     if (employeeId && employeeId !== 'All') {
       taskAndConditions.push({ assignedEmployee: employeeId });
-      invoiceFilter.assignedEmployee = employeeId;
+      certFilter.responsibleEmployee = employeeId;
       clientFilter.responsibleEmployee = employeeId;
+      invoiceFilter.assignedEmployee = employeeId;
     }
 
-    // Date Filters
-    let clientDateQuery = {};
-    let invoiceDateQuery = {};
+    // Date range filters
+    const clientDateQuery = startRange && endRange ? { createdAt: { $gte: startRange, $lte: endRange } } : {};
+    const invoiceDateQuery = startRange && endRange ? { invoiceDate: { $gte: startRange, $lte: endRange } } : {};
 
     if (startRange && endRange) {
-      if (dateFilter === 'Today') {
-        taskAndConditions.push({
-          $or: [
-            { dueDate: { $gte: startRange, $lte: endRange } },
-            { createdAt: { $gte: startRange, $lte: endRange } },
-            { status: { $in: ['Assigned', 'In Progress'] } }
-          ]
-        });
-      } else {
-        taskAndConditions.push({
-          $or: [
-            { dueDate: { $gte: startRange, $lte: endRange } },
-            { createdAt: { $gte: startRange, $lte: endRange } }
-          ]
-        });
-      }
-      clientDateQuery = { createdAt: { $gte: startRange, $lte: endRange } };
-      invoiceDateQuery = { invoiceDate: { $gte: startRange, $lte: endRange } };
+      taskAndConditions.push({ dueDate: { $gte: startRange, $lte: endRange } });
     }
 
     const finalTaskFilter = taskAndConditions.length === 0
@@ -132,7 +116,8 @@ exports.getDashboardSummary = async (req, res) => {
       allFilteredTasks,
       allFilteredInvoices,
       allClientsList,
-      allPendingCertificates
+      allPendingCertificates,
+      allEnquiries
     ] = await Promise.all([
       Client.countDocuments(clientFilter).catch(() => 0),
       Client.countDocuments(startRange && endRange ? { ...clientFilter, ...clientDateQuery } : clientFilter).catch(() => 0),
@@ -161,11 +146,20 @@ exports.getDashboardSummary = async (req, res) => {
         .populate('assignedEmployee', 'name email department')
         .sort({ createdAt: -1 })
         .lean()
+        .catch(() => []),
+      Enquiry.find()
+        .populate('createdBy', 'name email role department')
+        .populate('assignedTo', 'name email role department')
+        .populate('convertedTask', 'taskName status dueDate priority')
+        .populate('convertedClient', 'clientName tradeName clientCode phone gstin')
+        .sort({ createdAt: -1 })
+        .lean()
         .catch(() => [])
     ]);
 
     const tasksList = allFilteredTasks || [];
     const invoicesList = allFilteredInvoices || [];
+    const enquiriesList = allEnquiries || [];
 
     // Compute Task Process Counters from filtered tasks
     const todaysTasks = tasksList.filter((t) => {
@@ -185,6 +179,17 @@ exports.getDashboardSummary = async (req, res) => {
       return !isNaN(due.getTime()) && due < now && t.status !== 'Completed' && t.status !== "Can't Complete";
     });
 
+    // Compute Enquiries Counters (Today, In Progress, Converted, Completed)
+    const todaysEnquiries = enquiriesList.filter((e) => {
+      if (!e) return false;
+      const created = e.createdAt ? new Date(e.createdAt) : null;
+      const isToday = (d) => d && !isNaN(d.getTime()) && d.toDateString() === now.toDateString();
+      return isToday(created) || e.status === 'New';
+    });
+    const inProgressEnquiries = enquiriesList.filter((e) => e && (e.status === 'In Discussion' || e.status === 'In Progress'));
+    const convertedEnquiries = enquiriesList.filter((e) => e && (e.status === 'Converted' || Boolean(e.convertedTask)));
+    const completedEnquiries = enquiriesList.filter((e) => e && (e.status === 'Closed' || e.status === 'Completed'));
+
     // Billing Counters
     const totalBillingValue = invoicesList.reduce((sum, inv) => sum + (Number(inv.total) || 0), 0);
     const totalCollected = invoicesList.reduce((sum, inv) => sum + (Number(inv.paidAmount) || 0), 0);
@@ -201,6 +206,11 @@ exports.getDashboardSummary = async (req, res) => {
         completedTasksCount: completedTasks.length,
         cantCompleteTasksCount: cantCompleteTasks.length,
         overdueTasksCount: overdueTasks.length,
+        todaysEnquiriesCount: todaysEnquiries.length,
+        inProgressEnquiriesCount: inProgressEnquiries.length,
+        convertedEnquiriesCount: convertedEnquiries.length,
+        completedEnquiriesCount: completedEnquiries.length,
+        totalEnquiriesCount: enquiriesList.length,
         totalBillingValue,
         totalCollected,
         totalPending
@@ -211,6 +221,11 @@ exports.getDashboardSummary = async (req, res) => {
         completedTasks,
         cantCompleteTasks,
         overdueTasks,
+        todaysEnquiries,
+        inProgressEnquiries,
+        convertedEnquiries,
+        completedEnquiries,
+        allEnquiries: enquiriesList,
         allFilteredTasks: tasksList,
         allFilteredInvoices: invoicesList,
         allClientsList: allClientsList || [],

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { X, Plus, Trash2, ArrowRight, ShieldCheck, CheckSquare } from 'lucide-react';
+import ReactDOM from 'react-dom';
+import { X, Plus, Trash2, ArrowRight, ShieldCheck, CheckSquare, Receipt } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import api from '../../services/api';
 
@@ -230,9 +231,9 @@ const InvoiceModal = ({ isOpen, onClose, onRefresh, clients = [], employees = []
     }
   };
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-sm overflow-y-auto">
-      <div className="relative w-full max-w-3xl rounded-2xl bg-white p-6 shadow-2xl max-h-[90vh] overflow-y-auto">
+  return ReactDOM.createPortal(
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-950/70 p-3 sm:p-5 backdrop-blur-sm overflow-y-auto">
+      <div className="relative w-full max-w-3xl rounded-3xl bg-white p-5 sm:p-7 shadow-2xl border border-slate-100 max-h-[92vh] overflow-y-auto my-auto">
         <div className="flex items-center justify-between border-b border-slate-100 pb-4">
           <div>
             <h3 className="text-lg font-bold text-[#0A1E3F]">
@@ -581,7 +582,8 @@ const InvoiceModal = ({ isOpen, onClose, onRefresh, clients = [], employees = []
           </div>
         </form>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };
 
