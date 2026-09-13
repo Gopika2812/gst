@@ -311,3 +311,104 @@ exports.getEmployeePerformanceReport = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+// Service-Based Turnover & Revenue Breakdown Report
+exports.getServicesTurnoverReport = async (req, res) => {
+  try {
+    const { startDate, endDate, department } = req.query;
+    const dateQuery = {};
+    if (startDate && endDate) {
+      dateQuery.invoiceDate = {
+        $gte: new Date(startDate),
+        $lte: new Date(endDate)
+      };
+    }
+
+    const invoices = await Invoice.find(dateQuery)
+      .populate('client', 'clientName tradeName pan gstin phone email')
+      .populate('assignedEmployee', 'name email role department')
+      .sort({ invoiceDate: -1 })
+      .lean();
+
+    const serviceMap = {};
+    let totalFirmTurnover = 0;
+    let totalFirmCollected = 0;
+    let totalFirmOutstanding = 0;
+
+    invoices.forEach((inv) => {
+      const sType = (inv.serviceType || 'General Professional Service').trim();
+      const total = Number(inv.total) || 0;
+      const paid = Number(inv.paidAmount) || 0;
+      const pending = Number(inv.pendingAmount) || 0;
+
+      totalFirmTurnover += total;
+      totalFirmCollected += paid;
+      totalFirmOutstanding += pending;
+
+      if (!serviceMap[sType]) {
+        serviceMap[sType] = {
+          serviceName: sType,
+          department: inv.assignedGroup || 'General',
+          invoiceCount: 0,
+          uniqueClients: new Set(),
+          billedTurnover: 0,
+          collectedAmount: 0,
+          outstandingAmount: 0,
+          paidInvoicesCount: 0,
+          pendingInvoicesCount: 0,
+          partialInvoicesCount: 0
+        };
+      }
+
+      serviceMap[sType].invoiceCount += 1;
+      if (inv.client?._id) {
+        serviceMap[sType].uniqueClients.add(String(inv.client._id));
+      }
+      serviceMap[sType].billedTurnover += total;
+      serviceMap[sType].collectedAmount += paid;
+      serviceMap[sType].outstandingAmount += pending;
+
+      if (inv.paymentStatus === 'Paid') {
+        serviceMap[sType].paidInvoicesCount += 1;
+      } else if (inv.paymentStatus === 'Partial') {
+        serviceMap[sType].partialInvoicesCount += 1;
+      } else {
+        serviceMap[sType].pendingInvoicesCount += 1;
+      }
+    });
+
+    const servicesSummary = Object.values(serviceMap)
+      .map((srv) => ({
+        serviceName: srv.serviceName,
+        department: srv.department,
+        invoiceCount: srv.invoiceCount,
+        clientCount: srv.uniqueClients.size,
+        billedTurnover: srv.billedTurnover,
+        collectedAmount: srv.collectedAmount,
+        outstandingAmount: srv.outstandingAmount,
+        paidInvoicesCount: srv.paidInvoicesCount,
+        pendingInvoicesCount: srv.pendingInvoicesCount,
+        partialInvoicesCount: srv.partialInvoicesCount,
+        collectionRate: srv.billedTurnover > 0 ? Math.round((srv.collectedAmount / srv.billedTurnover) * 100) : 0,
+        turnoverShare: totalFirmTurnover > 0 ? Math.round((srv.billedTurnover / totalFirmTurnover) * 100) : 0
+      }))
+      .sort((a, b) => b.billedTurnover - a.billedTurnover);
+
+    res.json({
+      summary: {
+        totalFirmTurnover,
+        totalFirmCollected,
+        totalFirmOutstanding,
+        totalInvoices: invoices.length,
+        totalServicesOffered: servicesSummary.length,
+        overallCollectionRate: totalFirmTurnover > 0 ? Math.round((totalFirmCollected / totalFirmTurnover) * 100) : 0
+      },
+      services: servicesSummary,
+      invoices
+    });
+  } catch (error) {
+    console.error('Error in getServicesTurnoverReport:', error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
