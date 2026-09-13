@@ -1,9 +1,16 @@
 const Task = require('../models/Task');
 const Client = require('../models/Client');
 const User = require('../models/User');
+const Certification = require('../models/Certification');
 const { logAudit } = require('../middleware/auditLogger');
 
 const { getFileUrl } = require('../middleware/uploadMiddleware');
+
+// Generate Client Code helper
+const generateClientCode = async () => {
+  const count = await Client.countDocuments();
+  return `CLI-${new Date().getFullYear()}-${String(count + 1).padStart(4, '0')}`;
+};
 
 // Create Task Assignment
 exports.createTask = async (req, res) => {
@@ -19,12 +26,101 @@ exports.createTask = async (req, res) => {
       reminderDays,
       repeat,
       remarks,
-      status
+      status,
+      registerClient,
+      clientData
     } = req.body;
 
     let validClientId = null;
+    let createdClientObj = null;
 
-    if (clientId && clientId.trim() !== '') {
+    if (registerClient && clientData) {
+      const cName = (clientData.clientName || '').trim();
+      const cPhone = (clientData.phone || '').trim();
+      const cEmail = (clientData.email || '').trim();
+      const cTradeName = (clientData.tradeName || '').trim();
+      const cType = clientData.clientType || 'Proprietorship';
+      const cPan = clientData.pan ? clientData.pan.trim().toUpperCase() : '';
+      const cGstin = clientData.gstin ? clientData.gstin.trim().toUpperCase() : '';
+      const cAddress = (clientData.address || '').trim();
+      const cCity = (clientData.city || 'Chennai').trim();
+      const cState = (clientData.state || 'Tamil Nadu').trim();
+      const cPincode = (clientData.pincode || '').trim();
+
+      if (cName) {
+        let existingClient = null;
+        if (cPhone) {
+          existingClient = await Client.findOne({
+            $or: [
+              { phone: cPhone },
+              { phone: `+91${cPhone}` },
+              { phone: cPhone.replace('+91', '') }
+            ]
+          });
+        }
+
+        if (existingClient) {
+          validClientId = existingClient._id;
+          createdClientObj = existingClient;
+        } else {
+          const clientCode = await generateClientCode();
+          createdClientObj = await Client.create({
+            clientCode,
+            clientName: cName,
+            tradeName: cTradeName,
+            phone: cPhone,
+            email: cEmail,
+            clientType: cType,
+            pan: cPan,
+            gstin: cGstin,
+            address: cAddress,
+            city: cCity,
+            state: cState,
+            pincode: cPincode,
+            registrationCategory: 'New Client',
+            status: 'Active',
+            creditLimit: 50000,
+            openingBalance: 0,
+            createdBy: req.user._id,
+            responsibleEmployee: assignedEmployee || req.user._id,
+            subscribedServices: [
+              {
+                department: department || 'GST',
+                serviceName: `${department || 'GST'} Service`,
+                subServiceName: taskName || `${department || 'GST'} Task`,
+                periodicity: repeat || 'Monthly',
+                status: 'Active'
+              }
+            ]
+          });
+
+          validClientId = createdClientObj._id;
+
+          try {
+            await Certification.create({
+              client: createdClientObj._id,
+              certificateType: `${department || 'GST'} Registration`,
+              applicationDate: new Date(),
+              status: 'Waiting For Certificate',
+              certificateReceived: 'No',
+              movedToBilling: false,
+              noCertificateRequired: false,
+              remarks: `Client registered via Task Assignment shortcut for "${cName}"`
+            });
+          } catch (certErr) {
+            console.warn('Certification tracker notice:', certErr.message);
+          }
+
+          await logAudit(
+            req.user,
+            'Create Client',
+            'Clients',
+            `Registered client "${createdClientObj.clientName}" (${createdClientObj.clientCode}) via task creation shortcut`,
+            req
+          );
+        }
+      }
+    } else if (clientId && clientId.trim() !== '') {
       const clientObj = await Client.findById(clientId);
       if (!clientObj) {
         return res.status(404).json({ message: 'Selected client not found' });
@@ -53,9 +149,21 @@ exports.createTask = async (req, res) => {
       attachment: fileAttachment
     });
 
-    await logAudit(req.user, 'Task Assignment', 'Task Board', `Assigned task ${taskName} to employee ID: ${assignedEmployee}`, req);
+    await logAudit(
+      req.user,
+      'Task Assignment',
+      'Task Board',
+      `Assigned task "${taskName}" to employee ID: ${assignedEmployee}${createdClientObj ? ` & Linked Client: ${createdClientObj.clientName}` : ''}`,
+      req
+    );
 
-    res.status(201).json({ message: 'Task assigned successfully', task });
+    res.status(201).json({
+      message: createdClientObj
+        ? `Client "${createdClientObj.clientName}" registered & Task assigned successfully!`
+        : 'Task assigned successfully',
+      task,
+      client: createdClientObj
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

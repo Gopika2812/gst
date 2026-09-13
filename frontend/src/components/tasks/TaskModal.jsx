@@ -1,5 +1,19 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { X, Calendar, UserCheck, AlertCircle, FileText, Building2, User, Search, ChevronDown, Check } from 'lucide-react';
+import {
+  X,
+  Calendar,
+  UserCheck,
+  AlertCircle,
+  FileText,
+  Building2,
+  User,
+  Search,
+  ChevronDown,
+  Check,
+  UserPlus,
+  Users,
+  Sparkles
+} from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import api from '../../services/api';
 
@@ -13,6 +27,23 @@ const TaskModal = ({ isOpen, onClose, onRefresh, employees = [], clients = [], d
   const [selectedClient, setSelectedClient] = useState('');
   const [dueDate, setDueDate] = useState('');
   const [priority, setPriority] = useState('Medium');
+
+  // Client Selection Mode: 'existing' | 'register' | 'none'
+  const [clientMode, setClientMode] = useState('existing');
+
+  // Shortcut Client Form State
+  const [shortcutClient, setShortcutClient] = useState({
+    clientName: '',
+    tradeName: '',
+    phone: '',
+    email: '',
+    clientType: 'Proprietorship',
+    pan: '',
+    gstin: '',
+    city: 'Chennai',
+    state: 'Tamil Nadu',
+    address: ''
+  });
 
   // Client Search state
   const [clientSearchQuery, setClientSearchQuery] = useState('');
@@ -62,6 +93,10 @@ const TaskModal = ({ isOpen, onClose, onRefresh, employees = [], clients = [], d
 
   if (!isOpen) return null;
 
+  const handleShortcutFieldChange = (field, value) => {
+    setShortcutClient((prev) => ({ ...prev, [field]: value }));
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -80,13 +115,24 @@ const TaskModal = ({ isOpen, onClose, onRefresh, employees = [], clients = [], d
       return;
     }
 
+    if (clientMode === 'register') {
+      if (!shortcutClient.clientName.trim()) {
+        setError('Please enter Client Name for registration');
+        return;
+      }
+      if (!shortcutClient.phone.trim()) {
+        setError('Please enter Client Phone Number');
+        return;
+      }
+    }
+
     setLoading(true);
     setError('');
 
     try {
       await api.post('/tasks', {
-        client: selectedClient || null,
-        taskType: selectedClient ? 'Client Task' : 'Common Task',
+        client: clientMode === 'existing' ? (selectedClient || null) : null,
+        taskType: clientMode === 'existing' ? (selectedClient ? 'Client Task' : 'Common Task') : clientMode === 'register' ? 'Client Task' : 'Common Task',
         department,
         taskName,
         priority,
@@ -94,7 +140,9 @@ const TaskModal = ({ isOpen, onClose, onRefresh, employees = [], clients = [], d
         dueDate,
         repeat: 'One Time',
         remarks,
-        status: 'Assigned'
+        status: 'Assigned',
+        registerClient: clientMode === 'register',
+        clientData: clientMode === 'register' ? shortcutClient : null
       });
 
       // Reset Form State
@@ -104,6 +152,19 @@ const TaskModal = ({ isOpen, onClose, onRefresh, employees = [], clients = [], d
       setRemarks('');
       setDueDate('');
       setPriority('Medium');
+      setClientMode('existing');
+      setShortcutClient({
+        clientName: '',
+        tradeName: '',
+        phone: '',
+        email: '',
+        clientType: 'Proprietorship',
+        pan: '',
+        gstin: '',
+        city: 'Chennai',
+        state: 'Tamil Nadu',
+        address: ''
+      });
 
       onRefresh && onRefresh();
       onClose();
@@ -142,7 +203,7 @@ const TaskModal = ({ isOpen, onClose, onRefresh, employees = [], clients = [], d
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-3 sm:p-4 backdrop-blur-sm overflow-y-auto">
-      <div className="relative w-full max-w-xl rounded-3xl bg-white p-5 sm:p-6 shadow-2xl border border-slate-100 max-h-[92vh] overflow-y-auto">
+      <div className="relative w-full max-w-2xl rounded-3xl bg-white p-5 sm:p-7 shadow-2xl border border-slate-100 max-h-[94vh] overflow-y-auto">
         
         {/* Modal Header */}
         <div className="flex items-center justify-between border-b border-slate-100 pb-4">
@@ -159,7 +220,7 @@ const TaskModal = ({ isOpen, onClose, onRefresh, employees = [], clients = [], d
           </div>
           <button
             onClick={onClose}
-            className="rounded-xl p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition"
+            className="rounded-xl p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition cursor-pointer"
             aria-label="Close modal"
           >
             <X className="h-5 w-5" />
@@ -186,7 +247,7 @@ const TaskModal = ({ isOpen, onClose, onRefresh, employees = [], clients = [], d
                   key={d}
                   type="button"
                   onClick={() => setDepartment(d)}
-                  className={`rounded-xl py-2.5 px-2 text-xs font-bold transition border ${
+                  className={`rounded-xl py-2.5 px-2 text-xs font-bold transition border cursor-pointer ${
                     department === d
                       ? 'bg-[#52A636] text-white border-[#52A636] shadow-sm'
                       : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
@@ -198,118 +259,278 @@ const TaskModal = ({ isOpen, onClose, onRefresh, employees = [], clients = [], d
             </div>
           </div>
 
-          {/* 2. Searchable Registered Client Selection */}
-          <div ref={clientDropdownRef} className="relative">
-            <div className="flex items-center justify-between mb-1.5">
-              <label className="text-xs font-bold text-slate-700 flex items-center space-x-1.5">
-                <User className="h-4 w-4 text-[#0A1E3F]" />
-                <span>Registered Client (Optional)</span>
+          {/* 2. Client Association Section (with Register Client Shortcut) */}
+          <div className="rounded-2xl border border-slate-200 bg-slate-50/70 p-3.5 sm:p-4">
+            <div className="flex items-center justify-between mb-2.5">
+              <label className="text-xs font-extrabold text-[#0A1E3F] flex items-center space-x-1.5">
+                <User className="h-4 w-4 text-[#52A636]" />
+                <span>Client Association</span>
               </label>
-              {selectedClient && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    setSelectedClient('');
-                    setClientSearchQuery('');
-                  }}
-                  className="text-[11px] font-semibold text-rose-600 hover:underline cursor-pointer"
-                >
-                  Clear Selection
-                </button>
-              )}
             </div>
 
-            {/* Custom Dropdown Trigger Button */}
-            <div
-              onClick={() => setIsClientDropdownOpen(!isClientDropdownOpen)}
-              className={`w-full rounded-xl border p-2.5 text-xs font-medium transition cursor-pointer flex items-center justify-between ${
-                isClientDropdownOpen
-                  ? 'border-[#52A636] bg-white ring-2 ring-[#52A636]/20'
-                  : 'border-slate-200 bg-slate-50/50 hover:bg-slate-50'
-              }`}
-            >
-              <div className="truncate pr-2">
-                {currentClientObj ? (
-                  <span className="font-bold text-[#0A1E3F]">
-                    {currentClientObj.clientName}
-                    {currentClientObj.tradeName ? ` (${currentClientObj.tradeName})` : ''}
-                    {currentClientObj.phone ? ` - ${currentClientObj.phone}` : ''}
-                  </span>
-                ) : (
-                  <span className="text-slate-400">Select registered client or leave empty for general task...</span>
-                )}
-              </div>
-              <ChevronDown className={`h-4 w-4 text-slate-400 shrink-0 transition-transform duration-200 ${isClientDropdownOpen ? 'rotate-180 text-[#52A636]' : ''}`} />
+            {/* Mode Switcher Tabs */}
+            <div className="grid grid-cols-3 gap-1.5 bg-slate-200/70 p-1 rounded-xl mb-3 text-xs font-bold">
+              <button
+                type="button"
+                onClick={() => setClientMode('existing')}
+                className={`py-1.5 px-2 rounded-lg transition flex items-center justify-center space-x-1 cursor-pointer ${
+                  clientMode === 'existing'
+                    ? 'bg-[#0A1E3F] text-white shadow-xs'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                <Users className="h-3.5 w-3.5" />
+                <span>Select Client</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setClientMode('register')}
+                className={`py-1.5 px-2 rounded-lg transition flex items-center justify-center space-x-1 cursor-pointer ${
+                  clientMode === 'register'
+                    ? 'bg-[#52A636] text-white shadow-xs'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                <UserPlus className="h-3.5 w-3.5" />
+                <span>+ Register New Client</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setClientMode('none');
+                  setSelectedClient('');
+                }}
+                className={`py-1.5 px-2 rounded-lg transition flex items-center justify-center space-x-1 cursor-pointer ${
+                  clientMode === 'none'
+                    ? 'bg-slate-700 text-white shadow-xs'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                <span>No Client (General)</span>
+              </button>
             </div>
 
-            {/* Search Dropdown Menu */}
-            {isClientDropdownOpen && (
-              <div className="absolute left-0 right-0 top-full z-50 mt-1.5 max-h-64 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xl flex flex-col">
-                {/* Search Bar Input */}
-                <div className="p-2 border-b border-slate-100 bg-slate-50/70">
-                  <div className="relative flex items-center">
-                    <Search className="absolute left-2.5 h-3.5 w-3.5 text-slate-400" />
-                    <input
-                      type="text"
-                      autoFocus
-                      value={clientSearchQuery}
-                      onChange={(e) => setClientSearchQuery(e.target.value)}
-                      placeholder="Search client by name, trade name, or phone..."
-                      className="w-full rounded-lg border border-slate-200 bg-white py-1.5 pl-8 pr-3 text-xs text-slate-800 outline-none focus:border-[#52A636]"
-                    />
-                    {clientSearchQuery && (
-                      <button
-                        type="button"
-                        onClick={() => setClientSearchQuery('')}
-                        className="absolute right-2 text-slate-400 hover:text-slate-600"
-                      >
-                        <X className="h-3 w-3" />
-                      </button>
-                    )}
-                  </div>
-                </div>
-
-                {/* Clients List */}
-                <div className="overflow-y-auto max-h-48 divide-y divide-slate-50 p-1">
-                  {/* Option: No Client */}
-                  <div
-                    onClick={() => handleSelectClient(null)}
-                    className={`flex items-center justify-between rounded-xl px-3 py-2 text-xs transition cursor-pointer ${
-                      !selectedClient ? 'bg-amber-50 text-[#52A636] font-bold' : 'text-slate-600 hover:bg-slate-50'
-                    }`}
-                  >
-                    <span>No Client (Internal General Task)</span>
-                    {!selectedClient && <Check className="h-4 w-4 text-[#52A636]" />}
-                  </div>
-
-                  {filteredClients.map((client) => {
-                    const isSelected = selectedClient === client._id;
-                    return (
-                      <div
-                        key={client._id}
-                        onClick={() => handleSelectClient(client)}
-                        className={`flex items-center justify-between rounded-xl px-3 py-2 text-xs transition cursor-pointer ${
-                          isSelected ? 'bg-amber-50 text-[#0A1E3F] font-bold' : 'hover:bg-slate-50 text-slate-700'
-                        }`}
-                      >
-                        <div className="truncate pr-2">
-                          <div className="font-semibold text-[#0A1E3F] truncate">{client.clientName}</div>
-                          <div className="text-[11px] text-slate-400 truncate">
-                            {client.tradeName && <span className="mr-2">{client.tradeName}</span>}
-                            {client.phone && <span>{client.phone}</span>}
-                          </div>
-                        </div>
-                        {isSelected && <Check className="h-4 w-4 text-[#52A636] shrink-0" />}
-                      </div>
-                    );
-                  })}
-
-                  {filteredClients.length === 0 && (
-                    <div className="py-4 text-center text-xs text-slate-400">
-                      No matching clients found
-                    </div>
+            {/* TAB 1: EXISTING CLIENT DROPDOWN */}
+            {clientMode === 'existing' && (
+              <div ref={clientDropdownRef} className="relative bg-white p-3 rounded-xl border border-slate-200">
+                <div className="flex items-center justify-between mb-1.5">
+                  <span className="text-[11px] font-bold text-slate-700">Choose Registered Client:</span>
+                  {selectedClient && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSelectedClient('');
+                        setClientSearchQuery('');
+                      }}
+                      className="text-[11px] font-semibold text-rose-600 hover:underline cursor-pointer"
+                    >
+                      Clear Selection
+                    </button>
                   )}
                 </div>
+
+                <div
+                  onClick={() => setIsClientDropdownOpen(!isClientDropdownOpen)}
+                  className={`w-full rounded-xl border p-2.5 text-xs font-medium transition cursor-pointer flex items-center justify-between ${
+                    isClientDropdownOpen
+                      ? 'border-[#52A636] bg-white ring-2 ring-[#52A636]/20'
+                      : 'border-slate-200 bg-slate-50/50 hover:bg-slate-50'
+                  }`}
+                >
+                  <div className="truncate pr-2">
+                    {currentClientObj ? (
+                      <span className="font-bold text-[#0A1E3F]">
+                        {currentClientObj.clientName}
+                        {currentClientObj.tradeName ? ` (${currentClientObj.tradeName})` : ''}
+                        {currentClientObj.phone ? ` - ${currentClientObj.phone}` : ''}
+                      </span>
+                    ) : (
+                      <span className="text-slate-400">Select registered client or search by name / phone...</span>
+                    )}
+                  </div>
+                  <ChevronDown className={`h-4 w-4 text-slate-400 shrink-0 transition-transform duration-200 ${isClientDropdownOpen ? 'rotate-180 text-[#52A636]' : ''}`} />
+                </div>
+
+                {isClientDropdownOpen && (
+                  <div className="absolute left-0 right-0 top-full z-50 mt-1.5 max-h-60 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xl flex flex-col">
+                    <div className="p-2 border-b border-slate-100 bg-slate-50/70">
+                      <div className="relative flex items-center">
+                        <Search className="absolute left-2.5 h-3.5 w-3.5 text-slate-400" />
+                        <input
+                          type="text"
+                          autoFocus
+                          value={clientSearchQuery}
+                          onChange={(e) => setClientSearchQuery(e.target.value)}
+                          placeholder="Search client by name, trade name, or phone..."
+                          className="w-full rounded-lg border border-slate-200 bg-white py-1.5 pl-8 pr-3 text-xs text-slate-800 outline-none focus:border-[#52A636]"
+                        />
+                        {clientSearchQuery && (
+                          <button
+                            type="button"
+                            onClick={() => setClientSearchQuery('')}
+                            className="absolute right-2 text-slate-400 hover:text-slate-600"
+                          >
+                            <X className="h-3 w-3" />
+                          </button>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="overflow-y-auto max-h-44 divide-y divide-slate-50 p-1">
+                      {filteredClients.map((client) => {
+                        const isSelected = selectedClient === client._id;
+                        return (
+                          <div
+                            key={client._id}
+                            onClick={() => handleSelectClient(client)}
+                            className={`flex items-center justify-between rounded-xl px-3 py-2 text-xs transition cursor-pointer ${
+                              isSelected ? 'bg-amber-50 text-[#0A1E3F] font-bold' : 'hover:bg-slate-50 text-slate-700'
+                            }`}
+                          >
+                            <div className="truncate pr-2">
+                              <div className="font-semibold text-[#0A1E3F] truncate">{client.clientName}</div>
+                              <div className="text-[11px] text-slate-400 truncate">
+                                {client.tradeName && <span className="mr-2">{client.tradeName}</span>}
+                                {client.phone && <span>{client.phone}</span>}
+                              </div>
+                            </div>
+                            {isSelected && <Check className="h-4 w-4 text-[#52A636] shrink-0" />}
+                          </div>
+                        );
+                      })}
+
+                      {filteredClients.length === 0 && (
+                        <div className="py-4 text-center text-xs text-slate-400">
+                          No matching clients found
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* TAB 2: REGISTER NEW CLIENT SHORTCUT */}
+            {clientMode === 'register' && (
+              <div className="space-y-3 bg-white p-3.5 rounded-xl border border-slate-200/80 shadow-xs">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-[11px] font-bold text-slate-700 block mb-1">
+                      Client / Business Name *
+                    </label>
+                    <input
+                      type="text"
+                      required={clientMode === 'register'}
+                      value={shortcutClient.clientName}
+                      onChange={(e) => handleShortcutFieldChange('clientName', e.target.value)}
+                      placeholder="e.g. Ramesh Kumar"
+                      className="w-full rounded-lg border border-slate-200 bg-slate-50/50 p-2 text-xs font-medium text-slate-800 outline-none focus:border-[#52A636] focus:bg-white"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[11px] font-bold text-slate-700 block mb-1">
+                      Trade / Brand Name
+                    </label>
+                    <input
+                      type="text"
+                      value={shortcutClient.tradeName}
+                      onChange={(e) => handleShortcutFieldChange('tradeName', e.target.value)}
+                      placeholder="e.g. Apex Enterprises"
+                      className="w-full rounded-lg border border-slate-200 bg-slate-50/50 p-2 text-xs font-medium text-slate-800 outline-none focus:border-[#52A636] focus:bg-white"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div>
+                    <label className="text-[11px] font-bold text-slate-700 block mb-1">
+                      Phone Number *
+                    </label>
+                    <input
+                      type="tel"
+                      required={clientMode === 'register'}
+                      value={shortcutClient.phone}
+                      onChange={(e) => handleShortcutFieldChange('phone', e.target.value)}
+                      placeholder="e.g. 9876543210"
+                      className="w-full rounded-lg border border-slate-200 bg-slate-50/50 p-2 text-xs font-medium text-slate-800 outline-none focus:border-[#52A636] focus:bg-white"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[11px] font-bold text-slate-700 block mb-1">
+                      Email Address
+                    </label>
+                    <input
+                      type="email"
+                      value={shortcutClient.email}
+                      onChange={(e) => handleShortcutFieldChange('email', e.target.value)}
+                      placeholder="e.g. client@mail.com"
+                      className="w-full rounded-lg border border-slate-200 bg-slate-50/50 p-2 text-xs font-medium text-slate-800 outline-none focus:border-[#52A636] focus:bg-white"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[11px] font-bold text-slate-700 block mb-1">
+                      Client Type
+                    </label>
+                    <select
+                      value={shortcutClient.clientType}
+                      onChange={(e) => handleShortcutFieldChange('clientType', e.target.value)}
+                      className="w-full rounded-lg border border-slate-200 bg-slate-50/50 p-2 text-xs font-bold text-slate-800 outline-none focus:border-[#52A636] focus:bg-white"
+                    >
+                      <option value="Proprietorship">Proprietorship</option>
+                      <option value="Individual">Individual</option>
+                      <option value="Private Limited">Private Limited</option>
+                      <option value="Partnership">Partnership</option>
+                      <option value="LLP">LLP</option>
+                      <option value="Trust/NGO">Trust/NGO</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div>
+                    <label className="text-[11px] font-bold text-slate-700 block mb-1">
+                      GSTIN (Optional)
+                    </label>
+                    <input
+                      type="text"
+                      value={shortcutClient.gstin}
+                      onChange={(e) => handleShortcutFieldChange('gstin', e.target.value)}
+                      placeholder="33AAAAA0000A1Z5"
+                      className="w-full rounded-lg border border-slate-200 bg-slate-50/50 p-2 text-xs font-medium text-slate-800 uppercase outline-none focus:border-[#52A636] focus:bg-white"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[11px] font-bold text-slate-700 block mb-1">
+                      PAN Number (Optional)
+                    </label>
+                    <input
+                      type="text"
+                      value={shortcutClient.pan}
+                      onChange={(e) => handleShortcutFieldChange('pan', e.target.value)}
+                      placeholder="ABCDE1234F"
+                      className="w-full rounded-lg border border-slate-200 bg-slate-50/50 p-2 text-xs font-medium text-slate-800 uppercase outline-none focus:border-[#52A636] focus:bg-white"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[11px] font-bold text-slate-700 block mb-1">
+                      City & State
+                    </label>
+                    <input
+                      type="text"
+                      value={`${shortcutClient.city}, ${shortcutClient.state}`}
+                      onChange={(e) => handleShortcutFieldChange('city', e.target.value.split(',')[0])}
+                      placeholder="Chennai, Tamil Nadu"
+                      className="w-full rounded-lg border border-slate-200 bg-slate-50/50 p-2 text-xs font-medium text-slate-800 outline-none focus:border-[#52A636] focus:bg-white"
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* TAB 3: NO CLIENT */}
+            {clientMode === 'none' && (
+              <div className="p-3 bg-white rounded-xl border border-slate-200 text-xs text-slate-500">
+                This will create a standalone General/Common Task without client association.
               </div>
             )}
           </div>
@@ -440,7 +661,11 @@ const TaskModal = ({ isOpen, onClose, onRefresh, employees = [], clients = [], d
               disabled={loading}
               className="rounded-xl bg-[#52A636] px-5 py-2.5 text-xs font-extrabold text-white shadow-md transition hover:bg-[#438A2B] disabled:opacity-50 cursor-pointer"
             >
-              {loading ? 'Assigning Task...' : 'Assign Task'}
+              {loading
+                ? 'Processing...'
+                : clientMode === 'register'
+                ? 'Register Client & Assign Task'
+                : 'Assign Task'}
             </button>
           </div>
         </form>
